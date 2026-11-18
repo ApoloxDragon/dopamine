@@ -1,8 +1,10 @@
 const { Timer } = require('../common/scheduling/timer');
 const { RemovingTracksMessage } = require('./messages/removing-tracks-message');
+const { CueTrackPath } = require('./cue-track-path');
 
 class TrackRemover {
-    constructor(folderTrackRepository, trackRepository, fileAccess, workerProxy, logger) {
+    constructor(folderTrackRepository, trackRepository, fileAccess, workerProxy, logger, cueSheetReader = undefined) {
+        this.cueSheetReader = cueSheetReader;
         this.folderTrackRepository = folderTrackRepository;
         this.trackRepository = trackRepository;
         this.fileAccess = fileAccess;
@@ -64,8 +66,12 @@ class TrackRemover {
 
             let numberOfRemovedTracks = 0;
 
+            // Album files that are now indexed through a .cue sheet. Their old whole-file track is removed from the
+            // database (not from disk) so the album does not show twice. Only database rows are affected.
+            const audioPathsCoveredByCueTracks = new Set(tracks.filter((x) => CueTrackPath.isCueTrack(x)).map((x) => x.audioPath));
+
             for (const track of tracks) {
-                if (!this.fileAccess.pathExists(track.path)) {
+                if (!this.#trackExists(track, audioPathsCoveredByCueTracks)) {
                     this.trackRepository.deleteTrack(track.trackId);
                     numberOfRemovedTracks++;
                 }
@@ -88,6 +94,24 @@ class TrackRemover {
 
             this.logger.error(e, 'Could not remove tracks', 'TrackRemover', 'removeTracksThatAreNotFoundOnDiskAsync');
         }
+    }
+
+    #trackExists(track, audioPathsCoveredByCueTracks) {
+        if (!CueTrackPath.isCueTrack(track)) {
+            return this.fileAccess.pathExists(track.path) && !audioPathsCoveredByCueTracks.has(track.path);
+        }
+
+        if (!this.fileAccess.pathExists(track.audioPath) || !this.fileAccess.pathExists(track.cuePath)) {
+            return false;
+        }
+
+        if (this.cueSheetReader === undefined) {
+            return true;
+        }
+
+        // The track must still be in the sheet (a sheet can be edited to have fewer tracks).
+        const parsedPath = CueTrackPath.parse(track.path);
+        return parsedPath !== undefined && this.cueSheetReader.getTrack(track.cuePath, track.audioPath, parsedPath.trackNumber) !== undefined;
     }
 
     async removeFolderTracksForInexistingTracksAsync() {

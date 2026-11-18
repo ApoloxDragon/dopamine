@@ -49,10 +49,15 @@ function loadMigrations() {
 
 function createSandboxDatabase(file = ':memory:') {
     const db = new Database(file);
+    const appliedVersion = db.pragma('user_version', { simple: true });
+    const migrations = loadMigrations();
 
-    for (const migration of loadMigrations()) {
-        db.exec(migration.statements.join('\n'));
+    // Reopening an existing sandbox file only applies the migrations it does not have yet.
+    for (let i = appliedVersion; i < migrations.length; i++) {
+        db.exec(migrations[i].statements.join('\n'));
     }
+
+    db.pragma(`user_version = ${migrations.length}`);
 
     return db;
 }

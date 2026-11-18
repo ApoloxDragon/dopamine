@@ -1,3 +1,5 @@
+const { CueTrackPath } = require('./cue-track-path');
+
 class TrackVerifier {
     constructor(fileAccess) {
         this.fileAccess = fileAccess;
@@ -8,11 +10,23 @@ class TrackVerifier {
             return true;
         }
 
-        if (track.fileSize !== this.fileAccess.getFileSizeInBytes(track.path)) {
+        // For CUE tracks, check the album file (not the virtual path) and the sheet.
+        const audioPath = CueTrackPath.getAudioPath(track);
+
+        if (track.fileSize !== this.fileAccess.getFileSizeInBytes(audioPath)) {
             return true;
         }
 
-        return track.dateFileModified !== this.fileAccess.getDateModifiedInTicks(track.path);
+        if (CueTrackPath.isCueTrack(track)) {
+            const dateModified = Math.max(
+                this.fileAccess.getDateModifiedInTicks(audioPath),
+                this.fileAccess.getDateModifiedInTicks(track.cuePath),
+            );
+
+            return track.dateFileModified !== dateModified;
+        }
+
+        return track.dateFileModified !== this.fileAccess.getDateModifiedInTicks(audioPath);
     }
 
     doesTrackNeedIndexing(track) {

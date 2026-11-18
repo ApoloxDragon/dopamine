@@ -29,6 +29,13 @@ class TrackAdder {
             for (let i = 0; i < indexablePaths.length; i++) {
                 try {
                     const newTrack = new Track(indexablePaths[i].path);
+
+                    if (indexablePaths[i].cue !== undefined) {
+                        newTrack.audioPath = indexablePaths[i].cue.audioPath;
+                        newTrack.cuePath = indexablePaths[i].cue.cuePath;
+                        this.#removeWholeFileTrack(newTrack.audioPath);
+                    }
+
                     this.trackFiller.addFileMetadataToTrack(newTrack, false);
 
                     this.trackRepository.addTrack(newTrack);
@@ -75,6 +82,27 @@ class TrackAdder {
 
             this.logger.error(e, 'A problem occurred while adding tracks', 'TrackAdder', 'addTracksThatAreNotInTheDatabaseAsync');
         }
+    }
+
+    /**
+     * When an album file gets a .cue sheet, the track that was indexed for the whole file (before the sheet existed) is
+     * replaced by the cue tracks. Only the database row is deleted; the file on disk is never touched.
+     */
+    #removeWholeFileTrack(audioPath) {
+        const wholeFileTrack = this.trackRepository.getTrackByPath(audioPath);
+
+        if (wholeFileTrack === undefined || wholeFileTrack === null) {
+            return;
+        }
+
+        this.trackRepository.deleteTrack(wholeFileTrack.trackId);
+        this.folderTrackRepository.deleteFolderTracksForInexistingTracks();
+
+        this.logger.info(
+            `Replaced whole-file track '${audioPath}' by its cue sheet tracks`,
+            'TrackAdder',
+            'removeWholeFileTrack',
+        );
     }
 
     async #getIndexablePathsAsync(skipRemovedFiles) {

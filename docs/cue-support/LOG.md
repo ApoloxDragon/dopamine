@@ -38,3 +38,17 @@ Entry kinds: `Added`, `Changed`, `Fixed`, `Tooling`, `Note`. Anything uncertain 
 
 - **2026-11-18** · `Tooling` · scripts/dev/db-sandbox.js builds a SQLite db from the real migrations for repository checks
     - Requires better-sqlite3 built for Node (npm rebuild better-sqlite3)
+
+- **2026-11-18** · `Added` · Worker indexing of CUE albums
+    - cue-track-path.js: virtual path helpers ('<audio file>|<track number>')
+    - cue-sheet-reader.js: reads and caches sheets, resolves the FILE line to an audio file on disk (see DRAFTS D7)
+    - IndexablePathFetcher emits one path per cue track and skips the covered album file (DRAFTS D3)
+    - TrackFiller reads tags from the real album file, then applies sheet values (title, performer, album, album artist, genre, year, number, count, start/end, duration). Lyrics and file rating are not copied to cue tracks.
+    - TrackVerifier checks the album file and the sheet for changes; TrackRemover keeps cue tracks while file, sheet and track number exist
+    - TrackAdder replaces an old whole-file row by the cue tracks (database row only, never the file)
+    - All new constructor arguments are optional and last, so existing behaviour and the 152 existing tests are unchanged
+
+- **2026-11-18** · `Fixed` · Whole-file track stayed listed until a second re-index after adding a sheet (indexer runs remove before add); TrackAdder now replaces it immediately
+
+- **2026-11-18** · `Tooling` · index-sandbox.js runs the real indexing pipeline on a folder; cue-scenarios.sh runs 10 end-to-end scenarios; db-sandbox.js now reopens existing files
+    - Verified with the real Oracles and Veleno sheets next to silent FLACs of album length

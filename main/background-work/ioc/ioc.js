@@ -25,6 +25,8 @@ const { TrackRemover } = require('../indexing/track-remover');
 const { TrackAdder } = require('../indexing/track-adder');
 const { Indexer } = require('../indexing/indexer');
 const { TrackIndexer } = require('../indexing/track-indexer');
+const { CueParser } = require('../indexing/cue-parser');
+const { CueSheetReader } = require('../indexing/cue-sheet-reader');
 
 global.iocContainer = new Map();
 
@@ -42,6 +44,8 @@ class Ioc {
 
         global.iocContainer.set('FileAccess', new FileAccess(Ioc.get('DateTime')));
 
+        global.iocContainer.set('CueParser', new CueParser());
+        global.iocContainer.set('CueSheetReader', new CueSheetReader(Ioc.get('CueParser'), Ioc.get('Logger')));
         global.iocContainer.set('TrackVerifier', new TrackVerifier(Ioc.get('FileAccess')));
         global.iocContainer.set('DirectoryWalker', new DirectoryWalker(Ioc.get('FileAccess')));
 
@@ -57,7 +61,13 @@ class Ioc {
 
         global.iocContainer.set(
             'IndexablePathFetcher',
-            new IndexablePathFetcher(Ioc.get('FolderRepository'), Ioc.get('DirectoryWalker'), Ioc.get('FileAccess'), Ioc.get('Logger')),
+            new IndexablePathFetcher(
+                Ioc.get('FolderRepository'),
+                Ioc.get('DirectoryWalker'),
+                Ioc.get('FileAccess'),
+                Ioc.get('Logger'),
+                Ioc.get('CueSheetReader'),
+            ),
         );
 
         global.iocContainer.set(
@@ -71,6 +81,7 @@ class Ioc {
                 Ioc.get('FileAccess'),
                 Ioc.get('DateTime'),
                 Ioc.get('Logger'),
+                Ioc.get('CueSheetReader'),
             ),
         );
 
@@ -98,6 +109,7 @@ class Ioc {
                 Ioc.get('FileAccess'),
                 Ioc.get('WorkerProxy'),
                 Ioc.get('Logger'),
+                Ioc.get('CueSheetReader'),
             ),
         );
 
