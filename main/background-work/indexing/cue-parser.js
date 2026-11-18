@@ -1,3 +1,5 @@
+const { TextDecoder } = require('util');
+
 const FRAMES_PER_SECOND = 75;
 
 class CueParser {
@@ -21,7 +23,12 @@ class CueParser {
         try {
             return new TextDecoder('utf-8', { fatal: true }).decode(withoutBom);
         } catch {
-            return new TextDecoder('windows-1252').decode(withoutBom);
+            try {
+                return new TextDecoder('windows-1252').decode(withoutBom);
+            } catch {
+                // Node builds without full ICU have no windows-1252 decoder. Latin-1 differs only in 0x80-0x9F.
+                return Buffer.from(withoutBom).toString('latin1');
+            }
         }
     }
 
