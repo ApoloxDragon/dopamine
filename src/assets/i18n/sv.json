@@ -210,6 +210,7 @@
     "delete-song": "Radera låt",
     "delete-songs": "Radera låtar",
     "delete-songs-error": "Ett fel uppstod när låtar skulle raderas. Vänligen verifiera loggen om du behöver mer information.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Ett fel uppstod när betygsättningen skulle sparas. Vänligen verifiera loggen om du behöver mer information.",
     "rating": "Betygsättning",
     "show-rating": "Visa betygsättning",

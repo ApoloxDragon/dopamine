@@ -210,6 +210,7 @@
     "delete-song": "Usuń utwór",
     "delete-songs": "Usuń utwory",
     "delete-songs-error": "Wystąpił błąd podczas usuwania utworów. Sprawdź szczegóły w dzienniku.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Wystąpił błąd podczas zapisywania oceny. Sprawdź szczegóły w dzienniku.",
     "rating": "Ocena",
     "show-rating": "Pokaż ocenę",

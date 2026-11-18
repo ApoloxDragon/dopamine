@@ -210,6 +210,7 @@
     "delete-song": "Nummer verwijderen",
     "delete-songs": "Nummers verwijderen",
     "delete-songs-error": "Er is een fout opgetreden bij het verwijderen van nummers. Raadpleeg het logbestand voor meer informatie.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Er is een fout opgetreden bij het opslaan van de beoordeling. Raadpleeg het logbestand voor meer informatie.",
     "rating": "Beoordeling",
     "show-rating": "Toon beoordeling",

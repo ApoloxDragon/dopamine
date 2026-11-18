@@ -210,6 +210,7 @@
     "delete-song": "删除歌曲",
     "delete-songs": "删除歌曲",
     "delete-songs-error": "删除歌曲时发生错误。请查看日志以获取更多信息。",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "保存评分时发生错误。请查看日志以获取更多信息。",
     "rating": "评分",
     "show-rating": "显示评分",

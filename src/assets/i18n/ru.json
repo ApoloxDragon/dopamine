@@ -210,6 +210,7 @@
     "delete-song": "Удалить песню",
     "delete-songs": "Удалить песни",
     "delete-songs-error": "Возникла ошибка при удалении песен. Пожалуйста, проверьте журнал, если вам нужны подробности.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Возникла ошибка при сохранении оценки. Пожалуйста, проверьте журнал, если вам нужны подробности.",
     "rating": "Оценка",
     "show-rating": "Показывать оценки",

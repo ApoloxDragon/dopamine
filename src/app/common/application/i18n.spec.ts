@@ -110,6 +110,7 @@ describe('validate i18n', () => {
         'delete-song',
         'delete-songs',
         'delete-songs-error',
+        'cue-tracks-cannot-be-edited',
         'disc-count',
         'disc-number',
         'discord',

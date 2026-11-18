@@ -210,6 +210,7 @@
     "delete-song": "Eliminar música",
     "delete-songs": "Eliminar músicas",
     "delete-songs-error": "Ocorreu um erro ao eliminar músicas. Consulta o registo para mais informações.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Ocorreu um erro ao guardar a classificação. Consulta o registo para mais informações.",
     "rating": "Classificação",
     "show-rating": "Mostrar classificação",

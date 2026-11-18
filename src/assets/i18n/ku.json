@@ -210,6 +210,7 @@
     "delete-song": "Stranê jê bibe",
     "delete-songs": "Stranan jê bibe",
     "delete-songs-error": "Di dema jêbirina stranan de şaşetî derket. Ji bo bêtir zanyarî pelê têketinê biperjîne.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Di dema tomarkirina nirxandinê de şaşetî derket. Ji bo bêtir zanyarî pelê têketinê biperjîne.",
     "rating": "Nirxandin",
     "show-rating": "Nirxandinê nîşan bide",

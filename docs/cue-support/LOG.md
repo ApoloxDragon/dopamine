@@ -15,6 +15,28 @@ Entry kinds: `Added`, `Changed`, `Fixed`, `Tooling`, `Note`. Anything uncertain 
 - A track ends where the next one starts (`INDEX 01`), so pregap audio is never dropped. The last track ends at the end of the file.
 - Time format is `mm:ss:ff` with 75 frames per second.
 
+## How to verify
+
+| What | Command |
+| --- | --- |
+| Unit tests for everything touched | `scripts/dev/check.sh main/background-work src/app/services src/app/common` |
+| Indexing scenarios (10, real worker pipeline) | `scripts/dev/cue-scenarios.sh` |
+| Playback in real Chromium (16 checks) | `node scripts/dev/playback-harness/run.js` |
+| Index a folder and print the tracks | `node scripts/dev/index-sandbox.js <music-folder> [db-file]` |
+
+The scenario and playback tools need `ffmpeg` and `better-sqlite3` built for Node (`npm rebuild better-sqlite3`).
+None of this replaces trying it in the app with real albums: see "Testing in the app" below.
+
+## Testing in the app
+
+1. Build or run the app from this branch. The database is migrated automatically (Migration15 only adds columns).
+2. Point a collection folder at a few single-file albums with `.cue` sheets and refresh the collection.
+3. Check: each album shows its tracks with the sheet's titles and lengths; the long whole-file track is gone.
+4. Play an album from the first track and listen across track boundaries. There should be no gap or click.
+5. Seek inside a track, skip to the next and previous track, pause and resume, restart the app (it should resume at the same spot).
+6. Try with gapless playback and crossfade turned on and off in the settings.
+7. Try deleting or editing a CUE track: both are blocked (see DRAFTS D1).
+
 ## Log
 
 - **2026-11-18** · `Tooling` · Added dev scripts in scripts/dev
@@ -75,3 +97,10 @@ Entry kinds: `Added`, `Changed`, `Fixed`, `Tooling`, `Note`. Anything uncertain 
 
 - **2026-11-18** · `Tooling` · scripts/dev/playback-harness: bundles the real players with esbuild and plays the ffmpeg fixture in headless Chromium
     - Checks relative progress/seek, restore, overrun guard, router switching and gapless continuity (same element, no seek, no stall)
+
+- **2026-11-18** · `Fixed` · Translation key cue-tracks-cannot-be-edited added to all 25 language files (the i18n spec requires every file to have every key)
+    - Non-English files contain the English text for now; translators can update it
+
+- **2026-11-18** · `Note` · Full test run: 315 suites, 3200 passed, 3 failed before the i18n fix; after it the only failures are 2 in contact-information.spec.ts
+    - contact-information.spec.ts fails on the base commit too (website URL changed in 'Update website'); not touched by this branch
+    - Lint: no file changed by this branch has more errors than before; legacy-audio-player.ts keeps its 3 pre-existing errors in code that was not changed

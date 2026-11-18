@@ -37,7 +37,7 @@ class FakePlayer implements IAudioPlayer {
         return Promise.resolve();
     }
     public setVolume(volume: number, replayGainMultiplier?: number): void {
-        this.calls.push(`volume ${volume} ${replayGainMultiplier}`);
+        this.calls.push(`volume ${volume} ${String(replayGainMultiplier)}`);
     }
     public setPlaybackRate(rate: number): void {
         this.calls.push(`rate ${rate}`);

@@ -210,6 +210,7 @@
     "delete-song": "Song löschen",
     "delete-songs": "Songs löschen",
     "delete-songs-error": "Ein Fehler trat beim Löschen von Songs auf. Details kannst du im Logbuch nachsehen.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Ein Fehler trat beim Speichern der Bewertung auf. Details kannst du im Logbuch nachsehen.",
     "rating": "Bewertung",
     "show-rating": "Bewertung anzeigen",

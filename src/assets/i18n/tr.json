@@ -210,6 +210,7 @@
     "delete-song": "Şarkıyı sil",
     "delete-songs": "Şarkıları sil",
     "delete-songs-error": "Şarkıları silerken bir hata oluştu. Daha fazla bilgiye ihtiyacınız varsa lütfen günlüğü kontrol edin.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Puanlama kaydedilirken bir hata oluştu. Daha fazla bilgiye ihtiyacınız varsa lütfen günlüğü kontrol edin.",
     "rating": "Puanlama",
     "show-rating": "Puanlamayı göster",

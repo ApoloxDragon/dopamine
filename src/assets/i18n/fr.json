@@ -210,6 +210,7 @@
     "delete-song": "Supprimer la numéro",
     "delete-songs": "Supprimer les numéros",
     "delete-songs-error": "Une erreur s'est produite lors de la suppression des numéros. Le fichier audio sélectionné ne peut pas être lu. Veuillez consulter le fichier journal pour plus d'informations.",
+    "cue-tracks-cannot-be-edited": "Songs from a CUE sheet album cannot be edited: they share one audio file with the rest of the album.",
     "save-rating-error": "Une erreur s'est produite lors de l'enregistrement du classement. Le fichier audio sélectionné ne peut pas être lu. Veuillez consulter le fichier journal pour plus d'informations.",
     "rating": "Classement",
     "show-rating": "Afficher classement",
