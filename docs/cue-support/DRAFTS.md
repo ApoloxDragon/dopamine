@@ -21,15 +21,26 @@ deleting one song would trash the whole album, editing one song's tags would rew
 - Allow editing CUE tracks by storing the changes only in the Dopamine database (or by rewriting the `.cue` file).
 - Better wording/UX, for example hiding or disabling the menu items instead of showing an error afterwards.
 
-## D2. Gapless and crossfade players load the whole file: `draft`
+## D2. Gapless and crossfade players load the whole file: `implemented` (option a), needs your review
 
 **Problem.** `GaplessAudioPlayer` and `CrossfadeAudioPlayer` decode the full file into an `AudioBuffer` (32-bit float). A 60 minute stereo
-44.1 kHz rip is about 1.3 GB in memory, which is likely to fail or freeze the app.
+44.1 kHz rip is about 1.3 GB in memory. They also decide that a track has ended from the end of the file, so they cannot play a range.
 
-**Proposal.** Either (a) always play CUE tracks through the streaming `LegacyAudioPlayer`, or (b) decode and slice only the needed range.
-(a) is simple and safe but gives up crossfade for CUE tracks. (b) keeps all features but is a bigger change to audio code.
+**What was implemented.** Option (a): CUE tracks always play through the streaming `LegacyAudioPlayer`, which was given range support.
+A new `CueAwareAudioPlayer` (created by `AudioPlayerFactory` around whichever player the settings choose) routes CUE tracks to it and
+everything else to the configured player. If the configured player already streams (gapless and crossfade off), the same player is used.
+Otherwise the streaming player is created only when the first CUE track plays. CUE tracks are never handed to the gapless/crossfade preload.
 
-**Risk.** Changes which player is used depending on the track. Behaviour should be reviewed before it is enabled.
+**What you get.**
+- Gapless between tracks of the same CUE album, independent of the gapless setting: the audio element keeps playing across the boundary
+  (no reload, no seek). Verified in real Chromium: same element, 0 seeks, 0 ms stall at every boundary (`scripts/dev/playback-harness/run.js`).
+- Normal tracks behave exactly as before, with the player chosen in the settings.
+
+**Trade-offs to review.**
+- No crossfade into, out of, or between CUE tracks (crossfading between tracks of a continuous album is usually unwanted anyway).
+- Moving from a CUE album to a normal track (or back) has the small gap of a normal non-gapless track change.
+- With gapless or crossfade on, a second `AudioContext` exists once a CUE track has played (only one equalizer graph is active at a time;
+  both are registered with the equalizer service).
 
 ## D3. Hide the raw album file when a CUE sheet covers it: `implemented`, needs your review
 

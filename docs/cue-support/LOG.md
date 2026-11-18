@@ -65,3 +65,13 @@ Entry kinds: `Added`, `Changed`, `Fixed`, `Tooling`, `Note`. Anything uncertain 
     - Risk: low, it only blocks actions. Explained in DRAFTS D1.
 
 - **2026-11-18** · `Tooling` · Downloaded the Electron binary (node node_modules/electron/install.js) so renderer specs that import electron can run
+
+- **2026-11-18** · `Added` · Playback of CUE tracks
+    - LegacyAudioPlayer: CUE branch (only for CUE tracks) streams the album file, seeks to the track start, reports progress/length/seek relative to the track, detects the track end (50 ms check, file 'ended' for the last track)
+    - Gapless within an album: at a boundary the audio keeps playing; when the next track is the adjacent range of the same file it is neither reloaded nor seeked
+    - Overrun guard: if nothing takes over within 1 s after a track ends, the audio pauses
+    - CueAwareAudioPlayer (new) routes CUE tracks to a streaming player and other tracks to the configured player; AudioPlayerFactory wraps every player in it (DRAFTS D2)
+    - Risk: medium. Touches the audio path. Normal tracks run the unchanged code path; the CUE path is covered by 16 real-browser checks and 11 router unit tests
+
+- **2026-11-18** · `Tooling` · scripts/dev/playback-harness: bundles the real players with esbuild and plays the ffmpeg fixture in headless Chromium
+    - Checks relative progress/seek, restore, overrun guard, router switching and gapless continuity (same element, no seek, no stall)
