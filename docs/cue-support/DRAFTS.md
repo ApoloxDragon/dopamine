@@ -3,17 +3,23 @@
 Items here are **not implemented** (unless marked otherwise). Each says what it would do, what it would change and why it is risky or uncertain,
 so they can be reviewed before anything is built. Status values: `draft`, `approved`, `implemented`, `rejected`.
 
-## D1. Block destructive file actions on CUE tracks: `draft`, high priority
+## D1. Block destructive file actions on CUE tracks: minimal guard `implemented`, full UX still `draft`
 
 **Problem.** A virtual track points at the whole album file. Any action that touches "the track's file" would act on the entire album:
-- *Delete file from disk / move to trash* would remove every track of the album.
-- *Edit tags* would write the new title, artist and so on into the one shared FLAC, changing the tags of the whole album.
-- Writing ratings or ReplayGain into the file has the same problem.
+deleting one song would trash the whole album, editing one song's tags would rewrite the tags of the shared FLAC.
 
-**Proposal.** Detect virtual tracks (they have a CUE start offset) and disable or warn on those actions, with a clear message.
-Optionally allow tag edits that are stored only in the Dopamine database.
+**What was implemented (safety only, no new features).** Because this feature is what creates the risk, a minimal guard was added:
+- *Delete*: `CollectionService.deleteTracksAsync` skips CUE tracks entirely (no file deleted, no database row removed), logs a warning and
+  returns `false`, so the existing "An error occurred while deleting songs" message is shown. Normal tracks in the same selection are still deleted.
+- *Edit tags*: `DialogService.showEditTracksAsync` shows "Songs from a CUE sheet album cannot be edited..." instead of opening the editor
+  when the selection contains a CUE track. New English text key `cue-tracks-cannot-be-edited` (other languages fall back to English).
+- *Rating*: never written to the file of a CUE track (it was only ever written to `.mp3`, now made explicit).
+- *Album artwork*: embedding artwork from the album editor is allowed: it writes to the real album file, once per file. This is the correct
+  meaning for a single-file album.
 
-**Risk.** Touches several UI components and services. Needs a decision on the database-only tag edit option.
+**Still a draft (your decision).**
+- Allow editing CUE tracks by storing the changes only in the Dopamine database (or by rewriting the `.cue` file).
+- Better wording/UX, for example hiding or disabling the menu items instead of showing an error afterwards.
 
 ## D2. Gapless and crossfade players load the whole file: `draft`
 
@@ -62,3 +68,8 @@ extension (sheet says `.wav`, disk has `.flac`), the audio file named like the s
 
 **Risk.** The last step is a guess. A folder with exactly one audio file and an unrelated `.cue` would get that file split by the wrong sheet.
 Tracks that start after the end of the file are dropped, which limits the damage. It can be removed if you prefer strict matching.
+
+## D8. Folders view shows the album file, not its CUE tracks: `draft`, not started
+
+The Folders view lists files on disk, so a single-file album appears there as one long file. Collection views (albums, artists,
+genres, tracks, playlists) show the CUE tracks. Making the Folders view expand sheets is possible but separate work.

@@ -43,7 +43,7 @@ export class MetadataService {
         }
 
         try {
-            const fileMetaData: IFileMetadata = await this.fileMetadataFactory.createAsync(track.path);
+            const fileMetaData: IFileMetadata = await this.fileMetadataFactory.createAsync(track.audioPath);
 
             if (fileMetaData != undefined) {
                 let coverArt: Buffer | undefined = await this.albumArtworkGetter.getAlbumArtworkAsync(fileMetaData, false);
@@ -84,7 +84,7 @@ export class MetadataService {
         }
 
         try {
-            const fileMetaData: IFileMetadata = await this.fileMetadataFactory.createAsync(track.path);
+            const fileMetaData: IFileMetadata = await this.fileMetadataFactory.createAsync(track.audioPath);
 
             if (fileMetaData != undefined) {
                 let coverArt: Buffer | undefined = await this.albumArtworkGetter.getEmbeddedAlbumArtworkOnlyAsync(fileMetaData);
@@ -112,7 +112,12 @@ export class MetadataService {
         try {
             this.trackRepository.updateRating(track.id, track.rating);
 
-            if (this.settings.saveRatingToAudioFiles && this.fileAccess.getFileExtension(track.path).toLowerCase() === FileFormats.mp3) {
+            // Never write the rating of a CUE track to its file: the file holds the whole album.
+            if (
+                this.settings.saveRatingToAudioFiles &&
+                !track.isCueTrack &&
+                this.fileAccess.getFileExtension(track.path).toLowerCase() === FileFormats.mp3
+            ) {
                 const fileMetaData: IFileMetadata = await this.fileMetadataFactory.createAsync(track.path);
                 fileMetaData.rating = track.rating;
                 fileMetaData.save();

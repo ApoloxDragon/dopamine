@@ -6,6 +6,7 @@ import { TranslatorServiceBase } from '../translator/translator.service.base';
 import { ISelectable } from '../../ui/interfaces/i-selectable';
 import { CollectionUtils } from '../../common/utils/collections-utils';
 import { Constants } from '../../common/application/constants';
+import { CueTrackPath } from '../../common/utils/cue-track-path';
 
 export class TrackModel implements ISelectable {
     public constructor(
@@ -191,6 +192,26 @@ export class TrackModel implements ISelectable {
 
     public get durationInMilliseconds(): number {
         return this.track.duration ?? 0;
+    }
+
+    /** True for a track that is a range of a single-file album described by a .cue sheet. */
+    public get isCueTrack(): boolean {
+        return CueTrackPath.isCueTrack(this.track);
+    }
+
+    /** The file that holds the audio: the album file for CUE tracks, the same as path otherwise. */
+    public get audioPath(): string {
+        return CueTrackPath.getAudioPath(this.track);
+    }
+
+    /** Start of a CUE track inside its audio file, in seconds. 0 for normal tracks. */
+    public get cueStartSeconds(): number {
+        return this.isCueTrack ? (this.track.cueStartMs ?? 0) / 1000 : 0;
+    }
+
+    /** End of a CUE track inside its audio file, in seconds. 0 for normal tracks (play to the end of the file). */
+    public get cueEndSeconds(): number {
+        return this.isCueTrack ? (this.track.cueEndMs ?? 0) / 1000 : 0;
     }
 
     public get fileSizeInBytes(): number {

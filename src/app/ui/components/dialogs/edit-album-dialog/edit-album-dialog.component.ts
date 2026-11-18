@@ -1,4 +1,5 @@
 import { Component, Inject } from '@angular/core';
+import { CueTrackPath } from '../../../../common/utils/cue-track-path';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AlbumModel } from '../../../../services/album/album-model';
 import { Constants } from '../../../../common/application/constants';
@@ -214,9 +215,20 @@ export class EditAlbumDialogComponent {
             return;
         }
 
+        // CUE tracks of one album share a file: embed the artwork in each real file once.
+        const embeddedAudioPaths: Set<string> = new Set<string>();
+
         for (const track of tracks) {
+            const audioPath: string = CueTrackPath.getAudioPath(track);
+
+            if (embeddedAudioPaths.has(audioPath)) {
+                continue;
+            }
+
+            embeddedAudioPaths.add(audioPath);
+
             try {
-                const fileMetadata = await this.fileMetadataFactory.createAsync(track.path);
+                const fileMetadata = await this.fileMetadataFactory.createAsync(audioPath);
                 fileMetadata.picture = artworkBuffer;
                 fileMetadata.save();
             } catch (e: unknown) {

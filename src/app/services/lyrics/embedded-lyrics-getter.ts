@@ -12,6 +12,11 @@ export class EmbeddedLyricsGetter implements ILyricsGetter {
     public constructor(private fileMetadataFactory: FileMetadataFactoryBase) {}
 
     public async getLyricsAsync(track: TrackModel): Promise<LyricsModel> {
+        if (track.isCueTrack) {
+            // The album file's lyrics tag covers the whole album, not this track.
+            return LyricsModel.empty(track);
+        }
+
         const fileMetadata: IFileMetadata = await this.fileMetadataFactory.createAsync(track.path);
 
         if (StringUtils.isNullOrWhiteSpace(fileMetadata.lyrics)) {

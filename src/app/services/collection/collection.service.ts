@@ -25,6 +25,20 @@ export class CollectionService implements CollectionServiceBase {
     public async deleteTracksAsync(tracks: TrackModel[]): Promise<boolean> {
         let couldDeleteAllTracks: boolean = true;
 
+        // Safety guard: a CUE track shares its audio file with every other track of the album. Deleting "its file"
+        // would delete the whole album, so CUE tracks are never deleted here (see docs/cue-support/DRAFTS.md, D1).
+        const cueTracks: TrackModel[] = tracks.filter((x) => x.isCueTrack);
+
+        if (cueTracks.length > 0) {
+            this.logger.warn(
+                `Refusing to delete ${cueTracks.length} CUE track(s): their file contains the whole album ('${cueTracks[0].audioPath}')`,
+                'CollectionService',
+                'deleteTracksAsync',
+            );
+            couldDeleteAllTracks = false;
+            tracks = tracks.filter((x) => !x.isCueTrack);
+        }
+
         this.trackRepository.deleteTracks(tracks.map((x) => x.id));
 
         for (const track of tracks) {

@@ -161,7 +161,7 @@ export class PlaylistTrackBrowserComponent extends BaseVirtualScrollBrowser impl
         const tracks: TrackModel[] = this.selectionWatcher.selectedItems as TrackModel[];
 
         if (tracks.length > 0) {
-            this.desktop.showFileInDirectory(tracks[0].path);
+            this.desktop.showFileInDirectory(tracks[0].audioPath);
         }
     }
 

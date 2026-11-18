@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { CueTrackPath } from '../../common/utils/cue-track-path';
 import { AlbumArtwork } from '../../data/entities/album-artwork';
 import { AlbumData } from '../../data/entities/album-data';
 import { Track } from '../../data/entities/track';
@@ -92,7 +93,7 @@ export class AlbumArtworkAdder {
         let albumArtwork: Buffer | undefined;
 
         try {
-            const fileMetadata: IFileMetadata = await this.fileMetadataFactory.createAsync(track.path);
+            const fileMetadata: IFileMetadata = await this.fileMetadataFactory.createAsync(CueTrackPath.getAudioPath(track));
             albumArtwork = await this.albumArtworkGetter.getAlbumArtworkAsync(fileMetadata, true);
         } catch (e: unknown) {
             this.logger.error(e, `Could not create file metadata for path='${track.path}'`, 'AlbumArtworkAdder', 'addAlbumArtworkAsync');

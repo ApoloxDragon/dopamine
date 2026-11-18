@@ -109,6 +109,11 @@ export class SrtLyricsGetter implements ILyricsGetter {
     }
 
     private getSrtFilePath(track: TrackModel): string {
+        if (track.isCueTrack) {
+            // An .srt next to a single-file album would belong to the whole album, not to this track.
+            return '';
+        }
+
         const trackPathWithoutExtension: string = this.fileAccess.getPathWithoutExtension(track.path);
         let possibleSrtFilePath: string = `${trackPathWithoutExtension}.srt`;
 

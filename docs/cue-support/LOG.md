@@ -52,3 +52,16 @@ Entry kinds: `Added`, `Changed`, `Fixed`, `Tooling`, `Note`. Anything uncertain 
 
 - **2026-11-18** · `Tooling` · index-sandbox.js runs the real indexing pipeline on a folder; cue-scenarios.sh runs 10 end-to-end scenarios; db-sandbox.js now reopens existing files
     - Verified with the real Oracles and Veleno sheets next to silent FLACs of album length
+
+- **2026-11-18** · `Added` · Renderer understands CUE tracks
+    - TrackModel: isCueTrack, audioPath, cueStartSeconds, cueEndSeconds; src/app/common/utils/cue-track-path.ts mirrors the worker helper
+    - Artwork (album/track image, artwork indexing) and 'show in folder' use the real album file
+    - File lyrics (embedded, .lrc, .srt) are not used for CUE tracks: they belong to the whole album
+
+- **2026-11-18** · `Changed` · Safety guard for CUE tracks (minimal part of DRAFTS D1)
+    - Delete skips CUE tracks (no file or row removed) and reports the existing error
+    - Edit tracks shows a new message (en.json key cue-tracks-cannot-be-edited) instead of writing tags into the shared file
+    - Album artwork embedding writes once per real file
+    - Risk: low, it only blocks actions. Explained in DRAFTS D1.
+
+- **2026-11-18** · `Tooling` · Downloaded the Electron binary (node node_modules/electron/install.js) so renderer specs that import electron can run

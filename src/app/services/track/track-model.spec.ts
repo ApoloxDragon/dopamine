@@ -881,6 +881,45 @@ describe('TrackModel', () => {
         });
     });
 
+    describe('CUE tracks', () => {
+        function createCueTrackModel(): TrackModel {
+            const cueTrack: Track = new Track('/music/Oracles.flac|2');
+            cueTrack.audioPath = '/music/Oracles.flac';
+            cueTrack.cuePath = '/music/Oracles.flac.cue';
+            cueTrack.cueStartMs = 267387;
+            cueTrack.cueEndMs = 443107;
+            return new TrackModel(cueTrack, dateTimeMock.object, translatorServiceMock.object, '');
+        }
+
+        it('should not be a CUE track for a normal track', () => {
+            const trackModel: TrackModel = createTrackModel('');
+
+            expect(trackModel.isCueTrack).toBeFalsy();
+            expect(trackModel.audioPath).toEqual(trackModel.path);
+            expect(trackModel.cueStartSeconds).toEqual(0);
+            expect(trackModel.cueEndSeconds).toEqual(0);
+        });
+
+        it('should not be a CUE track when audioPath is null (rows created before Migration15)', () => {
+            const oldTrack: Track = new Track('/music/a.flac');
+            (oldTrack as { audioPath: string | null }).audioPath = null;
+            const trackModel: TrackModel = new TrackModel(oldTrack, dateTimeMock.object, translatorServiceMock.object, '');
+
+            expect(trackModel.isCueTrack).toBeFalsy();
+            expect(trackModel.audioPath).toEqual('/music/a.flac');
+        });
+
+        it('should expose the album file and the range in seconds for a CUE track', () => {
+            const trackModel: TrackModel = createCueTrackModel();
+
+            expect(trackModel.isCueTrack).toBeTruthy();
+            expect(trackModel.path).toEqual('/music/Oracles.flac|2');
+            expect(trackModel.audioPath).toEqual('/music/Oracles.flac');
+            expect(trackModel.cueStartSeconds).toBeCloseTo(267.387);
+            expect(trackModel.cueEndSeconds).toBeCloseTo(443.107);
+        });
+    });
+
     describe('fileSizeInBytes', () => {
         it('should return the track file size in bytes', () => {
             // Arrange

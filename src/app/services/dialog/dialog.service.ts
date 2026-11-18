@@ -146,6 +146,13 @@ export class DialogService implements DialogServiceBase {
     }
 
     public async showEditTracksAsync(tracks: TrackModel[]): Promise<boolean> {
+        // Safety guard: editing writes tags into the file, and a CUE track's file holds the whole album
+        // (see docs/cue-support/DRAFTS.md, D1).
+        if (tracks.some((x) => x.isCueTrack)) {
+            this.showErrorDialog(await this.translatorService.getAsync('cue-tracks-cannot-be-edited'));
+            return false;
+        }
+
         const dialogRef: MatDialogRef<EditTracksDialogComponent, boolean> = this.dialog.open(EditTracksDialogComponent, {
             data: tracks,
         });

@@ -84,6 +84,49 @@ describe('CollectionService', () => {
     });
 
     describe('deleteTracksAsync', () => {
+        function createCueTrackModel(trackNumber: number): TrackModel {
+            const cueTrack: Track = new Track(`/music/Album.flac|${trackNumber}`);
+            cueTrack.trackId = 100 + trackNumber;
+            cueTrack.audioPath = '/music/Album.flac';
+            cueTrack.cuePath = '/music/Album.cue';
+            return new TrackModel(cueTrack, dateTimeMock.object, translatorServiceMock.object, settingsMock);
+        }
+
+        it('should never delete the shared album file of CUE tracks', async () => {
+            // Arrange
+            const cueTrackModel: TrackModel = createCueTrackModel(2);
+
+            // Act
+            await service.deleteTracksAsync([cueTrackModel]);
+
+            // Assert
+            desktopMock.verify((x) => x.moveFileToTrashAsync(It.isAny()), Times.never());
+            fileAccessMock.verify((x) => x.deleteFileIfExistsAsync(It.isAny()), Times.never());
+        });
+
+        it('should not remove CUE tracks from the database', async () => {
+            // Arrange
+            const cueTrackModel: TrackModel = createCueTrackModel(2);
+
+            // Act
+            await service.deleteTracksAsync([trackModel1, cueTrackModel]);
+
+            // Assert
+            trackRepositoryMock.verify((x) => x.deleteTracks([1]), Times.once());
+        });
+
+        it('should still delete normal tracks and return false when CUE tracks were skipped', async () => {
+            // Arrange
+            const cueTrackModel: TrackModel = createCueTrackModel(2);
+
+            // Act
+            const result: boolean = await service.deleteTracksAsync([trackModel1, cueTrackModel]);
+
+            // Assert
+            desktopMock.verify((x) => x.moveFileToTrashAsync('path1'), Times.once());
+            expect(result).toBeFalsy();
+        });
+
         it('should delete tracks from the database', async () => {
             // Arrange
 
