@@ -30,3 +30,11 @@ Entry kinds: `Added`, `Changed`, `Fixed`, `Tooling`, `Note`. Anything uncertain 
 
 - **2026-11-18** · `Added` · CUE parser spec (31 tests) built from 3 real EAC sheets plus edge cases
     - Verified against all 4 uploaded sheets (Oracles 10, Mafia 5, Veleno 13, Agony 11 tracks) and the ffmpeg fixture
+
+- **2026-11-18** · `Changed` · Database: Migration15 adds Track.AudioPath, CuePath, CueStartMs, CueEndMs (+ index on AudioPath)
+    - Additive only (ALTER TABLE ADD COLUMN). Existing rows keep NULL and are treated as normal tracks.
+    - Track entity (TS and worker JS), select query parts and both track repositories read and write the new columns.
+    - Risk: low. Migrations cannot be rolled back, but adding nullable columns does not change existing data.
+
+- **2026-11-18** · `Tooling` · scripts/dev/db-sandbox.js builds a SQLite db from the real migrations for repository checks
+    - Requires better-sqlite3 built for Node (npm rebuild better-sqlite3)

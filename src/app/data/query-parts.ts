@@ -93,7 +93,11 @@ export class QueryParts {
                                                              t.ReplayGainTrackGain AS replayGainTrackGain,
                                                              t.ReplayGainTrackPeak AS replayGainTrackPeak,
                                                              t.ReplayGainAlbumGain AS replayGainAlbumGain,
-                                                             t.ReplayGainAlbumPeak AS replayGainAlbumPeak
+                                                             t.ReplayGainAlbumPeak AS replayGainAlbumPeak,
+                                                             t.AudioPath AS audioPath,
+                                                             t.CuePath AS cuePath,
+                                                             t.CueStartMs AS cueStartMs,
+                                                             t.CueEndMs AS cueEndMs
                                                              FROM Track t`;
 
         if (onlyVisibleTracks) {

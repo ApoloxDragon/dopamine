@@ -42,6 +42,10 @@ export class Track {
         this.replayGainTrackPeak = 0;
         this.replayGainAlbumGain = 0;
         this.replayGainAlbumPeak = 0;
+        this.audioPath = '';
+        this.cuePath = '';
+        this.cueStartMs = 0;
+        this.cueEndMs = 0;
     }
 
     public trackId: number;
@@ -86,4 +90,11 @@ export class Track {
     public replayGainTrackPeak: number | undefined;
     public replayGainAlbumGain: number | undefined;
     public replayGainAlbumPeak: number | undefined;
+
+    // CUE sheet tracks (see Migration15). For those, path is a virtual path '<audio file>|<track number>'.
+    // Empty/0 for normal tracks. Rows created before Migration15 return null.
+    public audioPath: string | undefined;
+    public cuePath: string | undefined;
+    public cueStartMs: number | undefined;
+    public cueEndMs: number | undefined;
 }

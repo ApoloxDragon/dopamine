@@ -115,7 +115,11 @@ class TrackRepository {
                 ReplayGainTrackGain=@replayGainTrackGain,
                 ReplayGainTrackPeak=@replayGainTrackPeak,
                 ReplayGainAlbumGain=@replayGainAlbumGain,
-                ReplayGainAlbumPeak=@replayGainAlbumPeak
+                ReplayGainAlbumPeak=@replayGainAlbumPeak,
+                AudioPath=@audioPath,
+                CuePath=@cuePath,
+                CueStartMs=@cueStartMs,
+                CueEndMs=@cueEndMs
                 WHERE TrackID=@trackId;`,
         );
 
@@ -163,6 +167,10 @@ class TrackRepository {
             replayGainTrackPeak: track.replayGainTrackPeak,
             replayGainAlbumGain: track.replayGainAlbumGain,
             replayGainAlbumPeak: track.replayGainAlbumPeak,
+            audioPath: track.audioPath ?? '',
+            cuePath: track.cuePath ?? '',
+            cueStartMs: track.cueStartMs ?? 0,
+            cueEndMs: track.cueEndMs ?? 0,
         });
     }
 
@@ -212,7 +220,11 @@ class TrackRepository {
                     ReplayGainTrackGain,
                     ReplayGainTrackPeak,
                     ReplayGainAlbumGain,
-                    ReplayGainAlbumPeak
+                    ReplayGainAlbumPeak,
+                    AudioPath,
+                    CuePath,
+                    CueStartMs,
+                    CueEndMs
                 ) VALUES (
                     @artists,
                     @genres,
@@ -255,7 +267,11 @@ class TrackRepository {
                     @replayGainTrackGain,
                     @replayGainTrackPeak,
                     @replayGainAlbumGain,
-                    @replayGainAlbumPeak
+                    @replayGainAlbumPeak,
+                    @audioPath,
+                    @cuePath,
+                    @cueStartMs,
+                    @cueEndMs
                 );`,
         );
 
@@ -302,6 +318,10 @@ class TrackRepository {
             replayGainTrackPeak: track.replayGainTrackPeak,
             replayGainAlbumGain: track.replayGainAlbumGain,
             replayGainAlbumPeak: track.replayGainAlbumPeak,
+            audioPath: track.audioPath ?? '',
+            cuePath: track.cuePath ?? '',
+            cueStartMs: track.cueStartMs ?? 0,
+            cueEndMs: track.cueEndMs ?? 0,
         });
     }
 

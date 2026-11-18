@@ -471,7 +471,11 @@ export class TrackRepository implements TrackRepositoryBase {
                  ReplayGainTrackGain=@replayGainTrackGain,
                  ReplayGainTrackPeak=@replayGainTrackPeak,
                  ReplayGainAlbumGain=@replayGainAlbumGain,
-                 ReplayGainAlbumPeak=@replayGainAlbumPeak
+                 ReplayGainAlbumPeak=@replayGainAlbumPeak,
+                AudioPath=@audioPath,
+                CuePath=@cuePath,
+                CueStartMs=@cueStartMs,
+                CueEndMs=@cueEndMs
              WHERE TrackID = @trackId;`,
         );
 
@@ -520,6 +524,10 @@ export class TrackRepository implements TrackRepositoryBase {
             replayGainTrackPeak: track.replayGainTrackPeak,
             replayGainAlbumGain: track.replayGainAlbumGain,
             replayGainAlbumPeak: track.replayGainAlbumPeak,
+            audioPath: track.audioPath ?? '',
+            cuePath: track.cuePath ?? '',
+            cueStartMs: track.cueStartMs ?? 0,
+            cueEndMs: track.cueEndMs ?? 0,
         });
     }
 }

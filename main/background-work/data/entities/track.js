@@ -36,6 +36,11 @@ class Track {
         this.composers = '';
         this.conductor = '';
         this.beatsPerMinute = 0;
+        // CUE sheet tracks: see Migration15. Empty/0 for normal tracks.
+        this.audioPath = '';
+        this.cuePath = '';
+        this.cueStartMs = 0;
+        this.cueEndMs = 0;
     }
 }
 
