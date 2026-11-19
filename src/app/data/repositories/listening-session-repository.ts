@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Injectable } from '@angular/core';
 import { DatabaseFactory } from '../database-factory';
 import { ListeningSession } from '../entities/listening-session';
@@ -320,7 +321,7 @@ export class ListeningSessionRepository implements ListeningSessionRepositoryBas
         }
 
         return Array.from(totals.values())
-            .sort((a, b) => b.listenedMs - a.listenedMs || b.plays - a.plays)
+            .sort((a, b) => (b.listenedMs !== a.listenedMs ? b.listenedMs - a.listenedMs : b.plays - a.plays))
             .slice(0, limit);
     }
 

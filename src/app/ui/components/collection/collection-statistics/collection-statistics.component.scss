@@ -72,7 +72,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    height: 44px;
+    /* Grows to 3 lines when first/last played is shown (detailed statistics). */
+    min-height: 44px;
+    padding: 2px 0;
 }
 
 .statistics__rank {
@@ -93,9 +95,10 @@
 
 .statistics__history-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
-    height: 30px;
+    column-gap: 12px;
+    min-height: 30px;
     border-radius: 6px;
     padding: 0 6px;
 }
@@ -120,9 +123,10 @@
 }
 
 .statistics__history-duration {
-    width: 60px;
+    min-width: 60px;
     text-align: right;
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .statistics__clear {
@@ -133,4 +137,88 @@
     margin: 12px 0 24px;
     cursor: pointer;
     user-select: none;
+}
+
+.statistics__detailed-toggle {
+    display: block;
+    margin-top: 12px;
+}
+
+.statistics__note {
+    margin-bottom: 16px;
+}
+
+.statistics__heatmap {
+    display: grid;
+    grid-template-columns: 40px repeat(24, minmax(10px, 1fr));
+    gap: 2px;
+    max-width: 760px;
+    margin-bottom: 24px;
+    font-size: 0.8em;
+}
+
+.statistics__heatmap-hour {
+    text-align: left;
+}
+
+.statistics__heatmap-day {
+    line-height: 16px;
+}
+
+.statistics__heatmap-cell {
+    height: 16px;
+    border-radius: 3px;
+    background: var(--theme-hovered-item-background);
+    overflow: hidden;
+}
+
+.statistics__heatmap-fill {
+    width: 100%;
+    height: 100%;
+    background: var(--theme-accent-color);
+}
+
+.statistics__bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 80px;
+    max-width: 760px;
+    margin-bottom: 24px;
+}
+
+.statistics__bar {
+    /* Thin bars when there are few (2 months), never wider than this. */
+    flex: 1 1 0;
+    max-width: 28px;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    border-radius: 2px;
+    background: var(--theme-hovered-item-background);
+}
+
+.statistics__bar-fill {
+    width: 100%;
+    border-radius: 2px;
+    background: var(--theme-accent-color);
+}
+
+.statistics__history-parts {
+    position: relative;
+    flex: 0 0 100%;
+    height: 3px;
+    margin: 2px 0 4px;
+    border-radius: 2px;
+    background: var(--theme-hovered-item-background);
+    overflow: hidden;
+}
+
+.statistics__history-part {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: var(--theme-accent-color);
+    /* Parts heard more than once overlap and look stronger. */
+    opacity: 0.6;
 }

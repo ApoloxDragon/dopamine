@@ -3,6 +3,18 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.2-apolox] - 2026-11-19
+
+Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+
+### Added
+
+- Detailed statistics, an opt-in switch on the Statistics page (off by default). Everything stays on this computer:
+    - How songs end: finished, skipped or stopped, the average completion, the most skipped songs and the songs you always finish
+    - Which parts of a song you heard, shown as a bar under each play in the listening history (parts heard more than once show stronger)
+    - When you listen: listening time per weekday and hour, and per day (last 7 or 30 days) or month (last year, all time)
+    - Your current and longest streak of days with music, and when you first and last played each top song, album and artist
+
 ## [3.2.1-apolox] - 2026-11-19
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.

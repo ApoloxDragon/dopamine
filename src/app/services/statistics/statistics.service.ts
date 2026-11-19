@@ -223,7 +223,7 @@ export class StatisticsService {
     public getHistory(period: StatisticsPeriod, offset: number): ListeningHistoryItem[] {
         const sessions: ListeningSession[] = this.repository.getHistory(this.getSinceMs(period), StatisticsService.historyPageSize, offset);
         const withDetails: number[] = sessions.filter((s) => s.endReason != undefined).map((s) => s.listeningSessionId);
-        const parts: Map<number, ListeningSegment[]> = withDetails.length > 0 ? this.repository.getSegments(withDetails) : new Map();
+        const parts: Map<number, ListeningSegment[]> = withDetails.length > 0 ? this.repository.getSegments(withDetails) : new Map<number, ListeningSegment[]>();
 
         return sessions.map((s: ListeningSession) => ({
             listeningSessionId: s.listeningSessionId,

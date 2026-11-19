@@ -1,7 +1,7 @@
 import { Subject } from 'rxjs';
 import { IMock, It, Mock, Times } from 'typemoq';
 import { CollectionStatisticsComponent } from './collection-statistics.component';
-import { StatisticsService, StatisticsOverview, ListeningHistoryItem } from '../../../../services/statistics/statistics.service';
+import { StatisticsService, StatisticsOverview, ListeningHistoryItem, DetailedStatistics } from '../../../../services/statistics/statistics.service';
 import { PlaybackService } from '../../../../services/playback/playback.service';
 import { SettingsMock } from '../../../../testing/settings-mock';
 import { Logger } from '../../../../common/logger';
@@ -28,6 +28,9 @@ describe('CollectionStatisticsComponent', () => {
 
     function historyItems(count: number): ListeningHistoryItem[] {
         return Array.from({ length: count }, (_, i) => ({
+            listeningSessionId: i,
+            endReason: null,
+            heardParts: [],
             startedAtMs: i,
             title: `T${i}`,
             artists: 'A',
@@ -147,5 +150,74 @@ describe('CollectionStatisticsComponent', () => {
 
         expect(component.history.length).toEqual(StatisticsService.historyPageSize + 3);
         expect(component.canLoadMoreHistory).toBeFalsy();
+    });
+
+    describe('detailed statistics', () => {
+        const details: DetailedStatistics = {
+            ends: { completed: 3, skipped: 1, stopped: 0, averageCompletion: 0.8 },
+            mostSkipped: [],
+            alwaysFinished: [],
+            heatmap: { cells: Array.from({ length: 7 }, () => new Array<number>(24).fill(0)), maxMs: 1000 },
+            barUnit: 'day',
+            bars: [
+                { startMs: 0, listenedMs: 0 },
+                { startMs: 1, listenedMs: 500 },
+                { startMs: 2, listenedMs: 1000 },
+            ],
+            barMaxMs: 1000,
+            streaks: { currentDays: 2, longestDays: 5 },
+        };
+
+        beforeEach(() => {
+            statisticsServiceMock.setup((x) => x.getDetails(It.isAny())).returns(() => details);
+        });
+
+        it('should not load detailed statistics while they are off', () => {
+            const component = create();
+            component.ngOnInit();
+
+            expect(component.details).toBeUndefined();
+            statisticsServiceMock.verify((x) => x.getDetails(It.isAny()), Times.never());
+        });
+
+        it('should turn detailed statistics on and off from the page and reload', () => {
+            const component = create();
+            component.ngOnInit();
+
+            component.isDetailed = true;
+            expect(settings.detailedListeningStatistics).toBe(true);
+            expect(component.details).toBe(details);
+            expect(component.hasDetails).toBe(true);
+
+            component.isDetailed = false;
+            expect(settings.detailedListeningStatistics).toBe(false);
+            expect(component.details).toBeUndefined();
+        });
+
+        it('should scale bars and heat, and keep odd values on the page', () => {
+            settings.detailedListeningStatistics = true;
+            const component = create();
+            component.ngOnInit();
+
+            expect(details.bars.map((b) => component.barHeight(b))).toEqual([0, 50, 100]);
+            expect(component.heat(0)).toEqual(0);
+            expect(component.heat(1000)).toEqual(1);
+            expect(component.heat(1)).toBeGreaterThan(0.15);
+            expect([NaN, -1, 2, Infinity].map((x) => component.percent(x))).toEqual([0, 0, 100, 0]);
+            expect(component.formatDate(undefined)).toEqual('');
+            expect(component.formatDate(NaN)).toEqual('');
+            expect(component.weekdays.length).toEqual(7);
+        });
+
+        it('should keep showing the page when loading detailed statistics fails', () => {
+            statisticsServiceMock.reset();
+            statisticsServiceMock.setup((x) => x.getOverview(It.isAny())).returns(() => emptyOverview);
+            statisticsServiceMock.setup((x) => x.getHistory(It.isAny(), It.isAny())).returns(() => []);
+            statisticsServiceMock.setup((x) => x.getDetails(It.isAny())).throws(new Error('database is locked'));
+            settings.detailedListeningStatistics = true;
+            const component = create();
+
+            expect(() => component.ngOnInit()).not.toThrow();
+        });
     });
 });
