@@ -1,0 +1,135 @@
+<div class="peq" [class.peq--disabled]="!isEnabled">
+    <div class="peq__chart" #chart>
+        <svg class="peq__svg" [attr.viewBox]="'0 0 ' + width + ' ' + height" preserveAspectRatio="none">
+            <line *ngFor="let line of gridLines" class="peq__grid" [class.peq__grid--zero]="line.label === '0'" x1="0" [attr.x2]="width" [attr.y1]="line.y" [attr.y2]="line.y"></line>
+            <line *ngFor="let label of frequencyLabels" class="peq__grid" [attr.x1]="label.x" [attr.x2]="label.x" y1="0" [attr.y2]="height"></line>
+            <path class="peq__curve" [attr.d]="curvePath"></path>
+        </svg>
+        <ng-container *ngFor="let line of gridLines; let first = first">
+            <div *ngIf="!first" class="peq__db-label secondary-text" [style.top.px]="line.y">{{ line.label }}</div>
+        </ng-container>
+        <div *ngFor="let label of frequencyLabels" class="peq__hz-label secondary-text" [style.left.px]="label.x">{{ label.label }}</div>
+        <div
+            *ngFor="let marker of markers"
+            class="peq__marker"
+            [class.peq__marker--selected]="marker.index === selectedIndex"
+            [style.left.px]="marker.x"
+            [style.top.px]="marker.y"
+            [matTooltip]="('equalizer-band' | translate) + ' ' + (marker.index + 1)"
+            (pointerdown)="onMarkerPointerDown(marker.index, $event)"
+            (wheel)="onMarkerWheel(marker.index, $event)"
+        >
+            {{ marker.index + 1 }}
+        </div>
+    </div>
+    <div class="peq__hint secondary-text smaller">{{ 'equalizer-parametric-hint' | translate }}</div>
+
+    <div class="peq__toolbar">
+        <label class="peq__preamp">
+            <span>{{ 'equalizer-preamp' | translate }}</span>
+            <input
+                class="peq__input"
+                type="number"
+                step="0.1"
+                [min]="p.minimumPreamp"
+                [max]="p.maximumPreamp"
+                [value]="profile.preamp"
+                [disabled]="!isEnabled"
+                (change)="setPreamp($any($event.target).value)"
+            />
+            <span class="secondary-text">dB</span>
+        </label>
+        <div *ngIf="mayClip" class="peq__clip">
+            <i class="las la-exclamation-triangle"></i>
+            {{ 'equalizer-may-clip' | translate: { peak: peakDb.toFixed(1), preamp: suggestedPreamp.toFixed(1) } }}
+            <span class="peq__link accent-color" (click)="preventClipping()">{{ 'equalizer-prevent-clipping' | translate }}</span>
+        </div>
+    </div>
+
+    <div class="peq__table">
+        <div class="peq__row peq__row--header secondary-text smaller">
+            <div class="peq__col-on"></div>
+            <div class="peq__col-number">#</div>
+            <div class="peq__col-type">{{ 'equalizer-type' | translate }}</div>
+            <div class="peq__col-value">{{ 'equalizer-frequency' | translate }} (Hz)</div>
+            <div class="peq__col-value">{{ 'equalizer-gain' | translate }} (dB)</div>
+            <div class="peq__col-value">Q</div>
+            <div class="peq__col-remove"></div>
+        </div>
+        <div
+            *ngFor="let band of profile.bands; let i = index; trackBy: trackByIndex"
+            class="peq__row"
+            [class.peq__row--selected]="i === selectedIndex"
+            [class.peq__row--off]="!band.enabled"
+            (click)="selectedIndex = i"
+        >
+            <div class="peq__col-on">
+                <input type="checkbox" [checked]="band.enabled" [disabled]="!isEnabled" (change)="setEnabled(i, $any($event.target).checked)" />
+            </div>
+            <div class="peq__col-number">{{ i + 1 }}</div>
+            <div class="peq__col-type">
+                <select class="peq__input" [value]="band.type" [disabled]="!isEnabled" (change)="setType(i, $any($event.target).value)">
+                    <option *ngFor="let type of filterTypes" [value]="type" [selected]="type === band.type">
+                        {{ 'equalizer-filter-' + type | translate }}
+                    </option>
+                </select>
+            </div>
+            <div class="peq__col-value">
+                <input
+                    class="peq__input"
+                    type="number"
+                    step="1"
+                    [min]="p.minimumFrequency"
+                    [max]="p.maximumFrequency"
+                    [value]="band.frequency"
+                    [disabled]="!isEnabled"
+                    (change)="setNumber(i, 'frequency', $any($event.target).value)"
+                />
+            </div>
+            <div class="peq__col-value">
+                <input
+                    class="peq__input"
+                    type="number"
+                    step="0.1"
+                    [min]="p.minimumGain"
+                    [max]="p.maximumGain"
+                    [value]="band.gain"
+                    [disabled]="!isEnabled || !p.usesGain(band.type)"
+                    (change)="setNumber(i, 'gain', $any($event.target).value)"
+                />
+            </div>
+            <div class="peq__col-value">
+                <input
+                    class="peq__input"
+                    type="number"
+                    step="0.01"
+                    [min]="p.minimumQ"
+                    [max]="p.maximumQ"
+                    [value]="p.usesQ(band.type) ? band.q : 0.71"
+                    [disabled]="!isEnabled || !p.usesQ(band.type)"
+                    [matTooltip]="p.usesQ(band.type) ? '' : ('equalizer-shelf-q' | translate)"
+                    (change)="setNumber(i, 'q', $any($event.target).value)"
+                />
+            </div>
+            <div class="peq__col-remove">
+                <i
+                    class="las la-times peq__remove"
+                    [matTooltip]="'equalizer-remove-band' | translate"
+                    (click)="isEnabled && removeBand(i); $event.stopPropagation()"
+                ></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="peq__actions">
+        <app-icon-text-button
+            icon="las la-plus"
+            [class.peq__action--disabled]="!isEnabled || profile.bands.length >= p.maximumBands"
+            (click)="isEnabled && addBand()"
+            >{{ 'equalizer-add-band' | translate }}</app-icon-text-button
+        >
+        <app-icon-text-button icon="las la-undo" [class.peq__action--disabled]="!isEnabled" (click)="isEnabled && reset()">{{
+            'reset' | translate
+        }}</app-icon-text-button>
+    </div>
+</div>

@@ -19,5 +19,9 @@ export interface IAudioPlayer {
     skipToSecondsAsync(seconds: number): Promise<void>;
     preloadNext(track: TrackModel): void;
     getAudio(): HTMLAudioElement | undefined;
+    /** Fades the output to the level (0 = silent, 1 = full) over the duration. Resolves when done. */
+    fadeAsync(level: number, durationMs: number): Promise<void>;
+    /** Sets the fade level at once, cancelling a fade in progress. */
+    setFadeLevel(level: number): void;
     setAudioOutputDeviceAsync(deviceId: string): Promise<void>;
 }

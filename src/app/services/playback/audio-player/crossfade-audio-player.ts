@@ -217,6 +217,14 @@ export class CrossfadeAudioPlayer implements IAudioPlayer {
         this._nextAudio.load();
     }
 
+    public fadeAsync(level: number, durationMs: number): Promise<void> {
+        return this._equalizer.fadeAsync(level, durationMs);
+    }
+
+    public setFadeLevel(level: number): void {
+        this._equalizer.setFadeLevel(level);
+    }
+
     public getAudio(): HTMLAudioElement | undefined {
         return this._currentAudio;
     }

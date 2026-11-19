@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { PlaybackInformation } from '../playback-information/playback-information';
 import { MediaSessionProxy } from '../../common/io/media-session-proxy';
 import { TrackModel } from '../track/track-model';
 import { Observable, Subject } from 'rxjs';
-import { PlaybackInformationFactory } from '../playback-information/playback-information.factory';
+import { MetadataService } from '../metadata/metadata.service';
 
 @Injectable({ providedIn: 'root' })
 export class MediaSessionService {
@@ -12,8 +11,14 @@ export class MediaSessionService {
     private previousTrackEvent = new Subject<void>();
     private nextTrackEvent = new Subject<void>();
 
+    /** Shown when a track has no cover: the OS keeps the previous cover otherwise (it cannot be cleared). */
+    public static readonly placeholderImagePath: string = 'assets/images/media-session-placeholder.png';
+
+    private placeholderImageUrl: string | undefined;
+    private metadataRequest: number = 0;
+
     public constructor(
-        private playbackInformationFactory: PlaybackInformationFactory,
+        private metadataService: MetadataService,
         private mediaSessionProxy: MediaSessionProxy,
     ) {}
 
@@ -30,17 +35,35 @@ export class MediaSessionService {
     }
 
     public async setMetadataAsync(track: TrackModel): Promise<void> {
-        const playbackInformation: PlaybackInformation = await this.playbackInformationFactory.createAsync(track);
+        const request: number = ++this.metadataRequest;
 
-        this.mediaSessionProxy.setMetadata(
-            playbackInformation.track?.title ?? '',
-            playbackInformation.track?.artists ?? '',
-            playbackInformation.track?.albumTitle ?? '',
-            playbackInformation.imageUrl,
-        );
+        // Text first, so the media controls update at once; the cover follows.
+        this.mediaSessionProxy.setMetadata(track.title, track.artists, track.albumTitle, this.placeholderImageUrl ?? '');
+
+        let imageUrl: string = await this.metadataService.createMediaSessionImageUrlAsync(track);
+
+        if (imageUrl === '') {
+            imageUrl = await this.getPlaceholderImageUrlAsync();
+        }
+
+        if (request !== this.metadataRequest) {
+            // A newer track was set while the cover was loading.
+            return;
+        }
+
+        this.mediaSessionProxy.setMetadata(track.title, track.artists, track.albumTitle, imageUrl);
+    }
+
+    private async getPlaceholderImageUrlAsync(): Promise<string> {
+        if (this.placeholderImageUrl === undefined) {
+            this.placeholderImageUrl = await this.mediaSessionProxy.loadImageAsDataUrlAsync(MediaSessionService.placeholderImagePath);
+        }
+
+        return this.placeholderImageUrl;
     }
 
     public clearMetadata(): void {
+        this.metadataRequest++;
         this.mediaSessionProxy.setPlaybackState('none');
         this.mediaSessionProxy.setPositionState();
         this.mediaSessionProxy.clearMetadata();

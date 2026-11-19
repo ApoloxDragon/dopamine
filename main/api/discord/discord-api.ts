@@ -63,7 +63,7 @@ export class DiscordApi {
         }
 
         // Discord rejects the whole activity when a text is shorter than 2 or longer than 128 characters.
-        const presence: Presence & { type?: number } = {
+        const presence: Presence & { type?: number; statusDisplayType?: number } = {
             details: DiscordApi.fitText(`${args.title}`),
             state: DiscordApi.fitText(`${args.artists}`),
             largeImageKey: args.largeImageKey,
@@ -71,6 +71,8 @@ export class DiscordApi {
             smallImageKey: args.smallImageKey,
             smallImageText: args.smallImageText !== undefined ? DiscordApi.fitText(args.smallImageText) : undefined,
             type: args.type,
+            // Sent as status_display_type (see patch-discord-rpc.js).
+            statusDisplayType: args.statusDisplayType,
         };
 
         if (args.shouldSendTimestamps && args.startTime) {

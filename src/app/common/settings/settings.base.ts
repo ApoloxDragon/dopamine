@@ -106,6 +106,12 @@ export abstract class SettingsBase {
     public abstract audioEqualizerEnabled: boolean;
     public abstract audioEqualizerPreset: string;
     public abstract audioEqualizerGains: string;
+    public abstract audioEqualizerMode: string;
+    public abstract fadeOnPause: boolean;
+    public abstract fadeOnPauseDurationMs: number;
+    public abstract useSeparateFadeInDuration: boolean;
+    public abstract fadeInDurationMs: number;
+    public abstract audioEqualizerParametricProfile: string;
     public abstract useReplayGainNormalization: boolean;
     public abstract replayGainMode: string;
     public abstract replayGainPreAmp: number;

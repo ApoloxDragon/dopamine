@@ -1,9 +1,33 @@
 <app-dialog-header icon="las la-sliders-h" title="{{ 'equalizer' | translate }}"></app-dialog-header>
 <mat-dialog-content>
     <div class="equalizer">
+        <div class="equalizer__top">
+            <div class="equalizer__modes">
+                <div class="equalizer__mode" [class.equalizer__mode--selected]="this.mode === 'graphic'" (click)="this.setMode('graphic')">
+                    {{ 'equalizer-mode-graphic' | translate }}
+                </div>
+                <div class="equalizer__mode" [class.equalizer__mode--selected]="this.mode === 'parametric'" (click)="this.setMode('parametric')">
+                    {{ 'equalizer-mode-parametric' | translate }}
+                </div>
+            </div>
+            <div class="equalizer__files">
+                <app-icon-text-button
+                    icon="las la-file-import"
+                    [matTooltip]="'equalizer-import-tooltip' | translate"
+                    (click)="this.importAsync()"
+                    >{{ 'equalizer-import' | translate }}</app-icon-text-button
+                >
+                <app-icon-text-button icon="las la-file-export" (click)="this.exportAsync()">{{ 'equalizer-export' | translate }}</app-icon-text-button>
+            </div>
+        </div>
+        <div *ngIf="this.message" class="equalizer__message secondary-text">{{ this.message }}</div>
         <div class="equalizer__header">
             <app-toggle-switch [(isChecked)]="this.isEnabled">{{ 'enable-equalizer' | translate }}</app-toggle-switch>
-            <mat-form-field class="equalizer__preset" [class.equalizer__preset--disabled]="!this.isEnabled">
+            <mat-form-field
+                *ngIf="this.mode === 'graphic'"
+                class="equalizer__preset"
+                [class.equalizer__preset--disabled]="!this.isEnabled"
+            >
                 <mat-select [(ngModel)]="this.selectedPreset" [disabled]="!this.isEnabled">
                     <mat-option *ngFor="let preset of this.presetNames" [value]="preset">
                         {{ 'equalizer-preset-' + preset | translate }}
@@ -12,7 +36,9 @@
             </mat-form-field>
         </div>
 
-        <div class="equalizer__bands" #bandsContainer [class.equalizer__bands--disabled]="!this.isEnabled">
+        <app-parametric-equalizer-panel *ngIf="this.mode === 'parametric'" [isEnabled]="this.isEnabled"></app-parametric-equalizer-panel>
+
+        <div class="equalizer__bands" #bandsContainer [hidden]="this.mode !== 'graphic'" [class.equalizer__bands--disabled]="!this.isEnabled">
             <svg class="equalizer__chart" [attr.viewBox]="this.viewBox" preserveAspectRatio="none">
                 <defs>
                     <linearGradient id="equalizerFill" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" [attr.y2]="this.chartHeight">
@@ -54,6 +80,6 @@
     </div>
 </mat-dialog-content>
 <mat-dialog-actions>
-    <app-transparent-button class="mr-2" (click)="this.reset()">{{ 'reset' | translate }}</app-transparent-button>
+    <app-transparent-button *ngIf="this.mode === 'graphic'" class="mr-2" (click)="this.reset()">{{ 'reset' | translate }}</app-transparent-button>
     <app-accent-button [mat-dialog-close]="true">{{ 'close' | translate }}</app-accent-button>
 </mat-dialog-actions>

@@ -10,6 +10,47 @@
     margin-bottom: 1rem;
 }
 
+.equalizer__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1rem;
+}
+
+.equalizer__modes {
+    display: flex;
+    gap: 4px;
+}
+
+.equalizer__files {
+    display: flex;
+    gap: 8px;
+}
+
+.equalizer__message {
+    margin: -0.5rem 0 1rem 0;
+    font-size: 0.9em;
+}
+
+.equalizer__mode {
+    padding: 4px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--theme-button-border);
+    cursor: pointer;
+    user-select: none;
+}
+
+.equalizer__mode:hover {
+    background: var(--theme-hovered-item-background);
+}
+
+.equalizer__mode--selected {
+    border-color: var(--theme-accent-color);
+    color: var(--theme-accent-color);
+}
+
 .equalizer__preset {
     width: 180px;
 }

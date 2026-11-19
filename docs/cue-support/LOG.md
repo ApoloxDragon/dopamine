@@ -150,3 +150,49 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Fixed` · appimagetool-x86_64.AppImage (15 MB build tool) was committed by accident in 114d3e7 and removed again; now in .gitignore, and save.sh refuses files over 5 MB
     - The binary is still in the branch history unless that commit is rewritten (your decision)
+
+- **2026-11-19** · `Changed` · Discord status now reads 'Listening to <artist>' instead of 'Listening to Dopamine' (status_display_type = 1)
+    - patch-discord-rpc.js now also passes status_display_type; each field is patched on its own so existing installs pick it up on the next npm install
+    - Field values checked against discord-api-types (StatusDisplayType: Name 0, State 1, Details 2); discord.com itself is not reachable from the build container
+
+- **2026-11-19** · `Added` · Parametric equalizer engine (UI follows)
+    - parametric-equalizer.ts: bands (peak, low/high shelf, low/high-pass, notch), limits, AutoEQ / Equalizer APO import and export, response curve
+    - AudioEqualizer now builds input -> preamp -> N filters -> output; graphic mode is the same 10 filters as before; value changes update the existing nodes (no clicks)
+    - EqualizerService: graphic/parametric mode, parametric profile saved in settings (audioEqualizerMode, audioEqualizerParametricProfile), add/remove/edit bands, preamp, prevent clipping
+    - Low-pass/high-pass Q is converted to dB for Web Audio; shelves use Web Audio's fixed slope (about Q 0.71)
+
+- **2026-11-19** · `Tooling` · scripts/dev/eq-harness/run.js compares the drawn response curve with Chromium's real BiquadFilterNodes (exact match) and checks the audio level through the filters
+
+- **2026-11-19** · `Added` · Parametric equalizer UI (Settings: equalizer dialog > Parametric)
+    - Graphic | Parametric switch; each mode keeps its own settings; the dialog widens to 760 px in parametric mode only
+    - Response curve with draggable band handles (drag: frequency and gain, scroll: Q), band table (on/off, type, frequency, gain, Q, remove), preamp, clipping warning with 'Prevent clipping'
+    - Import and export of AutoEQ ParametricEQ.txt / Equalizer APO files; DesktopBase save/open dialogs accept file type filters (default unchanged: images)
+    - 24 new text keys in all 25 languages (English placeholder)
+    - Checked in the real app (Electron, Playwright): both modes render, dragging a handle updates the band and the saved settings
+
+- **2026-11-19** · `Tooling` · scripts/dev/app-screenshots.js launches the built app with a fresh profile and screenshots the equalizer (both modes) and the Statistics page
+
+- **2026-11-19** · `Added` · Import of AutoEQ GraphicEQ files (fitted to the 10-band graphic equalizer)
+    - graphic-eq.ts: parses 'GraphicEQ: f g; ...', least-squares fit of the 10 graphic gains taking band overlap into account, reports average (RMS) and largest deviation
+    - One Import button in the dialog (both modes) detects the format: parametric filters -> parametric mode, GraphicEQ -> graphic mode; a successful import also turns the equalizer on
+    - Export writes the current mode: GraphicEQ.txt (the graphic equalizer's real response at 127 AutoEQ-style frequencies) or ParametricEQ.txt
+    - Checked with the real QCY H3 Pro AutoEQ files (kept as test data): ParametricEQ imports exactly; GraphicEQ fits within 1.4 dB on average, 4.9 dB at most (narrow 3.9 kHz peak)
+    - Verified in the running app (Playwright, native file dialog stubbed in the main process)
+
+- **2026-11-19** · `Added` · Fade on pause, resume and stop (Settings > Behavior > Fade on pause)
+    - Off by default. One duration (1 ms to 60 s), plus an optional separate fade-in duration
+    - Pause shows at once; the audio fades out and then pauses. Resume fades in from silence; pressing play during a fade-out turns it around from the current level. User stop (tray, media keys) fades out too
+    - A new track, skipping, or the end of the queue always restores full volume and cancels a pending fade
+    - Implemented as a fade gain at the start of the equalizer chain (all three players), exponential ramp (even in dB), cancelAndHoldAtTime for reversals
+    - Checked in real Chromium (eq-harness): -20 dB a quarter in, -40 dB half way, ends in silence, no jump when reversed half way, 1 ms works
+    - 7 new text keys in all 25 languages (English placeholder)
+
+- **2026-11-19** · `Fixed` · Album cover missing (or stale) on the lock screen and OS media controls
+    - Found with a private D-Bus session and the real app (MPRIS, what GNOME/KDE lock screens read): Electron's media session only shows data URLs (file:// covers are never loaded) and silently skips large covers (a 3000x3000 scan was ignored); a failed or missing cover leaves the previous song's cover in place
+    - MediaSessionService now sends a cover made for this: embedded/folder cover, else the cached cover file read from disk, resized to at most 512x512 JPEG, as a data URL (MetadataService.createMediaSessionImageUrlAsync)
+    - Songs without a cover show the Dopamine logo (new asset src/assets/images/media-session-placeholder.png), since the old cover cannot be cleared otherwise
+    - Title/artist/album are set at once, the cover follows; a slow cover of an older song can no longer overwrite a newer one
+    - Verified over MPRIS: a 6.9 MB embedded cover now shows; after Next to a song without cover the logo shows
+    - Not verified: the Windows/macOS media controls (same Chromium media session code, likely to benefit too)
+
+- **2026-11-19** · `Tooling` · scripts/dev/mpris-probe.sh and mpris-cover-check.js read what the app publishes to the Linux desktop over D-Bus

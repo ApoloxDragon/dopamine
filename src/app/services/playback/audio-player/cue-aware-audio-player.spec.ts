@@ -52,6 +52,13 @@ class FakePlayer implements IAudioPlayer {
     public getAudio(): HTMLAudioElement | undefined {
         return undefined;
     }
+    public fadeAsync(level: number, durationMs: number): Promise<void> {
+        this.calls.push(`fade ${level} ${durationMs}`);
+        return Promise.resolve();
+    }
+    public setFadeLevel(level: number): void {
+        this.calls.push(`fadeLevel ${level}`);
+    }
     public setAudioOutputDeviceAsync(deviceId: string): Promise<void> {
         this.calls.push(`device ${deviceId}`);
         return Promise.resolve();

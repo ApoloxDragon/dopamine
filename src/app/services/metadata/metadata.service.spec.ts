@@ -113,6 +113,54 @@ describe('MetadataService', () => {
         });
     });
 
+    describe('createMediaSessionImageUrlAsync', () => {
+        it('should resize the cover to at most 512 x 512 for the media controls', async () => {
+            const service: MetadataService = createService();
+            const track: TrackModel = MockCreator.createTrackModelWithAlbumKey('path1', 'albumKey1');
+            const fileMetaDataMock: any = {};
+            const cover: Buffer = Buffer.from([1, 2, 3]);
+            const small: Buffer = Buffer.from([4, 5]);
+            fileMetadataFactoryMock.setup((x) => x.createAsync('path1')).returns(() => Promise.resolve(fileMetaDataMock));
+            albumArtworkGetterMock.setup((x) => x.getAlbumArtworkAsync(fileMetaDataMock, false)).returns(() => Promise.resolve(cover));
+            imageProcessorMock.setup((x) => x.toResizedJpegBufferAsync(cover, 512, 512, 85)).returns(() => Promise.resolve(small));
+            imageProcessorMock.setup((x) => x.convertBufferToImageUrl(small)).returns(() => 'data:image/jpeg;base64,BAU=');
+
+            expect(await service.createMediaSessionImageUrlAsync(track)).toEqual('data:image/jpeg;base64,BAU=');
+        });
+
+        it('should read a cached cover file instead of passing a file URL', async () => {
+            const service: MetadataService = createService();
+            const track: TrackModel = MockCreator.createTrackModelWithAlbumKey('path1', 'albumKey1');
+            const fileMetaDataMock: any = {};
+            const cached: Buffer = Buffer.from([9, 9]);
+            const small: Buffer = Buffer.from([7]);
+            fileMetadataFactoryMock.setup((x) => x.createAsync('path1')).returns(() => Promise.resolve(fileMetaDataMock));
+            albumArtworkGetterMock.setup((x) => x.getAlbumArtworkAsync(fileMetaDataMock, false)).returns(() => Promise.resolve(undefined));
+            cachedAlbumArtworkGetterMock.setup((x) => x.getCachedAlbumArtworkPath('albumKey1')).returns(() => '/cache/cover.jpg');
+            fileAccessMock.setup((x) => x.pathExists('/cache/cover.jpg')).returns(() => true);
+            imageProcessorMock.setup((x) => x.convertLocalImageToBufferAsync('/cache/cover.jpg')).returns(() => Promise.resolve(cached));
+            imageProcessorMock.setup((x) => x.toResizedJpegBufferAsync(cached, 512, 512, 85)).returns(() => Promise.resolve(small));
+            imageProcessorMock.setup((x) => x.convertBufferToImageUrl(small)).returns(() => 'data:image/jpeg;base64,Bw==');
+
+            const url: string = await service.createMediaSessionImageUrlAsync(track);
+
+            expect(url).toEqual('data:image/jpeg;base64,Bw==');
+            expect(url.startsWith('file:')).toBeFalsy();
+        });
+
+        it('should return an empty url when the track has no cover', async () => {
+            const service: MetadataService = createService();
+            const track: TrackModel = MockCreator.createTrackModelWithAlbumKey('path1', 'albumKey1');
+            const fileMetaDataMock: any = {};
+            fileMetadataFactoryMock.setup((x) => x.createAsync('path1')).returns(() => Promise.resolve(fileMetaDataMock));
+            albumArtworkGetterMock.setup((x) => x.getAlbumArtworkAsync(fileMetaDataMock, false)).returns(() => Promise.resolve(undefined));
+            cachedAlbumArtworkGetterMock.setup((x) => x.getCachedAlbumArtworkPath('albumKey1')).returns(() => '');
+
+            expect(await service.createMediaSessionImageUrlAsync(track)).toEqual('');
+            expect(await service.createMediaSessionImageUrlAsync(undefined)).toEqual('');
+        });
+    });
+
     describe('createImageUrlAsync', () => {
         it('should create an empty image url if trackModel is undefined', async () => {
             // Arrange

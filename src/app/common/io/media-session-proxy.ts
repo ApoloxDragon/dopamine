@@ -15,12 +15,25 @@ export class MediaSessionProxy {
             title: title,
             artist: artist,
             album: album,
-            artwork: [
-                {
-                    src: artwork,
-                },
-            ],
+            artwork: artwork === '' ? [] : [{ src: artwork }],
         });
+    }
+
+    /** Loads an image bundled with the app as a data URL (the only kind of URL the OS media controls show). '' on failure. */
+    public async loadImageAsDataUrlAsync(relativePath: string): Promise<string> {
+        try {
+            const response: Response = await fetch(relativePath);
+            const blob: Blob = await response.blob();
+
+            return await new Promise<string>((resolve) => {
+                const reader: FileReader = new FileReader();
+                reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+                reader.onerror = () => resolve('');
+                reader.readAsDataURL(blob);
+            });
+        } catch {
+            return '';
+        }
     }
 
     public clearMetadata(): void {

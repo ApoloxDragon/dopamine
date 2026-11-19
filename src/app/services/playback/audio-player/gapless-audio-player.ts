@@ -396,6 +396,14 @@ export class GaplessAudioPlayer implements IAudioPlayer {
         this.skipSecondsAfterStarting = 0;
     }
 
+    public fadeAsync(level: number, durationMs: number): Promise<void> {
+        return this._equalizer.fadeAsync(level, durationMs);
+    }
+
+    public setFadeLevel(level: number): void {
+        this._equalizer.setFadeLevel(level);
+    }
+
     public getAudio(): HTMLAudioElement | undefined {
         return undefined;
     }
