@@ -10,7 +10,7 @@ class CueTrackPath {
 
     /** Returns { audioPath, trackNumber } for a virtual path, or undefined for a normal path. */
     static parse(path) {
-        if (path === undefined || path === null) {
+        if (typeof path !== 'string') {
             return undefined;
         }
 
@@ -22,7 +22,7 @@ class CueTrackPath {
 
         const suffix = path.substring(index + 1);
 
-        if (!/^\d+$/.test(suffix)) {
+        if (!/^\d+$/.test(suffix) || !Number.isSafeInteger(parseInt(suffix, 10))) {
             return undefined;
         }
 

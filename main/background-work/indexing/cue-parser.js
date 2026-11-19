@@ -9,16 +9,18 @@ class CueParser {
      */
     decode(buffer) {
         if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
-            return buffer.subarray(2).toString('utf16le');
+            return buffer.subarray(2, 2 + ((buffer.length - 2) & ~1)).toString('utf16le');
         }
 
         if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) {
-            const swapped = Buffer.from(buffer.subarray(2));
+            // A trailing odd byte is not a whole character (and swap16 throws on it).
+            const swapped = Buffer.from(buffer.subarray(2, 2 + ((buffer.length - 2) & ~1)));
             swapped.swap16();
             return swapped.toString('utf16le');
         }
 
-        const withoutBom = buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf ? buffer.subarray(3) : buffer;
+        const withoutBom =
+            buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf ? buffer.subarray(3) : buffer;
 
         try {
             return new TextDecoder('utf-8', { fatal: true }).decode(withoutBom);
@@ -100,21 +102,24 @@ class CueParser {
                     break;
                 case 'FILE':
                     currentFile = { fileName: this.#readFileName(rest), tracks: [] };
+                    // Only used while parsing; not enumerable, so not part of the result.
+                    Object.defineProperty(currentFile, 'usedNumbers', { value: new Set(), enumerable: false });
+                    Object.defineProperty(currentFile, 'highestNumber', { value: 0, enumerable: false, writable: true });
                     sheet.files.push(currentFile);
                     currentTrack = undefined;
                     break;
                 case 'TRACK': {
-                    const parts = rest.split(/\s+/);
-                    const number = parseInt(parts[0], 10);
-                    const isAudio = (parts[1] ?? '').toUpperCase() === 'AUDIO';
-
                     if (currentFile === undefined) {
                         currentTrack = undefined;
                         break;
                     }
 
+                    const parts = rest.split(/\s+/);
+                    const number = this.#trackNumber(parts[0], currentFile);
+                    const isAudio = (parts[1] ?? '').toUpperCase() === 'AUDIO';
+
                     currentTrack = {
-                        number: Number.isNaN(number) ? currentFile.tracks.length + 1 : number,
+                        number,
                         title: '',
                         performer: '',
                         composer: '',
@@ -168,12 +173,16 @@ class CueParser {
     createTrackRanges(cueFile, durationMs) {
         const ranges = [];
         const tracks = [...cueFile.tracks].sort((a, b) => a.startMs - b.startMs);
+        // An unknown or broken length (0, NaN, Infinity) does not end the file: only the next track ends a track then,
+        // and the last track is dropped.
+        const knownDurationMs = Number.isFinite(durationMs) && durationMs > 0 ? durationMs : undefined;
 
         for (let i = 0; i < tracks.length; i++) {
             const startMs = tracks[i].startMs;
-            const endMs = i + 1 < tracks.length ? tracks[i + 1].startMs : durationMs;
+            const nextStartMs = i + 1 < tracks.length ? tracks[i + 1].startMs : undefined;
+            const endMs = Math.min(nextStartMs ?? Infinity, knownDurationMs ?? (nextStartMs === undefined ? -Infinity : Infinity));
 
-            if (endMs <= startMs) {
+            if (!Number.isFinite(endMs) || endMs <= startMs) {
                 continue;
             }
 
@@ -181,6 +190,22 @@ class CueParser {
         }
 
         return ranges;
+    }
+
+    /**
+     * The number of a TRACK line. CD tracks are 1-99 (0 for a hidden track), so anything that is not a plain number of up
+     * to 6 digits ("-1", "1e5", "qwertyuiop", 30 digits) gets the next free number, as does a number already used in the
+     * same FILE: each track needs its own virtual path ("<file>|<number>").
+     */
+    #trackNumber(text, file) {
+        const number = /^\d{1,6}$/.test(text ?? '') ? parseInt(text, 10) : undefined;
+        const chosen =
+            number !== undefined && !file.usedNumbers.has(number) ? number : file.usedNumbers.size === 0 ? 1 : file.highestNumber + 1;
+
+        file.usedNumbers.add(chosen);
+        file.highestNumber = Math.max(file.highestNumber, chosen);
+
+        return chosen;
     }
 
     #readWord(text) {

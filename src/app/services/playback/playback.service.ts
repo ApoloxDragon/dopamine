@@ -325,7 +325,7 @@ export class PlaybackService {
         const token: number = ++this._fadeToken;
         this._isFadingOut = true;
 
-        void this.audioPlayer.fadeAsync(0, durationMs).then(() => {
+        this.fade(0, durationMs, () => {
             if (token === this._fadeToken) {
                 this._isFadingOut = false;
                 this.audioPlayer.pause();
@@ -348,7 +348,9 @@ export class PlaybackService {
             return 0;
         }
 
-        return PlaybackService.clampFade(this.settings.useSeparateFadeInDuration ? this.settings.fadeInDurationMs : this.settings.fadeOnPauseDurationMs);
+        return PlaybackService.clampFade(
+            this.settings.useSeparateFadeInDuration ? this.settings.fadeInDurationMs : this.settings.fadeOnPauseDurationMs,
+        );
     }
 
     private static clampFade(durationMs: number): number {
@@ -357,6 +359,39 @@ export class PlaybackService {
         }
 
         return Math.min(PlaybackService.maximumFadeMs, Math.max(PlaybackService.minimumFadeMs, Math.round(durationMs)));
+    }
+
+    /**
+     * Fades, then runs `done`. When the fade fails (audio device gone, audio context closed), `done` runs anyway: a
+     * pause or stop must never be lost, or the music would keep playing while the app shows it paused.
+     */
+    private fade(level: number, durationMs: number, done: () => void, failed: () => void = done): void {
+        const fail = (e: unknown): void => {
+            this.logger.warn(`Fade failed: ${e instanceof Error ? e.message : String(e)}`, 'PlaybackService', 'fade');
+            failed();
+        };
+
+        try {
+            this.audioPlayer.fadeAsync(level, durationMs).then(done, fail);
+        } catch (e: unknown) {
+            fail(e);
+        }
+    }
+
+    /** Fades in; when that fails, the volume is set to full at once (never left silent). */
+    private fadeIn(durationMs: number): void {
+        const token: number = this._fadeToken;
+
+        this.fade(
+            1,
+            durationMs,
+            () => undefined, // Nothing to do when the fade in ends.
+            () => {
+                if (token === this._fadeToken) {
+                    this.audioPlayer.setFadeLevel(1);
+                }
+            },
+        );
     }
 
     /** Cancels a pending fade and restores full volume. Used before a new track starts. */
@@ -398,14 +433,14 @@ export class PlaybackService {
             this._isFadingOut = false;
 
             if (fadeInMs > 0) {
-                void this.audioPlayer.fadeAsync(1, fadeInMs);
+                this.fadeIn(fadeInMs);
             } else {
                 this.audioPlayer.setFadeLevel(1);
             }
         } else if (fadeInMs > 0) {
             this.audioPlayer.setFadeLevel(0);
             await this.audioPlayer.resumeAsync();
-            void this.audioPlayer.fadeAsync(1, fadeInMs);
+            this.fadeIn(fadeInMs);
         } else {
             this.audioPlayer.setFadeLevel(1);
             await this.audioPlayer.resumeAsync();
@@ -589,7 +624,7 @@ export class PlaybackService {
             const token: number = ++this._fadeToken;
             this._isFadingOut = true;
 
-            void this.audioPlayer.fadeAsync(0, durationMs).then(() => {
+            this.fade(0, durationMs, () => {
                 if (token === this._fadeToken) {
                     this._isFadingOut = false;
                     this.audioPlayer.stop();

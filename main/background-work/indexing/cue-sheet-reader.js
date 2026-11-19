@@ -16,6 +16,9 @@ const { FileFormats } = require('../common/application/file-formats');
  * Entries that cannot be resolved are skipped (and logged), so a bad sheet never hides existing files.
  */
 class CueSheetReader {
+    /** Real sheets are a few kB. A bigger ".cue" is something else (or a mistake) and is not read into memory. */
+    static maximumSheetBytes = 10 * 1024 * 1024;
+
     constructor(cueParser, logger, fileSystem = fs) {
         this.cueParser = cueParser;
         this.logger = logger;
@@ -30,10 +33,18 @@ class CueSheetReader {
      */
     read(cuePath) {
         let modifiedMs;
+        let size;
 
         try {
-            modifiedMs = this.fileSystem.statSync(cuePath).mtimeMs;
+            const stats = this.fileSystem.statSync(cuePath);
+            modifiedMs = stats.mtimeMs;
+            size = stats.size;
         } catch (e) {
+            return [];
+        }
+
+        if (size > CueSheetReader.maximumSheetBytes) {
+            this.logger.warn(`Cue sheet '${cuePath}' is too big (${size} bytes) and was skipped`, 'CueSheetReader', 'read');
             return [];
         }
 
@@ -59,15 +70,18 @@ class CueSheetReader {
 
     /** Returns the track with the given number for the given audio file of the sheet, or undefined. */
     getTrack(cuePath, audioPath, trackNumber) {
-        const audioFile = this.read(cuePath).find((x) => x.audioPath === audioPath);
+        const audioFiles = this.read(cuePath);
+        const audioFile = audioFiles.find((x) => x.audioPath === audioPath);
 
         if (audioFile === undefined) {
             return undefined;
         }
 
         const track = audioFile.tracks.find((x) => x.number === trackNumber);
+        // The tracks of the whole sheet: a sheet can list one FILE per track (EAC "multiple files", vinyl rips).
+        const trackCount = audioFiles.reduce((count, x) => count + x.tracks.length, 0);
 
-        return track === undefined ? undefined : { ...track, sheet: audioFile.sheet, trackCount: audioFile.tracks.length };
+        return track === undefined ? undefined : { ...track, sheet: audioFile.sheet, trackCount };
     }
 
     #resolveAudioFiles(cuePath, sheet) {
@@ -101,7 +115,10 @@ class CueSheetReader {
                 continue;
             }
 
-            const sorted = [...file.tracks].sort((a, b) => a.startMs - b.startMs);
+            // A track that starts where the next one starts has no audio: it is left out (as in CueParser.createTrackRanges).
+            const sorted = [...file.tracks]
+                .sort((a, b) => a.startMs - b.startMs)
+                .filter((t, i, all) => i + 1 >= all.length || all[i + 1].startMs > t.startMs);
             const tracks = sorted.map((t, i) => ({
                 number: t.number,
                 title: t.title,
@@ -111,7 +128,11 @@ class CueSheetReader {
                 nextStartMs: i + 1 < sorted.length ? sorted[i + 1].startMs : undefined,
             }));
 
-            result.push({ audioPath, sheet: { performer: sheet.performer, title: sheet.title, genre: sheet.genre, year: sheet.year }, tracks });
+            result.push({
+                audioPath,
+                sheet: { performer: sheet.performer, title: sheet.title, genre: sheet.genre, year: sheet.year },
+                tracks,
+            });
         }
 
         return result;
@@ -163,7 +184,10 @@ class CueSheetReader {
     }
 
     #looseName(name) {
-        return name.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+        return name
+            .normalize('NFC')
+            .toLowerCase()
+            .replace(/[^\p{L}\p{N}]/gu, '');
     }
 
     #stripExtension(fileName) {

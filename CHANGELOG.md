@@ -3,6 +3,30 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0-apolox] - 2026-11-19
+
+Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo. Mostly fixes, many found by new
+"break it" tests and by checking a real library.
+
+### Added
+
+- Discord: albums split into discs ("Album (CD1)", "Album [Disc 2]") now show the album cover; all discs share it
+- Album covers are also found in an Artwork, Scans or Covers subfolder ("Album/Artwork/Front.jpg"), as vinyl and boxed set rips often have them
+
+### Fixed
+
+- Fade out on pause and stop cut the sound almost at once after a fade in had happened (fade in worked)
+- A pause or stop is no longer lost (music playing on while shown as paused) when the fade fails, for example when the audio device disappears
+- CUE sheets with repeated, negative or nonsense track numbers no longer give two tracks the same identity; tracks that start where the next one starts are left out; a track can no longer end after the end of its file
+- Very large files named .cue (over 10 MB) are skipped instead of read into memory
+- Discord: empty, one-letter, very long or emoji-cut titles and broken timestamps no longer make Discord drop the whole status
+- CUE sheets with one FILE per track (EAC "multiple files", vinyl rips) showed every track as "track N of 1"; the count is now the whole sheet (re-index to update)
+- ALAC .m4a files showed a bit rate of 0; it is now worked out from the file size and length (re-index to update)
+- Playing more than about 1000 selected artists or genres at once failed ("Expression tree is too large")
+- Tags containing a NUL character broke the database query for that artist, album or genre
+- Artist, genre and smart playlist matching treated "%" and "_" in names as wildcards ("AC_DC" also matched "AC/DC")
+- Smart playlists with a limit like 1.5 or a huge number in a rule failed to load
+
 ## [3.2.2-apolox] - 2026-11-19
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.

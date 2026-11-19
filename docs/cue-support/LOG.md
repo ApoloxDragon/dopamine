@@ -295,3 +295,28 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Tests incl. break-it cases and a seeded chaos test; unit 3415, database 46; tools: i18n-add.js, seed-statistics.js, SEED_STATISTICS/LIGHT for app-screenshots.js
 
 - **2026-11-19** · `Note` · Android plan written as a draft (docs/android-plan.md, D15), on hold; leaning towards forking an existing FOSS Android player
+
+- **2026-11-19** · `Fixed` · Fade out cut instead of fading after any earlier fade in
+    - Cause: the exponential ramp started at the previous timeline event (the end of the last fade in, possibly minutes ago). Fix: always setValueAtTime(current, now) first. New eq-harness check reproduces it (-50 dB 10 ms into a 500 ms fade before, -1.6 dB after).
+
+- **2026-11-19** · `Added` · Discord cover for split-disc albums
+    - DiscordAlbumArtResolver keys the cache on the title without the disc part and falls back to it on Last.fm when the exact title has no cover. Regexes are bounded (a break-it test caught quadratic backtracking).
+
+- **2026-11-19** · `Tooling` · Torture specs ("a tester walks into a bar") for CUE, the audio protocol, fades, equalizer imports and Discord
+    - cue.torture.spec.js, audio-protocol.torture.spec.js, equalizer.torture.spec.ts, discord-api.torture.spec.ts (in src/ because main/api/discord/*.js is generated and ignored), plus fade torture cases in playback.service.spec.ts. Each also checks the ordinary case still works.
+
+- **2026-11-19** · `Fixed` · What the torture specs found
+    - CUE: duplicate/negative/1e5/30-digit track numbers (now unique, next free number), UTF-16 BE with an odd byte threw, ranges for unknown durations were NaN, ranges past the file end, zero-length tracks, quadratic numbering, 2 GB .cue read whole (now 10 MB limit), CueTrackPath.parse threw on non-strings and accepted unsafe integers.
+    - Fades: a failed or throwing fadeAsync lost the pause/stop and left the volume at 0 on resume. Discord: non-string/blank text, surrogate pairs cut at 128, Infinity/string timestamps, non-https cover keys, setActivity throwing.
+    - Audio protocol and equalizer imports: no failures (43 + 35 cases).
+
+- **2026-11-19** · `Fixed` · Found by checking the owner's real library (database, log, settings, file list)
+    - Database healthy (integrity ok, WAL, v17, 1938 tracks, 1041 CUE tracks). 3.2.2 sessions in the log are clean: no 'database is locked', no CUE load failures, so the 3.2.1 fixes hold.
+    - Fixed: CUE trackCount per FILE instead of per sheet (Black Sabbath vinyl: 'N of 1'); ALAC m4a bit rate 0 (estimated from size/length); covers in Artwork/Scans/Covers subfolders (4 Black Sabbath albums had none).
+    - Drafted: D16 clipping warning (preamp 0 with +12 dB band), D17 merging (CD1)/(CD2) albums, D18 duplicate Veleno sheet in Scans/.
+
+- **2026-11-19** · `Fixed` · Real-SQLite torture spec (database.torture.spec.ts, built by the app's own DatabaseMigrator)
+    - Found: NUL in a tag broke queries (now char(0)); >1000 OR conditions hit SQLite's depth limit (balanced tree); Infinity in smart playlist rules; LIKE wildcards % and _ in names; LIMIT 1.5/1e21.
+    - electron-jest.js never passed on Jest's exit code (failures looked green); fixed, and the database tests now run in the Linux CI job.
+
+- **2026-11-19** · `Note` · Version 3.3.0-apolox

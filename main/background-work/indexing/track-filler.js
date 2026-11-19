@@ -146,20 +146,26 @@ class TrackFiller {
         }
 
         const parsedPath = CueTrackPath.parse(track.path);
-        const cueTrack = parsedPath === undefined ? undefined : this.cueSheetReader.getTrack(track.cuePath, track.audioPath, parsedPath.trackNumber);
+        const cueTrack =
+            parsedPath === undefined ? undefined : this.cueSheetReader.getTrack(track.cuePath, track.audioPath, parsedPath.trackNumber);
 
         if (cueTrack === undefined) {
             throw new Error(`Track not found in cue sheet '${track.cuePath}'`);
         }
 
         const fileDurationMs = this.trackFieldCreator.createNumberField(fileMetadata.durationInMilliseconds);
-        const endMs = cueTrack.nextStartMs ?? fileDurationMs;
+        // A sheet can place the next track after the end of the file (wrong sheet for this rip): the file ends the track then.
+        const endMs =
+            fileDurationMs > 0
+                ? Math.min(cueTrack.nextStartMs ?? fileDurationMs, fileDurationMs)
+                : (cueTrack.nextStartMs ?? fileDurationMs);
 
         if (endMs <= cueTrack.startMs) {
             throw new Error(`Track ${cueTrack.number} in cue sheet '${track.cuePath}' starts after the end of the audio file`);
         }
 
-        const albumTitle = cueTrack.sheet.title.length > 0 ? cueTrack.sheet.title : this.trackFieldCreator.createTextField(fileMetadata.album);
+        const albumTitle =
+            cueTrack.sheet.title.length > 0 ? cueTrack.sheet.title : this.trackFieldCreator.createTextField(fileMetadata.album);
         const albumArtists =
             cueTrack.sheet.performer.length > 0
                 ? [cueTrack.sheet.performer]

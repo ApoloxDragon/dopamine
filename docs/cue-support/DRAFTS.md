@@ -164,3 +164,27 @@ Written up in [docs/android-plan.md](../android-plan.md). Electron and Node part
 playback) have no Android equivalent; background playback needs a native Media3 service. Routes: Capacitor (most
 reuse), native Kotlin, or forking an existing FOSS Android player (the owner's preference for now). Dopamine stays
 desktop-only until decided.
+
+## D16. Equalizer: warn when the curve can clip: `draft`, low priority (owner keeps 0 dB on purpose)
+
+Found in the owner's settings: the parametric profile (QCY H3 Pro, AutoEQ) is stored with preamp 0 dB, while the AutoEQ
+file says -3.1 dB, and it has a +12 dB peak at 4 kHz. The import reads -3.1 dB correctly, so it was changed afterwards.
+With 0 dB the curve peaks at about +3.1 dB, which can clip on loud masters. Nothing in the dialog says so.
+Proposal: show the peak gain under the curve ("Peak +3.1 dB: may distort on loud songs") with a "Set preamp to -3.1 dB"
+button. UI + 25 translations: medium effort.
+Owner's answer: the 0 dB preamp is intentional (likes it loud). If this is ever built, it must only inform, never change the
+preamp by itself, and should be easy to dismiss.
+
+## D17. Albums split into "(CD1)" / "(CD2)" albums: `draft`, needs your decision
+
+The library has albums tagged "Deceiver Of The Gods (CD1)" and "(CD2)" with no disc number, so they show as two albums.
+Options: (1) leave as is; (2) an option to merge such albums in the album list, grouping by the title without the disc part
+(the same rule as the Discord cover lookup) and sorting by disc; (3) only suggest retagging (album "Deceiver Of The Gods",
+disc 1/2). Option 2 changes album keys, so it needs care with existing playlists and statistics: high effort.
+
+## D18. A .cue copy inside Scans/ next to the real one: `note`
+
+The Veleno album has a sheet in the album folder (works) and a copy in Scans/ that refers to a .wav. The copy is skipped
+with a warning on every index. It is not resolved against the parent folder on purpose: two sheets for one album would
+give every track twice. Deleting or renaming the copy (for example to .cue.old) stops the warning.
+

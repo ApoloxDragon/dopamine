@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { File, PictureType, TagTypes, Id3v2FrameClassType } = require('@digimezzo/node-taglib-sharp');
 const { RatingConverter } = require('./rating-converter');
 
@@ -33,6 +34,23 @@ class TagLibFileMetadata {
         this.replayGainAlbumPeak = 0;
 
         this.#load();
+    }
+
+    /**
+     * Average bit rate (kbps) from the file size and length, for files whose header has none (taglib-sharp gives 0 for
+     * ALAC in .m4a). Tags and covers are counted too, so it is a little high, like in most players. 0 when unknown.
+     */
+    static estimateBitRate(path, durationInMilliseconds, fileSystem = fs) {
+        if (!(durationInMilliseconds > 0) || !Number.isFinite(durationInMilliseconds)) {
+            return 0;
+        }
+
+        try {
+            const bitsPerMillisecond = (fileSystem.statSync(path).size * 8) / durationInMilliseconds;
+            return Number.isFinite(bitsPerMillisecond) && bitsPerMillisecond > 0 ? bitsPerMillisecond : 0;
+        } catch (e) {
+            return 0;
+        }
     }
 
     #load() {
@@ -155,6 +173,10 @@ class TagLibFileMetadata {
             if (tagLibFile.properties.audioSampleRate !== undefined && !Number.isNaN(tagLibFile.properties.audioSampleRate)) {
                 this.sampleRate = tagLibFile.properties.audioSampleRate ?? 0;
             }
+        }
+
+        if (!(this.bitRate > 0)) {
+            this.bitRate = TagLibFileMetadata.estimateBitRate(this.path, this.durationInMilliseconds);
         }
 
         try {

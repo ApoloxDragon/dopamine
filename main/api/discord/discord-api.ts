@@ -62,25 +62,26 @@ export class DiscordApi {
             return;
         }
 
-        // Discord rejects the whole activity when a text is shorter than 2 or longer than 128 characters.
+        // Discord rejects the whole activity when a text is shorter than 2 or longer than 128 characters, or a value is
+        // not what it expects, so everything is checked here (the renderer can send anything).
         const presence: Presence & { type?: number; statusDisplayType?: number } = {
-            details: DiscordApi.fitText(`${args.title}`),
-            state: DiscordApi.fitText(`${args.artists}`),
-            largeImageKey: args.largeImageKey,
-            largeImageText: args.largeImageText !== undefined ? DiscordApi.fitText(args.largeImageText) : undefined,
+            details: DiscordApi.fitText(args.title) ?? 'Unknown title',
+            state: DiscordApi.fitText(args.artists) ?? 'Unknown artist',
+            largeImageKey: DiscordApi.isImageKey(args.largeImageKey) ? args.largeImageKey : 'icon',
+            largeImageText: DiscordApi.fitText(args.largeImageText),
             smallImageKey: args.smallImageKey,
-            smallImageText: args.smallImageText !== undefined ? DiscordApi.fitText(args.smallImageText) : undefined,
+            smallImageText: DiscordApi.fitText(args.smallImageText),
             type: args.type,
             // Sent as status_display_type (see patch-discord-rpc.js).
             statusDisplayType: args.statusDisplayType,
         };
 
-        if (args.shouldSendTimestamps && args.startTime) {
+        if (args.shouldSendTimestamps && DiscordApi.isTimestamp(args.startTime)) {
             // Discord activity timestamps are Unix time in milliseconds (seconds made the progress bar end in 1970).
             presence.startTimestamp = Math.floor(args.startTime);
 
             // With an end time Discord shows a progress bar, like Spotify does.
-            if (args.endTime !== undefined && args.endTime > args.startTime) {
+            if (DiscordApi.isTimestamp(args.endTime) && Math.floor(args.endTime) > presence.startTimestamp) {
                 presence.endTimestamp = Math.floor(args.endTime);
             }
         }
@@ -90,19 +91,65 @@ export class DiscordApi {
             return;
         }
 
-        this._client.setActivity(presence);
+        try {
+            // setActivity returns a promise in discord-rpc; a lost connection must not become an unhandled rejection.
+            const result: unknown = this._client.setActivity(presence);
+
+            if (result instanceof Promise) {
+                result.catch((e: unknown) => log.warn(`[DiscordApi] [setPresence] Could not update Rich Presence: ${String(e)}`));
+            }
+        } catch (e: unknown) {
+            log.warn(`[DiscordApi] [setPresence] Could not update Rich Presence: ${String(e)}`);
+            return;
+        }
+
         log.info(`[DiscordApi] [setPresence] Rich Presence updated: ${presence.state} - ${presence.details} (${presence.smallImageKey})`);
     }
 
-    private static fitText(text: string): string {
-        const trimmed: string = text.trim();
+    /** The 'icon' asset, or a cover URL Discord can show (https, at most 256 characters). */
+    private static isImageKey(key: unknown): key is string {
+        return key === 'icon' || (typeof key === 'string' && key.startsWith('https://') && key.length <= 256);
+    }
 
-        if (trimmed.length > 128) {
-            return trimmed.substring(0, 127) + '…';
+    /** A Unix time in milliseconds that Discord accepts. */
+    private static isTimestamp(value: unknown): value is number {
+        return typeof value === 'number' && Number.isFinite(value) && value > 0 && Number.isSafeInteger(Math.floor(value));
+    }
+
+    /**
+     * Text that Discord accepts (2 to 128 characters), or undefined when there is no text. Cuts between characters, never
+     * through an emoji (a cut surrogate pair is invalid text), and replaces broken surrogates.
+     */
+    private static fitText(value: unknown): string | undefined {
+        if (typeof value !== 'string' && typeof value !== 'number') {
+            return undefined;
+        }
+
+        const text: string = String(value)
+            .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '\uFFFD')
+            .replace(/\0/g, '')
+            .trim();
+
+        if (text.length === 0) {
+            return undefined;
+        }
+
+        if (text.length > 128) {
+            let cut: string = '';
+
+            for (const character of text) {
+                if (cut.length + character.length > 127) {
+                    break;
+                }
+
+                cut += character;
+            }
+
+            return cut + '…';
         }
 
         // Pad very short texts (e.g. a one letter title) to Discord's minimum of 2 characters.
-        return trimmed.length < 2 ? trimmed.padEnd(2, ' ') : trimmed;
+        return text.length < 2 ? text.padEnd(2, ' ') : text;
     }
 
     public clearPresence(): void {
