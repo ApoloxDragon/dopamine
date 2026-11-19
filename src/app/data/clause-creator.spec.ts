@@ -54,8 +54,38 @@ describe('ClauseCreator', () => {
 
             // Assert
             expect(orLikeClause).toEqual(
-                ` ((LOWER(TheColumn) LIKE LOWER('%;Item1;%')) OR (TheColumn IS NULL OR TheColumn='') OR (LOWER(TheColumn) LIKE LOWER('%;Item3;%')))`
+                ` ((LOWER(TheColumn) LIKE LOWER('%;Item1;%') ESCAPE '\\') OR (TheColumn IS NULL OR TheColumn='') OR (LOWER(TheColumn) LIKE LOWER('%;Item3;%') ESCAPE '\\'))`,
             );
+        });
+    });
+
+    describe('torture', () => {
+        it('should keep a NUL character exact, outside the quotes', () => {
+            expect(ClauseCreator.escapeQuotes("a\u0000b'c")).toEqual("a' || char(0) || 'b''c");
+        });
+
+        it('should escape LIKE wildcards and the escape character itself', () => {
+            expect(ClauseCreator.escapeLike("100%_\\'")).toEqual("100\\%\\_\\\\''");
+        });
+
+        it('should join many conditions as a shallow tree, and few as a flat list', () => {
+            expect(ClauseCreator.joinBalanced(['a', 'b'], 'OR')).toEqual('a OR b');
+            const joined: string = ClauseCreator.joinBalanced(
+                Array.from({ length: 100000 }, (_, i: number) => `c${i}`),
+                'AND',
+            );
+            let depth: number = 0;
+            let deepest: number = 0;
+            for (const character of joined) {
+                depth += character === '(' ? 1 : character === ')' ? -1 : 0;
+                deepest = Math.max(deepest, depth);
+            }
+            expect(deepest).toBeLessThanOrEqual(3);
+            expect(joined.split(' AND ').length).toEqual(100000);
+        });
+
+        it.each([0, 1, -5, NaN])('should not loop forever with a group size of %p', (size: number) => {
+            expect(ClauseCreator.joinBalanced(['a', 'b', 'c', 'd'], 'OR', size)).toContain('a');
         });
     });
 });

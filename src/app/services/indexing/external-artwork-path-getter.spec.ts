@@ -1,4 +1,4 @@
-import { IMock, Mock } from 'typemoq';
+import { IMock, It, Mock } from 'typemoq';
 import { ExternalArtworkPathGetter } from './external-artwork-path-getter';
 import { FileAccessBase } from '../../common/io/file-access.base';
 
@@ -169,6 +169,81 @@ describe('ExternalArtworkPathGetter', () => {
 
             // Assert
             expect(artworkPath).toEqual('');
+        });
+    });
+
+    describe('artwork subfolders', () => {
+        const album: string = '/music/1970 - Paranoid [UK Vinyl LP]';
+        const track: string = `${album}/01. War Pigs.flac`;
+
+        function setup(files: Record<string, string[] | Error>, folders: string[] | Error): ExternalArtworkPathGetter {
+            const mock: IMock<FileAccessBase> = Mock.ofType<FileAccessBase>();
+            mock.setup((x) => x.getDirectoryPath(track)).returns(() => album);
+            mock.setup((x) => x.getFileNameWithoutExtension(track)).returns(() => '01. War Pigs');
+            mock.setup((x) => x.getFileName(It.isAnyString())).returns((p: string) => p.substring(p.lastIndexOf('/') + 1));
+            mock.setup((x) => x.getFilesInDirectoryAsync(It.isAnyString())).returns((d: string) => {
+                const result = files[d] ?? [];
+                return result instanceof Error ? Promise.reject(result) : Promise.resolve(result);
+            });
+            mock.setup((x) => x.getDirectoriesInDirectoryAsync(It.isAnyString())).returns(() =>
+                folders instanceof Error ? Promise.reject(folders) : Promise.resolve(folders),
+            );
+            return new ExternalArtworkPathGetter(mock.object);
+        }
+
+        it('should find the cover in an Artwork subfolder, whatever the case (vinyl rips)', async () => {
+            const getter = setup(
+                { [album]: [track], [`${album}/Artwork`]: [`${album}/Artwork/DSC04698.JPG`, `${album}/Artwork/Front.JPG`] },
+                [`${album}/Artwork`],
+            );
+
+            expect(await getter.getExternalArtworkPathAsync(track)).toEqual(`${album}/Artwork/Front.JPG`);
+        });
+
+        it('should prefer a cover in the album folder itself', async () => {
+            const getter = setup({ [album]: [track, `${album}/folder.jpg`], [`${album}/Scans`]: [`${album}/Scans/front.jpg`] }, [
+                `${album}/Scans`,
+            ]);
+
+            expect(await getter.getExternalArtworkPathAsync(track)).toEqual(`${album}/folder.jpg`);
+        });
+
+        it('should prefer front over folder, whatever order the files are listed in', async () => {
+            const getter = setup({ [album]: [track, `${album}/folder.jpg`, `${album}/front.jpg`] }, []);
+
+            expect(await getter.getExternalArtworkPathAsync(track)).toEqual(`${album}/front.jpg`);
+        });
+
+        // Trying to break it.
+
+        it('should ignore subfolders with other names and scans that are not covers', async () => {
+            const getter = setup(
+                {
+                    [album]: [track],
+                    [`${album}/Artwork Old`]: [`${album}/Artwork Old/front.jpg`],
+                    [`${album}/CD1`]: [`${album}/CD1/cover.jpg`],
+                    [`${album}/Scans`]: [`${album}/Scans/book0001.jpg`, `${album}/Scans/cd0001.jpg`],
+                },
+                [`${album}/Artwork Old`, `${album}/CD1`, `${album}/Scans`],
+            );
+
+            expect(await getter.getExternalArtworkPathAsync(track)).toEqual('');
+        });
+
+        it('should survive folders it cannot list, and keep looking in the next one', async () => {
+            const getter = setup(
+                { [album]: [track], [`${album}/Artwork`]: new Error('EACCES'), [`${album}/Covers`]: [`${album}/Covers/Cover.png`] },
+                [`${album}/Artwork`, `${album}/Covers`],
+            );
+
+            expect(await getter.getExternalArtworkPathAsync(track)).toEqual(`${album}/Covers/Cover.png`);
+            expect(await setup({ [album]: [track] }, new Error('EACCES')).getExternalArtworkPathAsync(track)).toEqual('');
+        });
+
+        it('should not take a folder named like a cover for the cover', async () => {
+            const getter = setup({ [album]: [track], [`${album}/Artwork`]: [] }, [`${album}/Artwork`, `${album}/cover.jpg`]);
+
+            expect(await getter.getExternalArtworkPathAsync(track)).toEqual('');
         });
     });
 });

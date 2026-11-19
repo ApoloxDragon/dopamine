@@ -87,11 +87,14 @@ export class SmartPlaylistQueryBuilder {
             return '';
         }
 
-        const joiner = definition.match === 'any' ? ' OR ' : ' AND ';
-        let whereClause = `(${clauses.join(joiner)})`;
+        let whereClause = `(${ClauseCreator.joinBalanced(clauses, definition.match === 'any' ? 'OR' : 'AND')})`;
 
-        if (definition.limitType === 'songs' && definition.limitValue != undefined && definition.limitValue > 0) {
-            whereClause += ` LIMIT ${definition.limitValue}`;
+        // The limit comes from the playlist file: only a whole number goes into the query ("LIMIT 1.5", "LIMIT Infinity"
+        // or "LIMIT 1e+21" would make the whole playlist fail).
+        const limit: number = Math.floor(definition.limitValue ?? 0);
+
+        if (definition.limitType === 'songs' && Number.isSafeInteger(limit) && limit > 0) {
+            whereClause += ` LIMIT ${limit}`;
         }
 
         return whereClause;
@@ -136,15 +139,15 @@ export class SmartPlaylistQueryBuilder {
 
             case 'contains':
                 if (isTextField) {
-                    return `${this.buildAccentInsensitiveExpression(column)} LIKE '%${escapedValue}%'`;
+                    return `${this.buildAccentInsensitiveExpression(column)} LIKE '%${this.escapeLikeValue(escapedValue)}%' ESCAPE '\\'`;
                 }
-                return `LOWER(${column}) LIKE LOWER('%${escapedValue}%')`;
+                return `LOWER(${column}) LIKE LOWER('%${this.escapeLikeValue(escapedValue)}%') ESCAPE '\\'`;
 
             case 'doesnotcontain':
                 if (isTextField) {
-                    return `${this.buildAccentInsensitiveExpression(column)} NOT LIKE '%${escapedValue}%'`;
+                    return `${this.buildAccentInsensitiveExpression(column)} NOT LIKE '%${this.escapeLikeValue(escapedValue)}%' ESCAPE '\\'`;
                 }
-                return `LOWER(${column}) NOT LIKE LOWER('%${escapedValue}%')`;
+                return `LOWER(${column}) NOT LIKE LOWER('%${this.escapeLikeValue(escapedValue)}%') ESCAPE '\\'`;
 
             case 'greaterthan':
                 return `${column} > ${this.toNumber(rule.value)}`;
@@ -159,7 +162,7 @@ export class SmartPlaylistQueryBuilder {
 
     private buildDelimitedEquals(column: string, escapedValue: string): string {
         const delimiter = Constants.columnValueDelimiter;
-        return `${this.buildAccentInsensitiveExpression(column)} LIKE '%${delimiter}${escapedValue}${delimiter}%'`;
+        return `${this.buildAccentInsensitiveExpression(column)} LIKE '%${delimiter}${this.escapeLikeValue(escapedValue)}${delimiter}%' ESCAPE '\\'`;
     }
 
     private escapeRuleValue(ruleValue: string, isTextField: boolean): string {
@@ -168,6 +171,11 @@ export class SmartPlaylistQueryBuilder {
         }
 
         return ClauseCreator.escapeQuotes(StringUtils.removeAccents(ruleValue).toLowerCase());
+    }
+
+    /** LIKE wildcards in a value that already has its quotes escaped: "100%" must not match "1000 Days". */
+    private escapeLikeValue(quoteEscapedValue: string): string {
+        return quoteEscapedValue.replace(/[\\%_]/g, (character: string) => `\\${character}`);
     }
 
     private buildAccentInsensitiveExpression(column: string): string {
@@ -182,6 +190,12 @@ export class SmartPlaylistQueryBuilder {
 
     private toNumber(value: string): number {
         const parsed = parseInt(value, 10);
-        return isNaN(parsed) ? 0 : parsed;
+
+        if (isNaN(parsed)) {
+            return 0;
+        }
+
+        // "999…9" (400 digits) parses to Infinity, which SQLite reads as a column name.
+        return Math.max(-Number.MAX_SAFE_INTEGER, Math.min(Number.MAX_SAFE_INTEGER, parsed));
     }
 }

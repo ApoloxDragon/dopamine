@@ -349,4 +349,29 @@ describe('CUE torture', () => {
             expect(tracks.every((t) => t.nextStartMs === undefined || t.nextStartMs > t.startMs)).toBe(true);
         });
     });
+
+    describe('a sheet with one FILE per track (EAC "multiple files", vinyl rips)', () => {
+        it('should count the tracks of the whole sheet, not of the file', () => {
+            const text = [
+                'TITLE "Paranoid"',
+                ...[1, 2, 3].map((i) => `FILE "0${i}. Song.flac" WAVE\n  TRACK 0${i} AUDIO\n    INDEX 01 00:00:00`),
+            ].join('\n');
+            const files = { [n('/music/a.cue')]: text, ...Object.fromEntries([1, 2, 3].map((i) => [n(`/music/0${i}. Song.flac`), ''])) };
+            const { reader } = createReader(files);
+
+            const track = reader.getTrack(n('/music/a.cue'), n('/music/02. Song.flac'), 2);
+
+            expect(track).toEqual(expect.objectContaining({ number: 2, trackCount: 3 }));
+        });
+
+        it('should not count files that are missing on disk', () => {
+            const text = [
+                'TITLE "Paranoid"',
+                ...[1, 2, 3].map((i) => `FILE "0${i}. Song.flac" WAVE\n  TRACK 0${i} AUDIO\n    INDEX 01 00:00:00`),
+            ].join('\n');
+            const files = { [n('/music/a.cue')]: text, [n('/music/01. Song.flac')]: '', [n('/music/03. Song.flac')]: '' };
+
+            expect(createReader(files).reader.getTrack(n('/music/a.cue'), n('/music/03. Song.flac'), 3)?.trackCount).toEqual(2);
+        });
+    });
 });

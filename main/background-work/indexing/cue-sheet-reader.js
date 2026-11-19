@@ -70,15 +70,18 @@ class CueSheetReader {
 
     /** Returns the track with the given number for the given audio file of the sheet, or undefined. */
     getTrack(cuePath, audioPath, trackNumber) {
-        const audioFile = this.read(cuePath).find((x) => x.audioPath === audioPath);
+        const audioFiles = this.read(cuePath);
+        const audioFile = audioFiles.find((x) => x.audioPath === audioPath);
 
         if (audioFile === undefined) {
             return undefined;
         }
 
         const track = audioFile.tracks.find((x) => x.number === trackNumber);
+        // The tracks of the whole sheet: a sheet can list one FILE per track (EAC "multiple files", vinyl rips).
+        const trackCount = audioFiles.reduce((count, x) => count + x.tracks.length, 0);
 
-        return track === undefined ? undefined : { ...track, sheet: audioFile.sheet, trackCount: audioFile.tracks.length };
+        return track === undefined ? undefined : { ...track, sheet: audioFile.sheet, trackCount };
     }
 
     #resolveAudioFiles(cuePath, sheet) {

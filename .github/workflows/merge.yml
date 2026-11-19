@@ -40,6 +40,8 @@ jobs:
               run: npm ci
             - name: run unit tests
               run: npm run test
+            - name: run database tests (real SQLite, through Electron)
+              run: npm run test-database-integration
             - name: build
               run: |
                   for i in 1 2 3; do

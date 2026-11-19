@@ -309,3 +309,14 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - CUE: duplicate/negative/1e5/30-digit track numbers (now unique, next free number), UTF-16 BE with an odd byte threw, ranges for unknown durations were NaN, ranges past the file end, zero-length tracks, quadratic numbering, 2 GB .cue read whole (now 10 MB limit), CueTrackPath.parse threw on non-strings and accepted unsafe integers.
     - Fades: a failed or throwing fadeAsync lost the pause/stop and left the volume at 0 on resume. Discord: non-string/blank text, surrogate pairs cut at 128, Infinity/string timestamps, non-https cover keys, setActivity throwing.
     - Audio protocol and equalizer imports: no failures (43 + 35 cases).
+
+- **2026-11-19** · `Fixed` · Found by checking the owner's real library (database, log, settings, file list)
+    - Database healthy (integrity ok, WAL, v17, 1938 tracks, 1041 CUE tracks). 3.2.2 sessions in the log are clean: no 'database is locked', no CUE load failures, so the 3.2.1 fixes hold.
+    - Fixed: CUE trackCount per FILE instead of per sheet (Black Sabbath vinyl: 'N of 1'); ALAC m4a bit rate 0 (estimated from size/length); covers in Artwork/Scans/Covers subfolders (4 Black Sabbath albums had none).
+    - Drafted: D16 clipping warning (preamp 0 with +12 dB band), D17 merging (CD1)/(CD2) albums, D18 duplicate Veleno sheet in Scans/.
+
+- **2026-11-19** · `Fixed` · Real-SQLite torture spec (database.torture.spec.ts, built by the app's own DatabaseMigrator)
+    - Found: NUL in a tag broke queries (now char(0)); >1000 OR conditions hit SQLite's depth limit (balanced tree); Infinity in smart playlist rules; LIKE wildcards % and _ in names; LIMIT 1.5/1e21.
+    - electron-jest.js never passed on Jest's exit code (failures looked green); fixed, and the database tests now run in the Linux CI job.
+
+- **2026-11-19** · `Note` · Version 3.3.0-apolox
