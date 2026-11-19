@@ -12,6 +12,8 @@ with testing between every step. Each phase is small enough to try, test, and th
    - `npm run test` is green (currently 319 suites, 3241 tests).
    - `scripts/dev/check.sh --db` (database repository specs) is green.
    - `scripts/dev/cue-scenarios.sh` and `node scripts/dev/playback-harness/run.js` pass (CUE indexing and playback).
+   - `node scripts/dev/playback-harness/real-music.js <recordings>` passes (recorded output on real music: gapless CUE transitions,
+     fade, equalizer; recordings: the CC0 Musopen Albinoni movements listed in `docs/cue-support/LOG.md`).
    - `npm run build:prod` succeeds.
    - The manual smoke test below passes on at least the platform you use daily.
    - `npm audit --omit=dev` shows the targeted advisories gone and no new ones.

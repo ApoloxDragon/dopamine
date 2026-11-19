@@ -259,3 +259,14 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-19** · `Note` · User report: a CUE track of a FLAC album fails to load in the installed 3.1.0 (media element error after 15 ms)
     - Not reproduced: plain, 24-bit/96 kHz, ID3-prefixed, embedded-cuesheet, large-picture and Ogg FLAC all load in Electron 38 through the same file:// URL; the user's three sheets parse correctly
     - The error log now includes the media error code and message; waiting for the file's details from the user
+
+- **2026-11-19** · `Tooling` · Real-music playback checks: scripts/dev/playback-harness/real-music.js
+    - Builds a CD-style album (FLAC + CUE, tracks on whole cue frames) from given recordings, plays it in headless Chromium through the real LegacyAudioPlayer and AudioEqualizer, records the output on the audio thread (AudioWorklet) and compares it sample by sample with the album
+    - Checks: every track boundary and a boundary inside loud music (output equals the album: max difference 0.00001, no skipped or repeated audio), fade out/in (even 2.2-2.6 dB per 23 ms, silent between, exactly back to full level), graphic equalizer (measured change per band within 0.5 dB of Chromium's filter response), plus a self-test that a 50 ms skip is detected (measured 49.9 ms)
+    - Recordings used: Musopen, Albinoni Oboe Concerto Op. 9 No. 2, three movements, CC0 (commons.wikimedia.org, 'Albinoni, Concerto for Oboe and Strings No. 2 in D minor, Op. 9'); not committed (12 MB)
+    - First version recorded with a ScriptProcessorNode, which dropped 128-frame blocks whenever the page was busy; the AudioWorklet recorder has none
+
+- **2026-11-19** · `Note` · A real 1896 FLAC (96 kHz, 16-bit, from the user) plays in Electron 38 and indexes normally; its embedded title tag is from another song (file's own tags)
+
+- **2026-11-19** · `Tooling` · Effort and usage guard: CLAUDE.md rules and a UserPromptSubmit hook (scripts/dev/effort-check.js) that flags high-effort prompts
+    - Skip per prompt with #high or #medium; edit the pattern list at the top of the script
