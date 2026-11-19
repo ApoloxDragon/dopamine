@@ -55,7 +55,7 @@ export const DEFAULT_SETTINGS = {
     invertNotificationAreaIconColor: false,
     showArtistsPage: true,
     showGenresPage: true,
-    showAlbumsPage: false,
+    showAlbumsPage: true,
     showTracksPage: true,
     showPlaylistsPage: true,
     showFoldersPage: true,

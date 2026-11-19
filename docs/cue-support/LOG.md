@@ -104,3 +104,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-18** · `Note` · Full test run: 315 suites, 3200 passed, 3 failed before the i18n fix; after it the only failures are 2 in contact-information.spec.ts
     - contact-information.spec.ts fails on the base commit too (website URL changed in 'Update website'); not touched by this branch
     - Lint: no file changed by this branch has more errors than before; legacy-audio-player.ts keeps its 3 pre-existing errors in code that was not changed
+
+- **2026-11-19** · `Changed` · Albums page is now visible by default (main/common/settings/default-settings.ts: showAlbumsPage true)
+    - Applies to new installs and to installs where the Albums toggle was never changed; a stored choice is kept
