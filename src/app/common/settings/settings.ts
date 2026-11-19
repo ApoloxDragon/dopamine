@@ -999,6 +999,42 @@ export class Settings implements SettingsBase {
         this.set('audioEqualizerGains', v);
     }
 
+    // fadeOnPause: fade out when pausing or stopping, fade in when resuming
+    public get fadeOnPause(): boolean {
+        return this.get<boolean>('fadeOnPause') ?? false;
+    }
+
+    public set fadeOnPause(v: boolean) {
+        this.set('fadeOnPause', v);
+    }
+
+    // fadeOnPauseDurationMs: fade out duration (and fade in, unless a separate fade in duration is used)
+    public get fadeOnPauseDurationMs(): number {
+        return this.get<number>('fadeOnPauseDurationMs') ?? 500;
+    }
+
+    public set fadeOnPauseDurationMs(v: number) {
+        this.set('fadeOnPauseDurationMs', v);
+    }
+
+    // useSeparateFadeInDuration
+    public get useSeparateFadeInDuration(): boolean {
+        return this.get<boolean>('useSeparateFadeInDuration') ?? false;
+    }
+
+    public set useSeparateFadeInDuration(v: boolean) {
+        this.set('useSeparateFadeInDuration', v);
+    }
+
+    // fadeInDurationMs: only used when useSeparateFadeInDuration is on
+    public get fadeInDurationMs(): number {
+        return this.get<number>('fadeInDurationMs') ?? 500;
+    }
+
+    public set fadeInDurationMs(v: number) {
+        this.set('fadeInDurationMs', v);
+    }
+
     // audioEqualizerMode: 'graphic' or 'parametric'
     public get audioEqualizerMode(): string {
         return this.get<string>('audioEqualizerMode') ?? 'graphic';

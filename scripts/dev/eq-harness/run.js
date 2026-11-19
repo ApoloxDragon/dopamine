@@ -101,6 +101,54 @@ async function main() {
         out.sameNodesForValueChange = eq._filters === graphicNodes || eq._filters.every((n, i) => n === graphicNodes[i]);
         eq.setFilters([{ type: 'peaking', frequency: 1000, gain: 3, q: 1 }], 0);
         out.rebuiltForParametric = eq._filters.length === 1;
+        // Fade: a constant signal through the equalizer, faded out over 0.5 s from t = 0.
+        async function renderFade(setup, seconds) {
+            const ctx = new OfflineAudioContext(1, Math.round(sampleRate * seconds), sampleRate);
+            const source = ctx.createConstantSource();
+            const eq = new AudioEqualizer(ctx);
+            source.connect(eq.input);
+            eq.output.connect(ctx.destination);
+            source.start();
+            await setup(ctx, eq);
+            const buffer = await ctx.startRendering();
+            return buffer.getChannelData(0);
+        }
+        const db = (x) => 20 * Math.log10(Math.max(Math.abs(x), 1e-9));
+
+        const fadeOut = await renderFade(async (ctx, eq) => {
+            eq.fadeAsync(0, 500);
+        }, 0.7);
+        let monotonic = true;
+        for (let i = 1; i < sampleRate * 0.5; i++) if (fadeOut[i] > fadeOut[i - 1] + 1e-6) monotonic = false;
+        out.fadeOut = {
+            startDb: +db(fadeOut[1]).toFixed(2),
+            quarterDb: +db(fadeOut[Math.round(sampleRate * 0.125)]).toFixed(1),
+            halfDb: +db(fadeOut[Math.round(sampleRate * 0.25)]).toFixed(1),
+            afterEnd: fadeOut[Math.round(sampleRate * 0.6)],
+            monotonic,
+        };
+
+        // Turning a fade around half way: fade out over 1 s, at 0.5 s fade back in over 0.5 s.
+        const reversed = await renderFade(async (ctx, eq) => {
+            eq.fadeAsync(0, 1000);
+            ctx.suspend(0.5).then(() => {
+                eq.fadeAsync(1, 500);
+                ctx.resume();
+            });
+        }, 1.2);
+        let maxStep = 0;
+        for (let i = 1; i < reversed.length; i++) maxStep = Math.max(maxStep, Math.abs(reversed[i] - reversed[i - 1]));
+        out.reversal = {
+            atTurnDb: +db(reversed[Math.round(sampleRate * 0.5)]).toFixed(1),
+            endLevel: +reversed[Math.round(sampleRate * 1.1)].toFixed(4),
+            maxSampleStep: +maxStep.toFixed(5),
+        };
+
+        // A very short fade (1 ms) and an instant level change
+        const short = await renderFade(async (ctx, eq) => {
+            eq.fadeAsync(0, 1);
+        }, 0.05);
+        out.shortFadeSilentAfter5ms = Math.abs(short[Math.round(sampleRate * 0.005)]) < 1e-6;
         return out;
     });
 
@@ -113,6 +161,12 @@ async function main() {
         ['audio through +6 dB peak and -2 dB preamp is 4 dB louder', Math.abs(result.audioLevelChangeDb - 4) < 0.1],
         ['changing values keeps the same filter nodes (no clicks)', result.sameNodesForValueChange],
         ['switching to parametric rebuilds the chain', result.rebuiltForParametric],
+        ['fade out starts at full level', Math.abs(result.fadeOut.startDb) < 0.1],
+        ['fade out is even in dB (about -40 dB half way, -20 dB a quarter in)', Math.abs(result.fadeOut.halfDb + 40) < 1.5 && Math.abs(result.fadeOut.quarterDb + 20) < 1.5],
+        ['fade out only goes down and ends in silence', result.fadeOut.monotonic && result.fadeOut.afterEnd === 0],
+        ['reversing a fade half way has no jump (largest step under 0.002)', result.reversal.maxSampleStep < 0.002],
+        ['reversed fade is back at full level', Math.abs(result.reversal.endLevel - 1) < 0.001],
+        ['a 1 ms fade works', result.shortFadeSilentAfter5ms],
     ];
     console.log(JSON.stringify(result));
     let failed = 0;

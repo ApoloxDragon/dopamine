@@ -303,9 +303,67 @@ export class PlaybackService {
         this.logger.info(`Forced isShuffled`, 'PlaybackService', 'forceShuffled');
     }
 
+    public static readonly minimumFadeMs: number = 1;
+    public static readonly maximumFadeMs: number = 60000;
+
+    // Fade on pause/resume/stop. A token identifies the latest fade request; an older pending pause or stop is
+    // abandoned when a newer request (resume, new track, another pause) comes in.
+    private _fadeToken: number = 0;
+    private _isFadingOut: boolean = false;
+
     public pause(): void {
-        this.audioPlayer.pause();
+        const durationMs: number = this.fadeOutDurationMs();
+
+        // The pause shows at once; with a fade, the audio only pauses when the fade ends.
         this.postPause();
+
+        if (durationMs <= 0) {
+            this.audioPlayer.pause();
+            return;
+        }
+
+        const token: number = ++this._fadeToken;
+        this._isFadingOut = true;
+
+        void this.audioPlayer.fadeAsync(0, durationMs).then(() => {
+            if (token === this._fadeToken) {
+                this._isFadingOut = false;
+                this.audioPlayer.pause();
+            }
+        });
+    }
+
+    /** 0 when fading is off, otherwise the fade out duration within the allowed range. */
+    private fadeOutDurationMs(): number {
+        if (!this.settings.fadeOnPause) {
+            return 0;
+        }
+
+        return PlaybackService.clampFade(this.settings.fadeOnPauseDurationMs);
+    }
+
+    /** 0 when fading is off, otherwise the fade in duration (the fade out duration unless a separate one is used). */
+    private fadeInDurationMs(): number {
+        if (!this.settings.fadeOnPause) {
+            return 0;
+        }
+
+        return PlaybackService.clampFade(this.settings.useSeparateFadeInDuration ? this.settings.fadeInDurationMs : this.settings.fadeOnPauseDurationMs);
+    }
+
+    private static clampFade(durationMs: number): number {
+        if (!Number.isFinite(durationMs)) {
+            return 0;
+        }
+
+        return Math.min(PlaybackService.maximumFadeMs, Math.max(PlaybackService.minimumFadeMs, Math.round(durationMs)));
+    }
+
+    /** Cancels a pending fade and restores full volume. Used before a new track starts. */
+    private resetFade(): void {
+        this._fadeToken++;
+        this._isFadingOut = false;
+        this.audioPlayer.setFadeLevel(1);
     }
 
     private postPause() {
@@ -332,7 +390,26 @@ export class PlaybackService {
             return;
         }
 
-        await this.audioPlayer.resumeAsync();
+        const fadeInMs: number = this.fadeInDurationMs();
+        this._fadeToken++;
+
+        if (this._isFadingOut) {
+            // Still fading out (not paused yet): turn the fade around from the current level.
+            this._isFadingOut = false;
+
+            if (fadeInMs > 0) {
+                void this.audioPlayer.fadeAsync(1, fadeInMs);
+            } else {
+                this.audioPlayer.setFadeLevel(1);
+            }
+        } else if (fadeInMs > 0) {
+            this.audioPlayer.setFadeLevel(0);
+            await this.audioPlayer.resumeAsync();
+            void this.audioPlayer.fadeAsync(1, fadeInMs);
+        } else {
+            this.audioPlayer.setFadeLevel(1);
+            await this.audioPlayer.resumeAsync();
+        }
 
         this._canPause = true;
         this._canResume = false;
@@ -425,6 +502,8 @@ export class PlaybackService {
     }
 
     private async playAsync(trackToPlay: TrackModel, isPlayingPreviousTrack: boolean): Promise<void> {
+        // A new track always starts at full volume, even if a pause or stop was fading out.
+        this.resetFade();
         await this.audioPlayer.playAsync(trackToPlay);
         this.postPlay(trackToPlay, isPlayingPreviousTrack);
 
@@ -478,6 +557,8 @@ export class PlaybackService {
     }
 
     private stop(): void {
+        // Cancels a fade out that is still pending (its pause or stop must not run after this).
+        this.resetFade();
         this.audioPlayer.stop();
         this._isPlaying = false;
         this._canPause = false;
@@ -501,7 +582,23 @@ export class PlaybackService {
             return;
         }
 
-        this.audioPlayer.stop();
+        const durationMs: number = this.canPause ? this.fadeOutDurationMs() : 0;
+
+        if (durationMs > 0) {
+            // Fade out first; the state below changes at once, the audio stops when the fade ends.
+            const token: number = ++this._fadeToken;
+            this._isFadingOut = true;
+
+            void this.audioPlayer.fadeAsync(0, durationMs).then(() => {
+                if (token === this._fadeToken) {
+                    this._isFadingOut = false;
+                    this.audioPlayer.stop();
+                }
+            });
+        } else {
+            this.audioPlayer.stop();
+        }
+
         this._isPlaying = false;
         this._canPause = false;
         this._canResume = true;

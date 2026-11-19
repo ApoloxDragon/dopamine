@@ -20,6 +20,9 @@ import { PlaybackService } from '../../../../services/playback/playback.service'
     encapsulation: ViewEncapsulation.None,
 })
 export class BehaviorSettingsComponent implements OnInit {
+    public readonly minimumFadeMs: number = PlaybackService.minimumFadeMs;
+    public readonly maximumFadeMs: number = PlaybackService.maximumFadeMs;
+
     public constructor(
         public trayService: TrayServiceBase,
         public mediaSessionService: MediaSessionService,
@@ -206,5 +209,28 @@ export class BehaviorSettingsComponent implements OnInit {
     public increaseReplayGainPreAmp(): void {
         this.settings.replayGainPreAmp += 0.5;
         this.clampReplayGainPreAmp();
+    }
+
+    /** Fade out duration (and fade in, unless a separate one is used), kept between 1 ms and 60 s. */
+    public setFadeOutDuration(value: string): void {
+        this.settings.fadeOnPauseDurationMs = this.parseFadeDuration(value, this.settings.fadeOnPauseDurationMs);
+    }
+
+    public setFadeInDuration(value: string): void {
+        this.settings.fadeInDurationMs = this.parseFadeDuration(value, this.settings.fadeInDurationMs);
+    }
+
+    public formatSeconds(milliseconds: number): string {
+        return `${(milliseconds / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 })} s`;
+    }
+
+    private parseFadeDuration(value: string, current: number): number {
+        const parsed: number = parseFloat(value.replace(',', '.'));
+
+        if (!Number.isFinite(parsed)) {
+            return current;
+        }
+
+        return Math.min(this.maximumFadeMs, Math.max(this.minimumFadeMs, Math.round(parsed)));
     }
 }

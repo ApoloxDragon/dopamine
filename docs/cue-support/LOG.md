@@ -178,3 +178,11 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Export writes the current mode: GraphicEQ.txt (the graphic equalizer's real response at 127 AutoEQ-style frequencies) or ParametricEQ.txt
     - Checked with the real QCY H3 Pro AutoEQ files (kept as test data): ParametricEQ imports exactly; GraphicEQ fits within 1.4 dB on average, 4.9 dB at most (narrow 3.9 kHz peak)
     - Verified in the running app (Playwright, native file dialog stubbed in the main process)
+
+- **2026-11-19** · `Added` · Fade on pause, resume and stop (Settings > Behavior > Fade on pause)
+    - Off by default. One duration (1 ms to 60 s), plus an optional separate fade-in duration
+    - Pause shows at once; the audio fades out and then pauses. Resume fades in from silence; pressing play during a fade-out turns it around from the current level. User stop (tray, media keys) fades out too
+    - A new track, skipping, or the end of the queue always restores full volume and cancels a pending fade
+    - Implemented as a fade gain at the start of the equalizer chain (all three players), exponential ramp (even in dB), cancelAndHoldAtTime for reversals
+    - Checked in real Chromium (eq-harness): -20 dB a quarter in, -40 dB half way, ends in silence, no jump when reversed half way, 1 ms works
+    - 7 new text keys in all 25 languages (English placeholder)

@@ -106,6 +106,15 @@ export class CueAwareAudioPlayer implements IAudioPlayer {
         return this._active.getAudio();
     }
 
+    public fadeAsync(level: number, durationMs: number): Promise<void> {
+        return this._active.fadeAsync(level, durationMs);
+    }
+
+    /** Applies to every player, so the next one to play starts at the right level too. */
+    public setFadeLevel(level: number): void {
+        this.forEachPlayer((p) => p.setFadeLevel(level));
+    }
+
     public async setAudioOutputDeviceAsync(deviceId: string): Promise<void> {
         this._audioOutputDeviceId = deviceId;
 

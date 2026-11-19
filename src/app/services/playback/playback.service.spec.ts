@@ -887,6 +887,8 @@ describe('PlaybackService', () => {
             audioPlayerMock.reset();
             audioPlayerMock.setup((x) => x.isPaused).returns(() => false);
             audioPlayerMock.setup((x) => x.stop()).verifiable(Times.once(), ExpectedCallType.InSequence);
+            // A new track always starts at full volume (fade reset).
+            audioPlayerMock.setup((x) => x.setFadeLevel(1)).verifiable(Times.once(), ExpectedCallType.InSequence);
             audioPlayerMock.setup((x) => x.playAsync(trackModel1)).verifiable(Times.once(), ExpectedCallType.InSequence);
             queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel1);
 
@@ -984,6 +986,8 @@ describe('PlaybackService', () => {
             audioPlayerMock.reset();
             audioPlayerMock.setup((x) => x.isPaused).returns(() => false);
             audioPlayerMock.setup((x) => x.stop()).verifiable(Times.once(), ExpectedCallType.InSequence);
+            // A new track always starts at full volume (fade reset).
+            audioPlayerMock.setup((x) => x.setFadeLevel(1)).verifiable(Times.once(), ExpectedCallType.InSequence);
             audioPlayerMock.setup((x) => x.playAsync(trackModel1)).verifiable(Times.once(), ExpectedCallType.InSequence);
 
             // Act
@@ -1071,6 +1075,8 @@ describe('PlaybackService', () => {
             audioPlayerMock.reset();
             audioPlayerMock.setup((x) => x.isPaused).returns(() => false);
             audioPlayerMock.setup((x) => x.stop()).verifiable(Times.once(), ExpectedCallType.InSequence);
+            // A new track always starts at full volume (fade reset).
+            audioPlayerMock.setup((x) => x.setFadeLevel(1)).verifiable(Times.once(), ExpectedCallType.InSequence);
             audioPlayerMock.setup((x) => x.playAsync(trackModel2)).verifiable(Times.once(), ExpectedCallType.InSequence);
             queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel2);
 
@@ -1180,6 +1186,8 @@ describe('PlaybackService', () => {
             audioPlayerMock.reset();
             audioPlayerMock.setup((x) => x.isPaused).returns(() => false);
             audioPlayerMock.setup((x) => x.stop()).verifiable(Times.once(), ExpectedCallType.InSequence);
+            // A new track always starts at full volume (fade reset).
+            audioPlayerMock.setup((x) => x.setFadeLevel(1)).verifiable(Times.once(), ExpectedCallType.InSequence);
             audioPlayerMock.setup((x) => x.playAsync(trackModel2)).verifiable(Times.once(), ExpectedCallType.InSequence);
             queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel2);
 
@@ -1267,6 +1275,8 @@ describe('PlaybackService', () => {
             audioPlayerMock.reset();
             audioPlayerMock.setup((x) => x.isPaused).returns(() => false);
             audioPlayerMock.setup((x) => x.stop()).verifiable(Times.once(), ExpectedCallType.InSequence);
+            // A new track always starts at full volume (fade reset).
+            audioPlayerMock.setup((x) => x.setFadeLevel(1)).verifiable(Times.once(), ExpectedCallType.InSequence);
             audioPlayerMock.setup((x) => x.playAsync(trackModel2)).verifiable(Times.once(), ExpectedCallType.InSequence);
             queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel2);
 
@@ -1307,6 +1317,149 @@ describe('PlaybackService', () => {
 
     describe('enqueueAndPlayPlaylistAsync', () => {
         test.todo('should write tests');
+    });
+
+    describe('fade on pause, resume and stop', () => {
+        let resolveFade: () => void;
+
+        async function playWithFade(durationMs: number = 500): Promise<PlaybackService> {
+            settingsStub.fadeOnPause = true;
+            settingsStub.fadeOnPauseDurationMs = durationMs;
+            settingsStub.useSeparateFadeInDuration = false;
+            audioPlayerMock
+                .setup((x) => x.fadeAsync(It.isAny(), It.isAny()))
+                .returns(() => new Promise<void>((resolve) => (resolveFade = resolve)));
+            const service: PlaybackService = createService();
+            queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel1);
+            await service.enqueueAndPlayTracksAsync(trackModels);
+            return service;
+        }
+
+        const flush = (): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+        it('should show the pause at once and pause the audio only after the fade out', async () => {
+            const service = await playWithFade();
+
+            service.pause();
+
+            expect(service.canResume).toBeTruthy();
+            audioPlayerMock.verify((x) => x.fadeAsync(0, 500), Times.once());
+            audioPlayerMock.verify((x) => x.pause(), Times.never());
+
+            resolveFade();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.pause(), Times.once());
+        });
+
+        it('should pause at once when fading is off', async () => {
+            settingsStub.fadeOnPause = false;
+            const service: PlaybackService = createService();
+            queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel1);
+            await service.enqueueAndPlayTracksAsync(trackModels);
+
+            service.pause();
+
+            audioPlayerMock.verify((x) => x.pause(), Times.once());
+            audioPlayerMock.verify((x) => x.fadeAsync(It.isAny(), It.isAny()), Times.never());
+        });
+
+        it('should turn a fade out around when resuming before it ends, without pausing', async () => {
+            const service = await playWithFade();
+            service.pause();
+            const fadeOutDone = resolveFade;
+
+            await service.resumeAsync();
+            fadeOutDone();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.fadeAsync(1, 500), Times.once());
+            audioPlayerMock.verify((x) => x.pause(), Times.never());
+            audioPlayerMock.verify((x) => x.resumeAsync(), Times.never());
+            expect(service.canPause).toBeTruthy();
+        });
+
+        it('should fade in from silence when resuming a paused song', async () => {
+            const service = await playWithFade();
+            service.pause();
+            resolveFade();
+            await flush();
+            audioPlayerMock.setup((x) => x.isPaused).returns(() => true);
+
+            await service.resumeAsync();
+
+            audioPlayerMock.verify((x) => x.setFadeLevel(0), Times.once());
+            audioPlayerMock.verify((x) => x.resumeAsync(), Times.once());
+            audioPlayerMock.verify((x) => x.fadeAsync(1, 500), Times.once());
+        });
+
+        it('should use the separate fade in duration when that option is on', async () => {
+            const service = await playWithFade(800);
+            settingsStub.useSeparateFadeInDuration = true;
+            settingsStub.fadeInDurationMs = 2000;
+            service.pause();
+            resolveFade();
+            await flush();
+
+            await service.resumeAsync();
+
+            audioPlayerMock.verify((x) => x.fadeAsync(0, 800), Times.once());
+            audioPlayerMock.verify((x) => x.fadeAsync(1, 2000), Times.once());
+        });
+
+        it('should keep durations between 1 ms and 60 s', async () => {
+            const service = await playWithFade(999999);
+
+            service.pause();
+
+            audioPlayerMock.verify((x) => x.fadeAsync(0, PlaybackService.maximumFadeMs), Times.once());
+        });
+
+        it('should restore full volume and drop the pending pause when another song starts during the fade', async () => {
+            const service = await playWithFade();
+            queueMock.setup((x) => x.getNextTrack(It.isAny(), It.isAny())).returns(() => trackModel2);
+            service.pause();
+            const fadeOutDone = resolveFade;
+
+            await service.playNextAsync();
+            fadeOutDone();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.pause(), Times.never());
+            audioPlayerMock.verify((x) => x.setFadeLevel(1), Times.atLeast(2));
+        });
+
+        it('should drop the pending pause when playback stops at the end of the queue during the fade', async () => {
+            const service = await playWithFade();
+            queueMock.setup((x) => x.getNextTrack(It.isAny(), It.isAny())).returns(() => undefined);
+            service.pause();
+            const fadeOutDone = resolveFade;
+
+            await service.playNextAsync();
+            fadeOutDone();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.pause(), Times.never());
+            audioPlayerMock.verify((x) => x.stop(), Times.atLeastOnce());
+        });
+
+        it('should fade out before stopping', async () => {
+            const service = await playWithFade();
+            audioPlayerMock.reset();
+            audioPlayerMock
+                .setup((x) => x.fadeAsync(It.isAny(), It.isAny()))
+                .returns(() => new Promise<void>((resolve) => (resolveFade = resolve)));
+
+            service.stopPlayback();
+
+            expect(service.isPlaying).toBeFalsy();
+            audioPlayerMock.verify((x) => x.stop(), Times.never());
+
+            resolveFade();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.stop(), Times.once());
+        });
     });
 
     describe('pause', () => {
@@ -2453,6 +2606,8 @@ describe('PlaybackService', () => {
             audioPlayerMock.reset();
             audioPlayerMock.setup((x) => x.isPaused).returns(() => false);
             audioPlayerMock.setup((x) => x.stop()).verifiable(Times.once(), ExpectedCallType.InSequence);
+            // A new track always starts at full volume (fade reset).
+            audioPlayerMock.setup((x) => x.setFadeLevel(1)).verifiable(Times.once(), ExpectedCallType.InSequence);
             audioPlayerMock.setup((x) => x.playAsync(trackModel2)).verifiable(Times.once(), ExpectedCallType.InSequence);
 
             // Act

@@ -54,3 +54,19 @@
     appearance: textfield;
     -moz-appearance: textfield;
 }
+
+.fade-setting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fade-setting__input {
+    width: 100px;
+    padding: 2px 6px;
+    border: 1px solid var(--theme-button-border);
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}

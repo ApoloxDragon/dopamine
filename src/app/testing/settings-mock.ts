@@ -110,6 +110,10 @@ export class SettingsMock implements SettingsBase {
     public audioEqualizerPreset: string = 'flat';
     public audioEqualizerGains: string = '0;0;0;0;0;0;0;0;0;0';
     public audioEqualizerMode: string = 'graphic';
+    public fadeOnPause: boolean = false;
+    public fadeOnPauseDurationMs: number = 500;
+    public useSeparateFadeInDuration: boolean = false;
+    public fadeInDurationMs: number = 500;
     public audioEqualizerParametricProfile: string = '';
     public crossfadeDuration: number;
     public useReplayGainNormalization: boolean;

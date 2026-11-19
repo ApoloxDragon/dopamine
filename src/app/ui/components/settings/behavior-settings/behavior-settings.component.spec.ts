@@ -164,4 +164,57 @@ describe('BehaviorSettingsComponent', () => {
             expect(component.settings).toBeDefined();
         });
     });
+
+    describe('fade durations', () => {
+        let settings: SettingsMock;
+        let fadeComponent: BehaviorSettingsComponent;
+
+        beforeEach(() => {
+            settings = new SettingsMock();
+            fadeComponent = new BehaviorSettingsComponent(
+                trayServiceMock.object,
+                mediaSessionServiceMock.object,
+                dockServiceMock.object,
+                dialogServiceMock.object,
+                translatorServiceMock.object,
+                settings,
+                loggerMock.object,
+                audioOutputDeviceServiceMock.object,
+                playbackServiceMock.object,
+            );
+        });
+
+        it('should save a fade out duration in milliseconds', () => {
+            fadeComponent.setFadeOutDuration('1500');
+
+            expect(settings.fadeOnPauseDurationMs).toEqual(1500);
+        });
+
+        it('should keep fade durations between 1 ms and 60 s', () => {
+            fadeComponent.setFadeOutDuration('0');
+            fadeComponent.setFadeInDuration('999999');
+
+            expect(settings.fadeOnPauseDurationMs).toEqual(1);
+            expect(settings.fadeInDurationMs).toEqual(60000);
+        });
+
+        it('should round and accept a decimal comma', () => {
+            fadeComponent.setFadeInDuration('250,6');
+
+            expect(settings.fadeInDurationMs).toEqual(251);
+        });
+
+        it('should keep the current value for text that is not a number', () => {
+            settings.fadeOnPauseDurationMs = 700;
+
+            fadeComponent.setFadeOutDuration('abc');
+
+            expect(settings.fadeOnPauseDurationMs).toEqual(700);
+        });
+
+        it('should show the duration in seconds', () => {
+            expect(fadeComponent.formatSeconds(50000)).toContain('50');
+            expect(fadeComponent.formatSeconds(1)).toContain('0.001');
+        });
+    });
 });
