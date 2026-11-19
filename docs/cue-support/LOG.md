@@ -142,3 +142,8 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Added` · docs/dependency-upgrade-plan.md: phased plan to fix all remaining vulnerable dependencies, with test gates, a smoke test and rollback rules
     - Found and documented an urgent risk: the Last.fm artist biography is inserted as HTML while the window has full Node access
+
+- **2026-11-19** · `Note` · Built Linux packages in the container from commit dd7a88d: release/Dopamine-3.0.12.AppImage (fuse3 runtime) and release/Dopamine-3.0.12.deb
+    - Same steps as the CI Linux job, but rpm/pacman/snap skipped (tools not available) and electron-builder's native rebuild turned off (-c.npmRebuild=false)
+    - Reason: the network here blocks www.electronjs.org (Electron headers), needed only to compile register-scheme, an optional discord-rpc module that is never loaded under Electron. better-sqlite3 was rebuilt for Electron 38.8.6 and verified
+    - Smoke test: AppImage starts on a virtual display, shows the welcome screen, creates a database at version 16 with the CUE columns and ListeningSession table
