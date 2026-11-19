@@ -1,24 +1,23 @@
 import { IMock, It, Mock, Times } from 'typemoq';
 import { MediaSessionService } from './media-session.service';
 import { MediaSessionProxy } from '../../common/io/media-session-proxy';
-import { PlaybackInformationFactory } from '../playback-information/playback-information.factory';
+import { MetadataService } from '../metadata/metadata.service';
 import { TranslatorServiceBase } from '../translator/translator.service.base';
 import { DateTime } from '../../common/date-time';
 import { TrackModel } from '../track/track-model';
 import { Track } from '../../data/entities/track';
-import { PlaybackInformation } from '../playback-information/playback-information';
 
 describe('MediaSessionService', () => {
-    let playbackInformationFactoryMock: IMock<PlaybackInformationFactory>;
+    let metadataServiceMock: IMock<MetadataService>;
     let mediaSessionProxyMock: IMock<MediaSessionProxy>;
 
     beforeEach(() => {
-        playbackInformationFactoryMock = Mock.ofType<PlaybackInformationFactory>();
+        metadataServiceMock = Mock.ofType<MetadataService>();
         mediaSessionProxyMock = Mock.ofType<MediaSessionProxy>();
     });
 
     function createService(): MediaSessionService {
-        return new MediaSessionService(playbackInformationFactoryMock.object, mediaSessionProxyMock.object);
+        return new MediaSessionService(metadataServiceMock.object, mediaSessionProxyMock.object);
     }
 
     describe('constructor', () => {
@@ -88,28 +87,60 @@ describe('MediaSessionService', () => {
     });
 
     describe('setMetadataAsync', () => {
-        it('should set metadata', async () => {
-            // Arrange
-            const service: MediaSessionService = createService();
+        function createTrack(path: string): TrackModel {
             const translatorServiceMock: IMock<TranslatorServiceBase> = Mock.ofType<TranslatorServiceBase>();
             const dateTimeMock: IMock<DateTime> = Mock.ofType<DateTime>();
-            let settingsMock: any = {};
-
-            const track: Track = new Track('path1');
+            const track: Track = new Track(path);
             track.trackTitle = 'title1';
-            track.artists = 'artist1';
+            track.artists = ';artist1;';
             track.albumTitle = 'album1';
-            const trackModel: TrackModel = new TrackModel(track, dateTimeMock.object, translatorServiceMock.object, settingsMock);
+            return new TrackModel(track, dateTimeMock.object, translatorServiceMock.object, '');
+        }
 
-            const playbackInformation: PlaybackInformation = new PlaybackInformation(trackModel, 'image1');
+        it('should set title, artist and album, then the small cover made for the media controls', async () => {
+            const service: MediaSessionService = createService();
+            const trackModel: TrackModel = createTrack('path1');
+            metadataServiceMock.setup((x) => x.createMediaSessionImageUrlAsync(trackModel)).returns(() => Promise.resolve('data:image/jpeg;base64,AAA'));
 
-            playbackInformationFactoryMock.setup((x) => x.createAsync(trackModel)).returns(() => Promise.resolve(playbackInformation));
-
-            // Act
             await service.setMetadataAsync(trackModel);
 
-            // Assert
-            mediaSessionProxyMock.verify((x) => x.setMetadata('title1', 'artist1', 'album1', 'image1'), Times.once());
+            mediaSessionProxyMock.verify((x) => x.setMetadata('title1', 'artist1', 'album1', 'data:image/jpeg;base64,AAA'), Times.once());
+            metadataServiceMock.verify((x) => x.createAlbumImageUrlAsync(It.isAny(), It.isAny()), Times.never());
+        });
+
+        it('should show the Dopamine logo when the track has no cover, so the previous cover does not stay', async () => {
+            const service: MediaSessionService = createService();
+            const trackModel: TrackModel = createTrack('path1');
+            metadataServiceMock.setup((x) => x.createMediaSessionImageUrlAsync(trackModel)).returns(() => Promise.resolve(''));
+            mediaSessionProxyMock
+                .setup((x) => x.loadImageAsDataUrlAsync(MediaSessionService.placeholderImagePath))
+                .returns(() => Promise.resolve('data:image/png;base64,LOGO'));
+
+            await service.setMetadataAsync(trackModel);
+            await service.setMetadataAsync(trackModel);
+
+            mediaSessionProxyMock.verify((x) => x.setMetadata('title1', 'artist1', 'album1', 'data:image/png;base64,LOGO'), Times.atLeast(2));
+            // The logo is loaded once and reused
+            mediaSessionProxyMock.verify((x) => x.loadImageAsDataUrlAsync(It.isAny()), Times.once());
+        });
+
+        it('should not let a slow cover of an older track overwrite the newer track', async () => {
+            const service: MediaSessionService = createService();
+            const older: TrackModel = createTrack('older');
+            const newer: TrackModel = createTrack('newer');
+            let resolveOlder: (url: string) => void = () => {};
+            metadataServiceMock
+                .setup((x) => x.createMediaSessionImageUrlAsync(older))
+                .returns(() => new Promise<string>((resolve) => (resolveOlder = resolve)));
+            metadataServiceMock.setup((x) => x.createMediaSessionImageUrlAsync(newer)).returns(() => Promise.resolve('data:new'));
+
+            const olderRequest = service.setMetadataAsync(older);
+            await service.setMetadataAsync(newer);
+            resolveOlder('data:old');
+            await olderRequest;
+
+            mediaSessionProxyMock.verify((x) => x.setMetadata(It.isAny(), It.isAny(), It.isAny(), 'data:old'), Times.never());
+            mediaSessionProxyMock.verify((x) => x.setMetadata(It.isAny(), It.isAny(), It.isAny(), 'data:new'), Times.once());
         });
     });
 });

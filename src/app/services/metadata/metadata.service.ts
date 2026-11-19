@@ -78,6 +78,50 @@ export class MetadataService {
         return Constants.emptyImage;
     }
 
+    /** Largest width/height of the cover sent to the operating system (lock screen, media controls). */
+    public static readonly mediaSessionImageSize: number = 512;
+
+    /**
+     * Cover for the operating system's media controls and lock screen, as a small JPEG data URL, or '' when the track has
+     * no cover. Electron/Chromium only shows data URLs there (file:// URLs are never loaded) and silently ignores large
+     * images (a 3000x3000 scan is skipped and the previous cover stays), so the cover is always read and resized here.
+     */
+    public async createMediaSessionImageUrlAsync(track: TrackModel | undefined): Promise<string> {
+        if (track == undefined) {
+            return '';
+        }
+
+        try {
+            let coverArt: Buffer | undefined;
+            const fileMetaData: IFileMetadata = await this.fileMetadataFactory.createAsync(track.audioPath);
+
+            if (fileMetaData != undefined) {
+                coverArt = await this.albumArtworkGetter.getAlbumArtworkAsync(fileMetaData, false);
+            }
+
+            if (coverArt == undefined || coverArt.length === 0) {
+                const cachedAlbumArtworkPath: string = this.cachedAlbumArtworkGetter.getCachedAlbumArtworkPath(track.albumKey);
+
+                if (!StringUtils.isNullOrWhiteSpace(cachedAlbumArtworkPath) && this.fileAccess.pathExists(cachedAlbumArtworkPath)) {
+                    coverArt = await this.imageProcessor.convertLocalImageToBufferAsync(cachedAlbumArtworkPath);
+                }
+            }
+
+            if (coverArt == undefined || coverArt.length === 0) {
+                return '';
+            }
+
+            const size: number = MetadataService.mediaSessionImageSize;
+            const resized: Buffer = await this.imageProcessor.toResizedJpegBufferAsync(coverArt, size, size, 85);
+
+            return this.imageProcessor.convertBufferToImageUrl(resized);
+        } catch (e: unknown) {
+            this.logger.error(e, `Could not create media session image for track with path=${track.path}`, 'MetadataService', 'createMediaSessionImageUrlAsync');
+        }
+
+        return '';
+    }
+
     public async createTrackImageUrlAsync(track: TrackModel | undefined): Promise<string> {
         if (track == undefined) {
             return Constants.emptyImage;

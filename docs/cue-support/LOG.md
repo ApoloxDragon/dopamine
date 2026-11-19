@@ -186,3 +186,13 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Implemented as a fade gain at the start of the equalizer chain (all three players), exponential ramp (even in dB), cancelAndHoldAtTime for reversals
     - Checked in real Chromium (eq-harness): -20 dB a quarter in, -40 dB half way, ends in silence, no jump when reversed half way, 1 ms works
     - 7 new text keys in all 25 languages (English placeholder)
+
+- **2026-11-19** · `Fixed` · Album cover missing (or stale) on the lock screen and OS media controls
+    - Found with a private D-Bus session and the real app (MPRIS, what GNOME/KDE lock screens read): Electron's media session only shows data URLs (file:// covers are never loaded) and silently skips large covers (a 3000x3000 scan was ignored); a failed or missing cover leaves the previous song's cover in place
+    - MediaSessionService now sends a cover made for this: embedded/folder cover, else the cached cover file read from disk, resized to at most 512x512 JPEG, as a data URL (MetadataService.createMediaSessionImageUrlAsync)
+    - Songs without a cover show the Dopamine logo (new asset src/assets/images/media-session-placeholder.png), since the old cover cannot be cleared otherwise
+    - Title/artist/album are set at once, the cover follows; a slow cover of an older song can no longer overwrite a newer one
+    - Verified over MPRIS: a 6.9 MB embedded cover now shows; after Next to a song without cover the logo shows
+    - Not verified: the Windows/macOS media controls (same Chromium media session code, likely to benefit too)
+
+- **2026-11-19** · `Tooling` · scripts/dev/mpris-probe.sh and mpris-cover-check.js read what the app publishes to the Linux desktop over D-Bus
