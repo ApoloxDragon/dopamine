@@ -133,13 +133,33 @@ Steps, each its own pull request:
 - Once a month: `npm audit --omit=dev`, update `docs/dependency-audit.md`.
 - Follow Electron and Angular release schedules: update before a version reaches end of support.
 
+## Tools (scripts/dev)
+
+- `node scripts/dev/vuln-report.js`: what is vulnerable, whether it ships in the app, which direct dependency brings it in, and the
+  smallest fix (`in-major` = compatible version, usually safe; `major`; `none`). `--check scripts/dev/audit-baseline.json` fails on new
+  critical/high advisories (used in CI on every pull request and weekly); `--write-baseline` after fixing.
+- `node scripts/dev/apply-overrides.js`: after adding an npm `overrides` entry, makes npm really apply it to already locked packages and
+  verifies it. Prefer nested overrides (`{ "<parent>": { "<name>": "<version>" } }`): range keys like `"name@^5"` are not always applied.
+- `scripts/dev/try-fix.sh`: all gates after a dependency change (install, unit and database tests, production build, lint against
+  `scripts/dev/lint-baseline.txt`, advisory check), one line per gate.
+- `scripts/dev/build-linux.sh`: fast local Linux build to try changes (AppImage by default).
+
 ## Tracking
+
+**Status 2026-11-19:** critical 0 (was 2), high advisories 31 (was 64 packages / 164 advisories in total at the start), no new advisories
+introduced. Fixed with overrides and checked with all gates: piscina, tar (7, Angular CLI), follow-redirects, joi, js-yaml, node-forge,
+picomatch, postcss, minimatch 3, tmp, serialize-javascript 7, webpack-dev-middleware 7, vite 6, pacote 21 and sigstore 4 (Angular CLI),
+@babel/runtime, ajv. Tried and reverted: nx 22 (breaks the Angular ESLint builder: wait for the Angular upgrade).
+
+**Left (all need a major upgrade):** Angular 16 (app; phase 3), Electron 38 (app; phase 2), zod 3 via jimp (phase 4), nx 16 (with Angular),
+extract-zip (only in Electron's installer, no fix published), and moderate ones (esbuild, glob, webpack-dev-server, file-type, phin, uuid).
 
 | Phase | Status | Pull request | Notes |
 | --- | --- | --- | --- |
 | Quick fixes (`fast-xml-parser` 4.5.7, `moment` 2.31.0) | Done | ApoloxDragon/dopamine#2 | jimp 1.6.1 tried and reverted |
+| Compatible and build-tool overrides (critical 2 -> 0, high 64 -> 41 packages) | Done | see the change log | nx left for phase 3 |
 | Urgent: plain-text biographies | Not started | | Small, independent of upgrades |
-| 0 Safety net | Not started | | Actions must be enabled on the fork |
+| 0 Safety net | Done | | Actions enabled; `.github/workflows/pull-request.yml` runs tests and the advisory check |
 | 1 Small leftovers | Not started | | |
 | 2 Electron | Not started | | |
 | 3 Angular | Not started | | |

@@ -228,3 +228,20 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - npm did not re-resolve the locked nested tar 6 copies after adding the override; their lockfile entries were removed so npm resolved them again (a known npm limitation)
     - Checked: Angular CLI's pacote downloads and extracts a real package with tar 7; npm ci accepts the lockfile; all gates pass
     - npm audit: critical 0 (was 2), high 50 (was 64)
+
+- **2026-11-19** · `Fixed` · Security: more advisories fixed (critical 0, high 64 -> 41 packages; 164 -> 77 advisories in total, none new)
+    - Overrides (nested where npm needs it): serialize-javascript 7, webpack-dev-middleware 7 (also under webpack-dev-server), vite 6, pacote 21 + sigstore 4 (Angular CLI), tmp 0.2 (external-editor), @babel/runtime, ajv
+    - Checked at the tools that use them: production build, ng serve, ng update, external-editor temp files; nx 22 tried and reverted (breaks the ESLint builder)
+
+- **2026-11-19** · `Fixed` · AppImage folders were owner-only (0700) after the fuse3 repackaging; other users could get 'Permission denied' (also in CI release builds)
+    - scripts/repackage-appimage-fuse3.sh now runs chmod -R a+rX before repackaging, as appimagetool recommends; verified: 0 warnings, all folders 0755
+
+- **2026-11-19** · `Fixed` · Discord progress bar missing: start/end times are now sent in milliseconds (Discord's unit), and the end time falls back to the track length when the player does not know it yet
+
+- **2026-11-19** · `Changed` · Faster builds and checks
+    - Unit tests use the available cores (51 s -> 20 s locally, stable over repeated runs)
+    - Angular build cache enabled on CI for nightly and merge builds (66 s -> 21 s when warm); release builds always build from scratch
+    - New workflow pull-request.yml: unit tests and the advisory check on every pull request and push to apolox-master, advisory check weekly
+    - Release workflow can rerun: it updates an existing draft release (replaces installers and notes) and refuses to change a published one
+
+- **2026-11-19** · `Tooling` · apply-overrides.js (applies and verifies npm overrides), build-linux.sh (fast local Linux build), lint gate in try-fix.sh (baseline 114 pre-existing errors)

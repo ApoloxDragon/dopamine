@@ -22,6 +22,12 @@ jobs:
                       ~/AppData/Local/electron/Cache
                       ~/AppData/Local/electron-builder/Cache
                   key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
@@ -86,6 +92,12 @@ jobs:
                       ~/AppData/Local/electron/Cache
                       ~/AppData/Local/electron-builder/Cache
                   key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
@@ -136,6 +148,12 @@ jobs:
                       ~/AppData/Local/electron/Cache
                       ~/AppData/Local/electron-builder/Cache
                   key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
@@ -178,6 +196,12 @@ jobs:
                       ~/AppData/Local/electron/Cache
                       ~/AppData/Local/electron-builder/Cache
                   key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
@@ -220,6 +244,12 @@ jobs:
                       ~/AppData/Local/electron/Cache
                       ~/AppData/Local/electron-builder/Cache
                   key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'

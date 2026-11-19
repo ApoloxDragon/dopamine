@@ -172,9 +172,12 @@ export class DiscordService {
     /** End of the track in wall clock time, for Discord's progress bar. Takes the playback speed into account. */
     private calculateEndTime(now: number): number | undefined {
         const progress = this.playbackService.progress;
-        const remainingSeconds: number = progress.totalSeconds - progress.progressSeconds;
+        // Right after a song starts the player may not know its length yet: then use the length from the collection.
+        const totalSeconds: number =
+            progress.totalSeconds > 0 ? progress.totalSeconds : (this.playbackService.currentTrack?.durationInMilliseconds ?? 0) / 1000;
+        const remainingSeconds: number = totalSeconds - progress.progressSeconds;
 
-        if (!(progress.totalSeconds > 0) || remainingSeconds < 0) {
+        if (!(totalSeconds > 0) || remainingSeconds < 0) {
             return undefined;
         }
 

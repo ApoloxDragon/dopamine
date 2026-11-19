@@ -307,4 +307,14 @@ jobs:
                   if [ "$PUBLISH" = "true" ]; then
                     draft=""
                   fi
-                  gh release create "$tag" assets/* --title "Dopamine $version" --notes-file notes.md --target "$GITHUB_SHA" $draft
+                  if gh release view "$tag" --json isDraft --jq .isDraft > is_draft.txt 2>/dev/null; then
+                    # A rerun: only a draft may be updated (installers replaced, notes refreshed); never a published release.
+                    if [ "$(cat is_draft.txt)" != "true" ]; then
+                      echo "Release $tag is already published; refusing to change it. Bump the version for a new release." >&2
+                      exit 1
+                    fi
+                    gh release upload "$tag" assets/* --clobber
+                    gh release edit "$tag" --title "Dopamine $version" --notes-file notes.md --target "$GITHUB_SHA" $draft
+                  else
+                    gh release create "$tag" assets/* --title "Dopamine $version" --notes-file notes.md --target "$GITHUB_SHA" $draft
+                  fi

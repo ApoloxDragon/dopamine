@@ -125,21 +125,35 @@ for (const r of rows) {
 
 if (arg('--json')) fs.writeFileSync(arg('--json'), JSON.stringify(rows, null, 2));
 
-// Baseline: the advisory ids (critical/high) that are known and accepted for now.
-const key = (r) => r.ids.map((id) => `${r.name}#${id}`);
+// Baseline: every advisory (all severities) known today, as "package#advisory-id" with its severity.
+// --check fails on new critical/high advisories and warns about new moderate/low ones (those are often published for
+// packages that did not change, so they should not block unrelated work).
+const advisoryMap = {};
+for (const [name, v] of Object.entries(vulns)) {
+    for (const a of v.via) {
+        if (typeof a === 'object') advisoryMap[`${name}#${a.source}`] = a.severity;
+    }
+}
 if (arg('--write-baseline')) {
-    const ids = rows.filter((r) => ['critical', 'high'].includes(r.severity)).flatMap(key).sort();
-    fs.writeFileSync(arg('--write-baseline'), JSON.stringify({ note: 'Known critical/high npm advisories (package#advisory). See docs/dependency-upgrade-plan.md.', advisories: ids }, null, 2) + '\n');
-    console.log(`\nWrote ${ids.length} known advisories to ${arg('--write-baseline')}`);
+    const sorted = Object.fromEntries(Object.entries(advisoryMap).sort(([a], [b]) => a.localeCompare(b)));
+    fs.writeFileSync(
+        arg('--write-baseline'),
+        JSON.stringify({ note: 'Known npm advisories (package#advisory: severity). Update with --write-baseline after fixing. See docs/dependency-upgrade-plan.md.', advisories: sorted }, null, 2) + '\n',
+    );
+    console.log(`\nWrote ${Object.keys(sorted).length} known advisories to ${arg('--write-baseline')}`);
 }
 if (arg('--check')) {
-    const known = new Set(JSON.parse(fs.readFileSync(arg('--check'), 'utf8')).advisories);
-    const current = rows.filter((r) => ['critical', 'high'].includes(r.severity)).flatMap(key);
-    const added = current.filter((x) => !known.has(x));
-    const removed = [...known].filter((x) => !current.includes(x));
+    const baseline = JSON.parse(fs.readFileSync(arg('--check'), 'utf8')).advisories;
+    // Older baselines were a list of critical/high ids.
+    const known = Array.isArray(baseline) ? Object.fromEntries(baseline.map((x) => [x, 'high'])) : baseline;
+    const added = Object.entries(advisoryMap).filter(([id]) => !(id in known));
+    const removed = Object.keys(known).filter((id) => !(id in advisoryMap));
+    const blocking = added.filter(([, sev]) => sev === 'critical' || sev === 'high');
+    const warnings = added.filter(([, sev]) => sev !== 'critical' && sev !== 'high');
     if (removed.length > 0) console.log(`\nFixed since the baseline (${removed.length}): ${removed.join(', ')}  -> update the baseline`);
-    if (added.length > 0) {
-        console.log(`\nNEW critical/high advisories (${added.length}): ${added.join(', ')}`);
+    if (warnings.length > 0) console.log(`\nWARNING new moderate/low advisories (${warnings.length}): ${warnings.map(([id, sev]) => `${id} (${sev})`).join(', ')}`);
+    if (blocking.length > 0) {
+        console.log(`\nNEW critical/high advisories (${blocking.length}): ${blocking.map(([id, sev]) => `${id} (${sev})`).join(', ')}`);
         process.exit(1);
     }
     console.log('\nNo new critical/high advisories compared to the baseline.');

@@ -1,0 +1,45 @@
+name: Checks
+# Runs on every pull request to and push on apolox-master:
+# - the unit tests
+# - the dependency check: fails when a change adds a critical or high npm advisory that is not in
+#   scripts/dev/audit-baseline.json, and warns about new moderate/low ones (see scripts/dev/vuln-report.js).
+# The dependency check also runs every week, to notice advisories published for packages that did not change.
+on:
+    pull_request:
+        branches: [apolox-master]
+    push:
+        branches: [apolox-master]
+    schedule:
+        - cron: '23 5 * * 1'
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+    unit_tests:
+        if: github.event_name != 'schedule'
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+            - name: install dependencies
+              run: npm ci
+            - name: run unit tests
+              run: npm run test -- --silent
+
+    dependency_check:
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+            - name: install dependencies (no install scripts needed for the audit)
+              run: npm ci --ignore-scripts
+            - name: no new critical or high npm advisories
+              run: node scripts/dev/vuln-report.js --check scripts/dev/audit-baseline.json
