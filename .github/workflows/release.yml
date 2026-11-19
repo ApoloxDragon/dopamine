@@ -21,7 +21,28 @@ on:
                 default: false
 
 jobs:
+    # Publishing a release creates its tag, which starts this workflow again. Then there is nothing to build: skip.
+    check:
+        runs-on: ubuntu-22.04
+        outputs:
+            build: ${{ steps.check.outputs.build }}
+        steps:
+            - id: check
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  EVENT: ${{ github.event_name }}
+                  TAG: ${{ github.ref_name }}
+              run: |
+                  build=true
+                  if [ "$EVENT" = "push" ] && [ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null)" = "false" ]; then
+                    echo "Release $TAG is already published (this run was started by publishing it): nothing to build."
+                    build=false
+                  fi
+                  echo "build=$build" >> "$GITHUB_OUTPUT"
+
     release_build_on_linux:
+        needs: check
+        if: needs.check.outputs.build == 'true'
         runs-on: ubuntu-22.04
         steps:
             - uses: actions/checkout@v4
@@ -83,6 +104,8 @@ jobs:
                   path: release/Dopamine-*.snap
 
     release_build_pacman_on_arch:
+        needs: check
+        if: needs.check.outputs.build == 'true'
         runs-on: ubuntu-22.04
         container:
             image: archlinux:latest
@@ -134,6 +157,8 @@ jobs:
                   path: release/Dopamine-*.pacman
 
     release_build_on_mac_arm:
+        needs: check
+        if: needs.check.outputs.build == 'true'
         runs-on: macos-15
         steps:
             - uses: actions/checkout@v4
@@ -175,6 +200,8 @@ jobs:
                   path: release/Dopamine-*.dmg
 
     release_build_on_mac_intel:
+        needs: check
+        if: needs.check.outputs.build == 'true'
         runs-on: macos-15-intel
         steps:
             - uses: actions/checkout@v4
@@ -216,6 +243,8 @@ jobs:
                   path: release/Dopamine-*.dmg
 
     release_build_on_win:
+        needs: check
+        if: needs.check.outputs.build == 'true'
         runs-on: windows-2022
 
         steps:

@@ -3,6 +3,9 @@ const { getFullVersion } = require('./get-package-information.js');
 const config = {
     appId: 'com.digimezzo.dopamine',
     productName: 'Dopamine',
+    // Never publish from electron-builder: on a tag build in CI it would try to publish to GitHub by itself (and fail on
+    // a release that is already published). The release workflow uploads the installers (create_release job).
+    publish: null,
     snap: {
         base: 'core22', // Must match build server (currently Ubuntu 22.04)
         grade: 'stable',
