@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.2.1-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo. Also contains everything listed under 3.2.0-apolox below, which was not released on its own.
+Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Fixed
 
