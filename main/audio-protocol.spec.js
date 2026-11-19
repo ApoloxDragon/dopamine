@@ -202,12 +202,19 @@ describe('audio-protocol', () => {
             expect((await (request(folder))).status).toBe(404);
         });
 
-        it('should keep paths with spaces, quotes, # and ? intact', async () => {
-            const p = write("2021 - Where Fear & Weapons Meet #1 'live'?.flac", original);
+        it('should keep paths with spaces, quotes, # and & intact', async () => {
+            const p = write("2021 - Where Fear & Weapons Meet #1 'live' (100%).flac", original);
 
-            const response = await (request(p));
+            const response = await request(p);
 
             expect(response.status).toBe(200);
+            expect(response.body.equals(original)).toBe(false); // served, with the cover hidden
+        });
+
+        it('should keep a ? in the path intact (not allowed in Windows file names, so checked on the URL only)', () => {
+            const p = path.join(dir, 'Why?.flac');
+
+            expect(new URL(audioUrl(p)).searchParams.get('path')).toBe(p);
         });
     });
 });
