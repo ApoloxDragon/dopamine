@@ -9,6 +9,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 
 ### Fixed
 
+- Listening statistics: songs played while the collection was being indexed were not recorded, or lost their last seconds ("database is locked"). Such writes are now retried
 - CUE albums whose FLAC file has a cover without a file type (MIME type) did not play ("open context failed"). They now play: such files are streamed through the app with the cover hidden from the player. The file itself is not changed
 
 ## [3.2.0-apolox] - 2026-11-19

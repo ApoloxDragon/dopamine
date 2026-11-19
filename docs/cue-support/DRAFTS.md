@@ -143,3 +143,11 @@ decode audio data", checked in Electron). The crossfade and legacy players use t
 in D12. This is the same in upstream Dopamine. Fix: the same fallback in each player. The gapless player would
 re-fetch through the protocol (registered with `supportFetchAPI`) when decoding fails; the crossfade and legacy players
 would retry the element with the protocol URL. Playback change, so a high-effort session, with a test per player.
+
+## D14. The indexing worker keeps the database busy: `draft`, not started
+
+While the collection is indexed (63 s in a user's log), writes from the window fail with "database is locked". The
+listening tracker now retries them (3.2.1). Other writes from the window (play counts, ratings, playlists) can still
+fail during indexing, also in upstream Dopamine. A root fix is SQLite's WAL journal mode
+(`PRAGMA journal_mode=WAL`): readers and the writer no longer block each other. That is a lasting change to the
+database file (it adds -wal and -shm files next to it), so it needs your decision and a test with the real indexer.

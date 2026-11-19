@@ -10,7 +10,8 @@ import { PlaybackStarted } from '../playback/playback-started';
 import { TrackModel } from '../track/track-model';
 
 interface CurrentSession {
-    id: number;
+    /** Database id, undefined while the session could not be written yet. */
+    id: number | undefined;
     snapshot: ListeningSession;
     durationMs: number;
     listenedMs: number;
@@ -24,16 +25,25 @@ interface CurrentSession {
  * Only time that is actually playing counts (pauses do not, seeking does not add time). A session counts as a play
  * when at least half of the track, or 4 minutes, was listened to (the same rule Last.fm uses for scrobbles).
  * Sessions shorter than 1 second are not kept. Progress is saved every 15 seconds and when the app closes.
+ *
+ * Writes can fail while the collection is being indexed (the indexing worker keeps the database busy, "database is
+ * locked"). Waiting is not an option: database calls block the window. So nothing is lost instead: a session that could
+ * not be created or finished is kept in memory and written at the next save.
  */
 @Injectable({ providedIn: 'root' })
 export class ListeningTrackerService {
     public static readonly saveIntervalMs: number = 15000;
     public static readonly minimumListenedMs: number = 1000;
     public static readonly playThresholdMs: number = 4 * 60 * 1000;
+    /** At most this many finished sessions wait for the database; older ones are dropped. */
+    public static readonly maximumPendingSessions: number = 200;
 
     private subscription: Subscription | undefined;
     private saveIntervalId: ReturnType<typeof setInterval> | undefined;
     private current: CurrentSession | undefined;
+    /** Finished sessions that could not be written yet. */
+    private pending: CurrentSession[] = [];
+    private isWriteFailing: boolean = false;
 
     public constructor(
         private playbackService: PlaybackService,
@@ -79,14 +89,12 @@ export class ListeningTrackerService {
         this.current = undefined;
         this.accumulate(session);
 
-        try {
-            if (session.listenedMs < ListeningTrackerService.minimumListenedMs) {
-                this.repository.deleteSession(session.id);
-            } else {
-                this.repository.updateListened(session.id, session.listenedMs, this.isCountedAsPlay(session));
+        if (!this.write(session, true)) {
+            this.pending.push(session);
+
+            if (this.pending.length > ListeningTrackerService.maximumPendingSessions) {
+                this.pending.shift();
             }
-        } catch (e: unknown) {
-            this.logger.error(e, 'Could not save listening session', 'ListeningTrackerService', 'finish');
         }
     }
 
@@ -97,6 +105,7 @@ export class ListeningTrackerService {
     public clearHistory(): number {
         const running: CurrentSession | undefined = this.current;
         const deleted: number = this.repository.deleteAllSessions();
+        this.pending = [];
 
         if (running != undefined) {
             const restarted: ListeningSession = { ...running.snapshot, listeningSessionId: 0, startedAtMs: this.dateProxy.now(), listenedMs: 0, isCountedAsPlay: 0 };
@@ -129,12 +138,8 @@ export class ListeningTrackerService {
         session.startedAtMs = this.dateProxy.now();
         session.trackDurationMs = track.durationInMilliseconds;
 
-        try {
-            const id: number = this.repository.addSession(session);
-            this.current = { id, snapshot: session, durationMs: track.durationInMilliseconds, listenedMs: 0, playingSinceMs: this.dateProxy.now() };
-        } catch (e: unknown) {
-            this.logger.error(e, 'Could not start listening session', 'ListeningTrackerService', 'start');
-        }
+        this.current = { id: undefined, snapshot: session, durationMs: track.durationInMilliseconds, listenedMs: 0, playingSinceMs: this.dateProxy.now() };
+        this.write(this.current, false);
     }
 
     private pause(): void {
@@ -155,6 +160,8 @@ export class ListeningTrackerService {
 
     /** Saves progress of the running session without ending it (protects against crashes). */
     private save(): void {
+        this.writePending();
+
         if (this.current == undefined) {
             return;
         }
@@ -167,10 +174,49 @@ export class ListeningTrackerService {
             this.current.playingSinceMs = this.dateProxy.now();
         }
 
+        this.write(this.current, false);
+    }
+
+    private writePending(): void {
+        this.pending = this.pending.filter((session: CurrentSession) => !this.write(session, true));
+    }
+
+    /**
+     * Writes a session: creates its row if that did not work yet, then stores the time listened. A finished session
+     * that is too short is removed. Returns false when the database could not be written (try again later).
+     */
+    private write(session: CurrentSession, isFinished: boolean): boolean {
         try {
-            this.repository.updateListened(this.current.id, this.current.listenedMs, this.isCountedAsPlay(this.current));
+            if (isFinished && session.listenedMs < ListeningTrackerService.minimumListenedMs) {
+                if (session.id != undefined) {
+                    this.repository.deleteSession(session.id);
+                }
+            } else {
+                if (session.id == undefined) {
+                    session.id = this.repository.addSession(session.snapshot);
+                }
+
+                this.repository.updateListened(session.id, session.listenedMs, this.isCountedAsPlay(session));
+            }
+
+            if (this.isWriteFailing) {
+                this.isWriteFailing = false;
+                this.logger.info('Listening history can be saved again', 'ListeningTrackerService', 'write');
+            }
+
+            return true;
         } catch (e: unknown) {
-            this.logger.error(e, 'Could not save listening session', 'ListeningTrackerService', 'save');
+            if (!this.isWriteFailing) {
+                // Logged once per period of failures, not at every retry.
+                this.isWriteFailing = true;
+                this.logger.warn(
+                    `Could not save listening history now, will try again in ${ListeningTrackerService.saveIntervalMs / 1000} s: ${e instanceof Error ? e.message : String(e)}`,
+                    'ListeningTrackerService',
+                    'write',
+                );
+            }
+
+            return false;
         }
     }
 

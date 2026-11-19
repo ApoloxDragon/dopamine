@@ -282,3 +282,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Follow-up D13: normal tracks with such covers fail in all three players (also upstream)
 
 - **2026-11-19** · `Changed` · Version 3.2.1-apolox (CUE fix for FLAC covers without a MIME type); 3.2.0 was not released on its own
+
+- **2026-11-19** · `Fixed` · Listening statistics lost songs played during indexing ('database is locked' in the user's 3.2.0 log)
+    - ListeningTrackerService keeps sessions it could not create or finish and writes them at the next save; warns once per failure period; 5 new specs
+    - Draft D14: WAL journal mode as the root fix (needs a decision)
