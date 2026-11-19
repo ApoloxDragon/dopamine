@@ -72,6 +72,8 @@ export class SettingsMock implements SettingsBase {
     public saveRatingToAudioFiles: boolean;
     public selectedCollectionPage: number;
     public showAlbumsPage: boolean;
+    public showStatisticsPage: boolean = true;
+    public statisticsSelectedPeriod: string = 'all-time';
     public showAllFoldersInCollection: boolean;
     public showArtistsPage: boolean;
     public showAudioVisualizer: boolean;

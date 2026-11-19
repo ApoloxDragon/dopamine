@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Runs jest for the given file patterns and prints only the summary and failures.
-# Usage: scripts/dev/check.sh [--tsc] [jest-path-pattern ...]
+# Usage: scripts/dev/check.sh [--tsc] [--db] [jest-path-pattern ...]
+#   --db runs the repository specs (src/app/data/repositories) with the database integration config.
+#        Needs better-sqlite3 built for Node (npm rebuild better-sqlite3); run npm install again before building the app.
 #   scripts/dev/check.sh cue-parser            # one spec
 #   scripts/dev/check.sh main/background-work  # a directory
 #   scripts/dev/check.sh --tsc                 # also type-check the app (slow)
@@ -8,16 +10,21 @@ set -uo pipefail
 cd "$(dirname "$0")/../.."
 
 run_tsc=0
+config=()
 patterns=()
 for arg in "$@"; do
-    if [ "$arg" = "--tsc" ]; then run_tsc=1; else patterns+=("$arg"); fi
+    case "$arg" in
+        --tsc) run_tsc=1 ;;
+        --db) config=(--config jest.database.integration.config.js) ;;
+        *) patterns+=("$arg") ;;
+    esac
 done
 
 status=0
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 
-npx jest -w 1 --silent --noStackTrace "${patterns[@]}" >"$out" 2>&1 || status=$?
+npx jest -w 1 --silent --noStackTrace "${config[@]}" "${patterns[@]}" >"$out" 2>&1 || status=$?
 
 # Failures with their messages, then the summary lines.
 grep -E "^(FAIL|  ●|    (expect|Expected|Received|TypeError|ReferenceError|Error))" "$out" | head -60

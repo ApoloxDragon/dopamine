@@ -95,3 +95,15 @@ while the app runs. There is a separate switch under Settings > Online > Discord
 - Whether the switch should default to off, for privacy.
 - Albums that Last.fm does not know keep the Dopamine icon. Covers from your own files cannot be shown on Discord.
 - Song titles of one character are padded to Discord's minimum length with a space. Not verified that Discord accepts this.
+
+## D10. Clearing or exporting the listening history: `draft`, not started
+
+The Statistics page has no way to delete history yet, because deleting data should be a deliberate choice. Options: a
+"Clear listening history" button with a confirmation, removing single entries, or exporting the history to CSV. Nothing is sent anywhere either way.
+
+## D11. Two kinds of play counts: `note`, needs your review
+
+The Statistics page counts plays from its own history: a song counts after half of it or 4 minutes was actually played (the Last.fm rule).
+The play count Dopamine already showed for songs (Track.PlayCount) has its own older rule and also includes plays from before this feature existed.
+So the two numbers can differ. The history starts empty when you install this version: earlier listening cannot be reconstructed
+(only per-song play counts and the last-played date were kept before).

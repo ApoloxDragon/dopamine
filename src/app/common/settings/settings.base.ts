@@ -61,6 +61,8 @@ export abstract class SettingsBase {
     public abstract showArtistsPage: boolean;
     public abstract showGenresPage: boolean;
     public abstract showAlbumsPage: boolean;
+    public abstract showStatisticsPage: boolean;
+    public abstract statisticsSelectedPeriod: string;
     public abstract showTracksPage: boolean;
     public abstract showPlaylistsPage: boolean;
     public abstract showFoldersPage: boolean;

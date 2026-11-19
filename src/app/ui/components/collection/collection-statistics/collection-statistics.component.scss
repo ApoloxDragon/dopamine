@@ -1,0 +1,132 @@
+.statistics {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.statistics__header {
+    margin-bottom: 16px;
+}
+
+.statistics__periods {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.statistics__period {
+    padding: 4px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--theme-button-border);
+    cursor: pointer;
+    user-select: none;
+}
+
+.statistics__period:hover {
+    background: var(--theme-hovered-item-background);
+}
+
+.statistics__period--selected {
+    border-color: var(--theme-accent-color);
+    color: var(--theme-accent-color);
+}
+
+.statistics__empty {
+    margin-top: 48px;
+    text-align: center;
+}
+
+.statistics__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.statistics__card {
+    min-width: 130px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--theme-hovered-item-background);
+}
+
+.statistics__card-value {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.statistics__tops {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.statistics__section-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.statistics__top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+}
+
+.statistics__rank {
+    width: 20px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.statistics__top-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.statistics__top-numbers {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.statistics__history-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 30px;
+    border-radius: 6px;
+    padding: 0 6px;
+}
+
+.statistics__history-row:hover {
+    background: var(--theme-hovered-item-background);
+}
+
+.statistics__history-date {
+    width: 170px;
+    flex-shrink: 0;
+}
+
+.statistics__history-track {
+    flex: 2;
+    min-width: 0;
+}
+
+.statistics__history-album {
+    flex: 1;
+    min-width: 0;
+}
+
+.statistics__history-duration {
+    width: 60px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.statistics__load-more {
+    margin: 12px 0 24px;
+    cursor: pointer;
+    user-select: none;
+}

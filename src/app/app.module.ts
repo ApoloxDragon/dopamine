@@ -72,6 +72,9 @@ import { ArtistsPersister } from './ui/components/collection/collection-artists/
 import { ArtistsTracksPersister } from './ui/components/collection/collection-artists/artists-tracks-persister';
 import { CollectionArtistsComponent } from './ui/components/collection/collection-artists/collection-artists.component';
 import { CollectionFoldersComponent } from './ui/components/collection/collection-folders/collection-folders.component';
+import { CollectionStatisticsComponent } from './ui/components/collection/collection-statistics/collection-statistics.component';
+import { ListeningSessionRepositoryBase } from './data/repositories/listening-session-repository.base';
+import { ListeningSessionRepository } from './data/repositories/listening-session-repository';
 import { FolderTracksPersister } from './ui/components/collection/collection-folders/folder-tracks-persister';
 import { FoldersPersister } from './ui/components/collection/collection-folders/folders-persister';
 import { CollectionGenresComponent } from './ui/components/collection/collection-genres/collection-genres.component';
@@ -401,6 +404,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         AboutComponent,
         ComponentsComponent,
         CollectionFoldersComponent,
+        CollectionStatisticsComponent,
         CollectionPlaybackPaneComponent,
         HighlightsPlaybackPaneComponent,
         VolumeControlComponent,
@@ -619,6 +623,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         { provide: ArtistArtworkRepositoryBase, useClass: ArtistArtworkRepository },
         { provide: QueuedTrackRepositoryBase, useClass: QueuedTrackRepository },
         { provide: PlaylistSessionRepositoryBase, useClass: PlaylistSessionRepository },
+        { provide: ListeningSessionRepositoryBase, useClass: ListeningSessionRepository },
         { provide: ApplicationServiceBase, useClass: ApplicationService },
         { provide: NavigationServiceBase, useClass: NavigationService },
         { provide: AlbumArtworkCacheServiceBase, useClass: AlbumArtworkCacheService },

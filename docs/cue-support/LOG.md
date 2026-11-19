@@ -117,3 +117,12 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - See DRAFTS D9 for the privacy default
 
 - **2026-11-19** · `Note` · npm audit reports 110 vulnerable packages elsewhere in the dependency tree (not Discord related); not changed, worth a separate review
+
+- **2026-11-19** · `Added` · Statistics page with an offline listening tracker
+    - Migration16 adds a ListeningSession table (one row per time a song plays: path, snapshot of title/artists/album, start time, listened ms, counted-as-play). Additive only.
+    - ListeningTrackerService records actual playing time (pauses excluded), saves every 15 s and when the app closes, drops sessions under 1 s, counts a play after half the song or 4 minutes
+    - New Statistics tab (page 6): rolling periods (7/30/365 days, all time), listening time, plays, songs, albums, days with music, top 10 songs/albums/artists, listening history with 'Load more'
+    - New settings showStatisticsPage (default on, toggle under Appearance > Pages) and statisticsSelectedPeriod; 14 new text keys in all 25 languages (English placeholder)
+    - Everything stays in the local database. Open points in DRAFTS D10 (clearing history) and D11 (two kinds of play counts)
+
+- **2026-11-19** · `Tooling` · check.sh --db runs repository specs against SQLite (src/app/data/repositories)

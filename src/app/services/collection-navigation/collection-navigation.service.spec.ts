@@ -55,12 +55,30 @@ describe('CollectionNavigationService', () => {
             settingsMock.setup((x) => x.showTracksPage).returns(() => false);
             settingsMock.setup((x) => x.showPlaylistsPage).returns(() => false);
             settingsMock.setup((x) => x.showFoldersPage).returns(() => false);
+            settingsMock.setup((x) => x.showStatisticsPage).returns(() => false);
 
             // Act
             const service: CollectionNavigationService = createSut();
 
             // Assert
             expect(service.hasVisiblePages()).toBeFalsy();
+        });
+
+        it('should return true if only the statistics page is visible', () => {
+            // Arrange
+            settingsMock.setup((x) => x.showArtistsPage).returns(() => false);
+            settingsMock.setup((x) => x.showGenresPage).returns(() => false);
+            settingsMock.setup((x) => x.showAlbumsPage).returns(() => false);
+            settingsMock.setup((x) => x.showTracksPage).returns(() => false);
+            settingsMock.setup((x) => x.showPlaylistsPage).returns(() => false);
+            settingsMock.setup((x) => x.showFoldersPage).returns(() => false);
+            settingsMock.setup((x) => x.showStatisticsPage).returns(() => true);
+
+            // Act
+            const service: CollectionNavigationService = createSut();
+
+            // Assert
+            expect(service.hasVisiblePages()).toBeTruthy();
         });
     });
 
