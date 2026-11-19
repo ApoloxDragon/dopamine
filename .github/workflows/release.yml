@@ -1,0 +1,274 @@
+name: Release builds
+# Builds the installers for every platform and creates a GitHub release with them.
+#
+# Start it by pushing a version tag that matches the app version (package.json version + versionSuffix), for example:
+#   git tag v3.1.0-apolox && git push origin v3.1.0-apolox
+# A tag push always creates a DRAFT release: review it on GitHub and press Publish.
+#
+# It can also be started by hand (Actions > Release builds > Run workflow) when this file is on the default branch.
+# Then "publish" decides whether the release is published at once (for example for major updates) or stays a draft.
+env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+on:
+    push:
+        tags:
+            - 'v*'
+    workflow_dispatch:
+        inputs:
+            publish:
+                description: 'Publish the release at once (otherwise it is created as a draft)'
+                type: boolean
+                default: false
+
+jobs:
+    release_build_on_linux:
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@master
+              with:
+                  node-version: '22.x'
+            - name: update package directory
+              run: sudo apt update
+            - name: install rpm and libarchive
+              run: sudo apt install rpm libarchive-tools
+            - name: install dependencies
+              run: npm install
+            - name: run unit tests
+              run: npm run test
+            - name: build
+              run: |
+                  for i in 1 2 3; do
+                    npm run electron:linux && break
+                    if [ "$i" -eq 3 ]; then
+                      echo "Linux build failed after 3 attempts"
+                      exit 1
+                    fi
+                    echo "Linux build failed (attempt $i), retrying in 30s..."
+                    sleep 30
+                  done
+            - name: repackage AppImage with fuse3 runtime
+              run: bash scripts/repackage-appimage-fuse3.sh release x86_64
+            - name: fetch current version
+              id: ver_name
+              uses: notiz-dev/github-action-json-property@release
+              with:
+                  path: 'package.json'
+                  prop_path: 'version'
+            - name: uploading rpm artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-rpm
+                  path: release/Dopamine-*.rpm
+            - name: upload deb artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-deb
+                  path: release/Dopamine-*.deb
+            - name: upload appimage artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-appimage
+                  path: release/Dopamine-*.AppImage
+            - name: upload snap artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-snap
+                  path: release/Dopamine-*.snap
+
+    release_build_pacman_on_arch:
+        runs-on: ubuntu-22.04
+        container:
+            image: archlinux:latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+            - name: verify Node runtime
+              run: |
+                  node -v
+                  npm -v
+            - name: install Arch dependencies
+              run: |
+                  pacman -Syu --noconfirm
+                  pacman -S --noconfirm git python base-devel libarchive libxcrypt-compat
+            - name: install dependencies
+              run: npm install
+            - name: run unit tests
+              run: npm run test
+            - name: build pacman package
+              run: |
+                  npm run build:prod
+                  for i in 1 2 3; do
+                    npx electron-builder build --linux pacman --config electron-builder.config.js && break
+                    if [ "$i" -eq 3 ]; then
+                      echo "Pacman build failed after 3 attempts"
+                      exit 1
+                    fi
+                    echo "Pacman build failed (attempt $i), retrying in 30s..."
+                    sleep 30
+                  done
+            - name: upload pacman artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-pacman
+                  path: release/Dopamine-*.pacman
+
+    release_build_on_mac_arm:
+        runs-on: macos-15
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@master
+              with:
+                  node-version: '22.x'
+            - name: install dependencies
+              run: npm install
+            - name: run unit tests
+              run: npm run test
+            - name: build
+              run: npm run electron:mac
+            - name: name macOS ARM release asset
+              shell: bash
+              run: |
+                  shopt -s nullglob
+                  files=(release/Dopamine-*.dmg)
+                  if [ "${#files[@]}" -ne 1 ]; then
+                    echo "Expected exactly one macOS ARM DMG, found ${#files[@]}" >&2
+                    exit 1
+                  fi
+                  mv -- "${files[0]}" "${files[0]%.dmg}-arm.dmg"
+            - name: fetch current version
+              id: ver_name
+              uses: notiz-dev/github-action-json-property@release
+              with:
+                  path: 'package.json'
+                  prop_path: 'version'
+            - name: upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-macos-arm
+                  path: release/Dopamine-*.dmg
+
+    release_build_on_mac_intel:
+        runs-on: macos-15-intel
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@master
+              with:
+                  node-version: '22.x'
+            - name: install dependencies
+              run: npm install
+            - name: run unit tests
+              run: npm run test
+            - name: build
+              run: npm run electron:mac
+            - name: name macOS Intel release asset
+              shell: bash
+              run: |
+                  shopt -s nullglob
+                  files=(release/Dopamine-*.dmg)
+                  if [ "${#files[@]}" -ne 1 ]; then
+                    echo "Expected exactly one macOS Intel DMG, found ${#files[@]}" >&2
+                    exit 1
+                  fi
+                  mv -- "${files[0]}" "${files[0]%.dmg}-intel.dmg"
+            - name: fetch current version
+              id: ver_name
+              uses: notiz-dev/github-action-json-property@release
+              with:
+                  path: 'package.json'
+                  prop_path: 'version'
+            - name: upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-macos-intel
+                  path: release/Dopamine-*.dmg
+
+    release_build_on_win:
+        runs-on: windows-2022
+
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+            - name: Install dependencies
+              run: npm install
+            - name: Run unit tests
+              run: npm run test
+            - name: Build
+              run: npm run electron:windows
+            - name: Upload Windows installer for checksums
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-windows-installer
+                  path: release/Dopamine-*.exe
+                  if-no-files-found: error
+            - name: Fetch current version
+              id: ver_name
+              uses: notiz-dev/github-action-json-property@release
+              with:
+                  path: package.json
+                  prop_path: version
+            # Use built-in 7zip (already installed on the runner)
+            - name: Create 7z Archive
+              shell: powershell
+              run: |
+                  cd release
+                  & "C:\Program Files\7-Zip\7z.exe" a ..\dopamine-release-win.7z Dopamine-*.exe
+            - name: Upload Build Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dopamine-release-win
+                  path: dopamine-release-win.7z
+
+    create_release:
+        runs-on: ubuntu-22.04
+        permissions:
+            contents: write
+        needs:
+            - release_build_on_linux
+            - release_build_pacman_on_arch
+            - release_build_on_mac_arm
+            - release_build_on_mac_intel
+            - release_build_on_win
+        steps:
+            - uses: actions/checkout@v4
+            - name: Download the installers
+              uses: actions/download-artifact@v4
+              with:
+                  path: build-artifacts
+                  pattern: dopamine-release-*
+            - name: Collect installers and write checksums
+              run: |
+                  mkdir assets
+                  find build-artifacts -type f -name 'Dopamine-*' -exec cp {} assets/ \;
+                  cd assets
+                  sha256sum Dopamine-* > SHA256SUMS.txt
+                  ls -la
+            - name: Release notes from the change log
+              run: |
+                  version="$(node -p "require('./get-package-information.js').getFullVersion()")"
+                  awk -v header="## [$version]" 'index($0, header) == 1 { found = 1; next } /^## \[/ { found = 0 } found' CHANGELOG.md > notes.md
+                  if [ ! -s notes.md ]; then
+                    echo "CHANGELOG.md has no section for $version" >&2
+                    exit 1
+                  fi
+                  cat notes.md
+            - name: Create the release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PUBLISH: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+              run: |
+                  version="$(node -p "require('./get-package-information.js').getFullVersion()")"
+                  tag="v$version"
+                  if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "$tag" ]; then
+                    echo "The tag $GITHUB_REF_NAME does not match the app version $tag (package.json version and versionSuffix)" >&2
+                    exit 1
+                  fi
+                  draft="--draft"
+                  if [ "$PUBLISH" = "true" ]; then
+                    draft=""
+                  fi
+                  gh release create "$tag" assets/* --title "Dopamine $version" --notes-file notes.md --target "$GITHUB_SHA" $draft

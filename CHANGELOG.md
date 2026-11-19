@@ -3,6 +3,30 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0-apolox] - 2026-11-19
+
+Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+
+### Added
+
+- Single-file albums with a CUE sheet (for example a FLAC or WAV CD rip with a .cue file) are shown and played as separate tracks, gapless between tracks
+- Statistics page: listening time, plays, top songs, albums and artists, and listening history, for the last 7, 30 or 365 days or all time. Everything stays on your computer. The history can be cleared
+- Parametric equalizer, next to the graphic equalizer: up to 20 bands (peak, shelves, low/high-pass, notch) with frequency, gain and Q, a preamp and clipping protection
+- Import and export of AutoEQ and Equalizer APO files: ParametricEQ.txt for the parametric equalizer, GraphicEQ.txt fitted to the graphic equalizer
+- Optional fade when pausing, resuming and stopping, from 1 ms to 60 s, with an optional separate fade-in duration
+- Discord Rich Presence shows "Listening to" with the artist, song, album, album cover and a progress bar. The album cover is looked up on Last.fm (can be turned off)
+
+### Changed
+
+- The Albums page is shown by default
+- Updates are checked against this fork's releases
+- Security updates: fast-xml-parser 4.5.7, moment 2.31.0
+
+### Fixed
+
+- Album covers missing or outdated on the lock screen and in the operating system's media controls (large covers and cached covers were not shown)
+- Long song titles no longer make Discord drop the Rich Presence
+
 ## [3.0.12] - 2026-11-07
 
 ### Added

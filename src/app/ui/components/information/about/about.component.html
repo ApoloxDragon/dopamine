@@ -6,6 +6,21 @@
         {{ 'license' | translate }}
     </app-transparent-button>
     <mat-divider class="my-4"></mat-divider>
+    <div class="title">{{ 'about-this-version' | translate }}</div>
+    <div class="mt-3">{{ 'about-this-version-text' | translate }}</div>
+    <div class="contact-item mb-2 mt-3">
+        <i class="contact-item-icon lab la-github"></i>
+        <a href="{{ forkRepositoryUrl }}" matTooltip="{{ forkRepositoryUrl }}">{{ 'this-version-repository' | translate }}</a>
+    </div>
+    <div class="contact-item mb-2">
+        <i class="contact-item-icon las la-download"></i>
+        <a href="{{ forkReleasesUrl }}" matTooltip="{{ forkReleasesUrl }}">{{ 'this-version-releases' | translate }}</a>
+    </div>
+    <div class="contact-item">
+        <i class="contact-item-icon lab la-github"></i>
+        <a href="{{ originalRepositoryUrl }}" matTooltip="{{ originalRepositoryUrl }}">{{ 'original-dopamine-repository' | translate }}</a>
+    </div>
+    <mat-divider class="my-4"></mat-divider>
     <div class="title">{{ 'contact-us' | translate }}</div>
     <div class="contact-item mb-2 mt-3">
         <i class="contact-item-icon las la-globe"></i>

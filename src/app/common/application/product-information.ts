@@ -10,5 +10,7 @@ export class ProductInformation {
     public static readonly applicationName: string = StringUtils.capitalizeFirstLetter(getName() as string);
     public static readonly applicationVersion: string = getFullVersion();
     public static readonly applicationCopyright: string = getCopyright();
-    public static readonly releasesDownloadUrl: string = 'https://github.com/digimezzo/dopamine/releases/';
+    /** Owner of the GitHub repository whose releases the update check looks at (this build: the ApoloxDragon fork). */
+    public static readonly releasesOwner: string = 'ApoloxDragon';
+    public static readonly releasesDownloadUrl: string = 'https://github.com/ApoloxDragon/dopamine/releases/';
 }
