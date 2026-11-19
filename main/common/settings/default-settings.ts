@@ -47,6 +47,7 @@ export const DEFAULT_SETTINGS = {
     playlistsTabSelectedPlaylist: '',
     playlistsTabSelectedPlaylistOrder: '',
     enableDiscordRichPresence: false,
+    showAlbumCoverInDiscordRichPresence: true,
     enableLastFmScrobbling: false,
     enableListenbrainzScrobbling: false,
     showIconInNotificationArea: true,

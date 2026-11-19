@@ -137,6 +137,8 @@ describe('validate i18n', () => {
         'search-online-images',
         'embedded-lyrics',
         'enable-discord-rich-presence',
+        'show-album-cover-in-discord',
+        'show-album-cover-in-discord-description',
         'enable-gapless-playback',
         'enable-last-fm-scrobbling',
         'enable-listenbrainz-scrobbling',

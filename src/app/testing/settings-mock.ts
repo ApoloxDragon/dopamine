@@ -34,6 +34,7 @@ export class SettingsMock implements SettingsBase {
     public showArtistImages: boolean;
     public showArtistImagesAsBackground: boolean;
     public enableDiscordRichPresence: boolean;
+    public showAlbumCoverInDiscordRichPresence: boolean = true;
     public enableLastFmScrobbling: boolean;
     public enableListenbrainzScrobbling: boolean;
     public foldersLeftPaneWidthPercent: number;

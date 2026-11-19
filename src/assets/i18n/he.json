@@ -49,6 +49,8 @@
     "discord": "דיסקורד",
     "dock": "מעגן",
     "enable-discord-rich-presence": "הפעלת נוכחות עשירה ב־Discord",
+    "show-album-cover-in-discord": "Show the album cover",
+    "show-album-cover-in-discord-description": "Discord can only show covers from the internet, so the album title and artist are sent to Last.fm to find the cover.",
     "show-album-art-on-dock-icon": "הצגת עטיפת האלבום בסמל שבמעגן",
     "about": "על אודות",
     "components": "רכיבים",

@@ -49,6 +49,8 @@
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Włącz Discord Rich Presence",
+    "show-album-cover-in-discord": "Show the album cover",
+    "show-album-cover-in-discord-description": "Discord can only show covers from the internet, so the album title and artist are sent to Last.fm to find the cover.",
     "show-album-art-on-dock-icon": "Show album art on dock icon",
     "about": "O programie",
     "components": "Składniki",

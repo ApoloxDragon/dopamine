@@ -9,6 +9,9 @@ import { IpcProxyBase } from '../../common/io/ipc-proxy.base';
 import { DiscordApiCommandType } from './discord-api-command-type';
 import { DiscordApiCommand } from './discord-api-command';
 import { PresenceArgs } from './presence-args';
+import { DiscordAlbumArtResolver } from './discord-album-art-resolver';
+import { TrackModel } from '../track/track-model';
+import { StringUtils } from '../../common/utils/string-utils';
 
 @Injectable({ providedIn: 'root' })
 export class DiscordService {
@@ -23,6 +26,7 @@ export class DiscordService {
         private ipcProxy: IpcProxyBase,
         private settings: SettingsBase,
         private logger: Logger,
+        private albumArtResolver: DiscordAlbumArtResolver,
     ) {}
 
     public get enableDiscordRichPresence(): boolean {
@@ -32,6 +36,15 @@ export class DiscordService {
     public set enableDiscordRichPresence(v: boolean) {
         this.settings.enableDiscordRichPresence = v;
         this.initialize();
+    }
+
+    public get showAlbumCover(): boolean {
+        return this.settings.showAlbumCoverInDiscordRichPresence;
+    }
+
+    public set showAlbumCover(v: boolean) {
+        this.settings.showAlbumCoverInDiscordRichPresence = v;
+        this.updatePresence();
     }
 
     public initialize(): void {
@@ -103,33 +116,62 @@ export class DiscordService {
                 return;
             }
 
+            const track: TrackModel = this.playbackService.currentTrack;
             let smallImageKey: string = 'pause';
             let smallImageText: string = this.translatorService.get('paused');
-            const largeImageKey: string = 'icon';
-            const largeImageText: string = this.translatorService.get('playing-with-dopamine');
             let startTime: number = 0;
+            let endTime: number | undefined;
             let shouldSendTimestamps: boolean = false;
 
             if (this.playbackService.canPause) {
-                startTime = this.dateProxy.now() - this.calculateElapsedTimeInMilliseconds();
+                const now: number = this.dateProxy.now();
+                startTime = now - this.calculateElapsedTimeInMilliseconds();
+                endTime = this.calculateEndTime(now);
                 shouldSendTimestamps = true;
                 smallImageKey = 'play';
                 smallImageText = this.translatorService.get('playing');
             }
 
+            // Like Spotify: song title, artist, and the album as the cover's caption.
+            const album: string = track.rawAlbumTitle;
+            const coverUrl: string | undefined = this.showAlbumCover ? this.albumArtResolver.getCachedUrl(track) : '';
+
             const args: PresenceArgs = {
-                title: this.playbackService.currentTrack.title,
-                artists: this.playbackService.currentTrack.artists,
+                title: track.title,
+                artists: track.artists,
                 smallImageKey: smallImageKey,
                 smallImageText: smallImageText,
-                largeImageKey: largeImageKey,
-                largeImageText: largeImageText,
+                largeImageKey: StringUtils.isNullOrWhiteSpace(coverUrl) ? 'icon' : coverUrl,
+                largeImageText: StringUtils.isNullOrWhiteSpace(album) ? this.translatorService.get('playing-with-dopamine') : album,
                 shouldSendTimestamps: shouldSendTimestamps,
                 startTime: startTime,
+                endTime: endTime,
                 type: 2,
             };
 
             this.ipcProxy.sendToMainProcess('discord-api-command', new DiscordApiCommand(DiscordApiCommandType.SetPresence, args));
+
+            if (this.showAlbumCover && coverUrl === undefined) {
+                // Not looked up yet: show the Dopamine icon now, the cover once it is found.
+                void this.albumArtResolver.resolveAsync(track).then((url: string) => {
+                    if (!StringUtils.isNullOrWhiteSpace(url) && this.playbackService.currentTrack?.path === track.path) {
+                        this.updatePresence();
+                    }
+                });
+            }
         }, this._updatePresenceTimeoutMillis);
+    }
+
+    /** End of the track in wall clock time, for Discord's progress bar. Takes the playback speed into account. */
+    private calculateEndTime(now: number): number | undefined {
+        const progress = this.playbackService.progress;
+        const remainingSeconds: number = progress.totalSeconds - progress.progressSeconds;
+
+        if (!(progress.totalSeconds > 0) || remainingSeconds < 0) {
+            return undefined;
+        }
+
+        const speed: number = this.playbackService.playbackSpeed > 0 ? this.playbackService.playbackSpeed : 1;
+        return now + Math.round((remainingSeconds * 1000) / speed);
     }
 }

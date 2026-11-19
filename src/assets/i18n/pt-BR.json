@@ -49,6 +49,8 @@
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Ativar a presença avançada do Discord",
+    "show-album-cover-in-discord": "Show the album cover",
+    "show-album-cover-in-discord-description": "Discord can only show covers from the internet, so the album title and artist are sent to Last.fm to find the cover.",
     "show-album-art-on-dock-icon": "Exibir a capa do álbum no ícone do Dock",
     "about": "Sobre",
     "components": "Componentes",

@@ -49,6 +49,8 @@
     "discord": "اختلاف",
     "dock": "Dock",
     "enable-discord-rich-presence": "Discord Rich Presence را فعال کنید",
+    "show-album-cover-in-discord": "Show the album cover",
+    "show-album-cover-in-discord-description": "Discord can only show covers from the internet, so the album title and artist are sent to Last.fm to find the cover.",
     "show-album-art-on-dock-icon": "Show album art on dock icon",
     "about": "در باره",
     "components": "اجزاء",

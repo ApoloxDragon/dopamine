@@ -47,6 +47,7 @@ export abstract class SettingsBase {
     public abstract genresTabSelectedAlbumOrder: string;
     public abstract genresTabSelectedTrackOrder: string;
     public abstract enableDiscordRichPresence: boolean;
+    public abstract showAlbumCoverInDiscordRichPresence: boolean;
     public abstract enableLastFmScrobbling: boolean;
     public abstract enableListenbrainzScrobbling: boolean;
     public abstract playlistsTabSelectedPlaylistFolder: string;

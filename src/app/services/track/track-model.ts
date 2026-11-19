@@ -178,6 +178,19 @@ export class TrackModel implements ISelectable {
         return this.translatorService.get(Constants.unknownArtist);
     }
 
+    /** First album artist, or the first track artist when there is none. '' when both are unknown. */
+    public get rawFirstAlbumArtist(): string {
+        const albumArtists: string[] = DataDelimiter.fromDelimitedString(this.track.albumArtists).filter(
+            (x) => !StringUtils.isNullOrWhiteSpace(x),
+        );
+
+        if (!DataDelimiter.isUnknownValue(albumArtists) && albumArtists.length > 0) {
+            return albumArtists[0];
+        }
+
+        return this.rawFirstArtist;
+    }
+
     public get sortableAlbumArtists(): string {
         return StringUtils.getSortableString(this.albumArtists);
     }

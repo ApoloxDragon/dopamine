@@ -84,3 +84,14 @@ Tracks that start after the end of the file are dropped, which limits the damage
 
 The Folders view lists files on disk, so a single-file album appears there as one long file. Collection views (albums, artists,
 genres, tracks, playlists) show the CUE tracks. Making the Folders view expand sheets is possible but separate work.
+
+## D9. Discord album cover lookup is on by default: `implemented`, needs your review
+
+**What it does.** With Discord Rich Presence enabled (still off by default), the album cover is shown. Discord only accepts images from the
+internet, so the cover is looked up on Last.fm (`album.getInfo`): the album title and album artist are sent to Last.fm. Results are cached per album
+while the app runs. There is a separate switch under Settings > Online > Discord ("Show the album cover"), on by default because you asked for covers.
+
+**Open points.**
+- Whether the switch should default to off, for privacy.
+- Albums that Last.fm does not know keep the Dopamine icon. Covers from your own files cannot be shown on Discord.
+- Song titles of one character are padded to Discord's minimum length with a space. Not verified that Discord accepts this.

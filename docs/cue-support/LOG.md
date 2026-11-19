@@ -107,3 +107,13 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Changed` · Albums page is now visible by default (main/common/settings/default-settings.ts: showAlbumsPage true)
     - Applies to new installs and to installs where the Albums toggle was never changed; a stored choice is kept
+
+- **2026-11-19** · `Changed` · Discord Rich Presence looks like Spotify's 'Listening to'
+    - Song title, artist, album name (cover caption), album cover, progress bar (start and end time, adjusted for playback speed)
+    - New DiscordAlbumArtResolver looks covers up on Last.fm and caches them; the Dopamine icon is shown until a cover is found or when there is none
+    - New setting showAlbumCoverInDiscordRichPresence (default on) with a toggle under Settings > Online > Discord; 2 new text keys in all 25 languages (English placeholder)
+    - Texts are trimmed to Discord's 2-128 character limits so long titles no longer make Discord reject the presence
+    - Kept discord-rpc 4.0.1: npm audit reports no advisories for it, ws 7.5.13 or node-fetch 2.6.11
+    - See DRAFTS D9 for the privacy default
+
+- **2026-11-19** · `Note` · npm audit reports 110 vulnerable packages elsewhere in the dependency tree (not Discord related); not changed, worth a separate review

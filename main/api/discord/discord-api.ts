@@ -62,18 +62,24 @@ export class DiscordApi {
             return;
         }
 
+        // Discord rejects the whole activity when a text is shorter than 2 or longer than 128 characters.
         const presence: Presence & { type?: number } = {
-            details: `${args.title}`,
-            state: `${args.artists}`,
+            details: DiscordApi.fitText(`${args.title}`),
+            state: DiscordApi.fitText(`${args.artists}`),
             largeImageKey: args.largeImageKey,
-            largeImageText: args.largeImageText,
+            largeImageText: args.largeImageText !== undefined ? DiscordApi.fitText(args.largeImageText) : undefined,
             smallImageKey: args.smallImageKey,
-            smallImageText: args.smallImageText,
+            smallImageText: args.smallImageText !== undefined ? DiscordApi.fitText(args.smallImageText) : undefined,
             type: args.type,
         };
 
         if (args.shouldSendTimestamps && args.startTime) {
             presence.startTimestamp = Math.floor(args.startTime / 1000);
+
+            // With an end time Discord shows a progress bar, like Spotify does.
+            if (args.endTime !== undefined && args.endTime > args.startTime) {
+                presence.endTimestamp = Math.floor(args.endTime / 1000);
+            }
         }
 
         if (!this._client) {
@@ -83,6 +89,17 @@ export class DiscordApi {
 
         this._client.setActivity(presence);
         log.info(`[DiscordApi] [setPresence] Rich Presence updated: ${presence.state} - ${presence.details} (${presence.smallImageKey})`);
+    }
+
+    private static fitText(text: string): string {
+        const trimmed: string = text.trim();
+
+        if (trimmed.length > 128) {
+            return trimmed.substring(0, 127) + '…';
+        }
+
+        // Pad very short texts (e.g. a one letter title) to Discord's minimum of 2 characters.
+        return trimmed.length < 2 ? trimmed.padEnd(2, ' ') : trimmed;
     }
 
     public clearPresence(): void {

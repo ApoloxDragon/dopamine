@@ -49,6 +49,8 @@
     "discord": "디스코드",
     "dock": "Dock",
     "enable-discord-rich-presence": "디스코드 리치 프레즌스 기능 사용",
+    "show-album-cover-in-discord": "Show the album cover",
+    "show-album-cover-in-discord-description": "Discord can only show covers from the internet, so the album title and artist are sent to Last.fm to find the cover.",
     "show-album-art-on-dock-icon": "Show album art on dock icon",
     "about": "정보",
     "components": "구성 요소",

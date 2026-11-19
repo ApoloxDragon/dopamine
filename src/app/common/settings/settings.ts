@@ -499,6 +499,15 @@ export class Settings implements SettingsBase {
         this.set('enableDiscordRichPresence', v);
     }
 
+    // showAlbumCoverInDiscordRichPresence (looks the cover up on Last.fm)
+    public get showAlbumCoverInDiscordRichPresence(): boolean {
+        return this.get<boolean>('showAlbumCoverInDiscordRichPresence') ?? true;
+    }
+
+    public set showAlbumCoverInDiscordRichPresence(v: boolean) {
+        this.set('showAlbumCoverInDiscordRichPresence', v);
+    }
+
     // enableLastFmScrobbling
     public get enableLastFmScrobbling(): boolean {
         return this.get<boolean>('enableLastFmScrobbling');
