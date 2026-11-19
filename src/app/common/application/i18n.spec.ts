@@ -283,6 +283,8 @@ describe('validate i18n', () => {
         'longest-streak',
         'days-count',
         'first-and-last-played',
+        'less',
+        'more',
         'previous',
         'random',
         'rating',

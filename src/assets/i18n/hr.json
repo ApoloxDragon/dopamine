@@ -265,6 +265,8 @@
     "longest-streak": "Longest streak",
     "days-count": "{{count}} days",
     "first-and-last-played": "first played {{first}}, last {{last}}",
+    "less": "Less",
+    "more": "More",
     "skips": "Preskakanja",
     "last-played": "Posljednja reprodukcija",
     "date-added": "Datum dodavanja",

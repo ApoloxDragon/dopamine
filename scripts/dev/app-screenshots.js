@@ -29,6 +29,7 @@ async function main() {
         JSON.stringify({
             showWelcome: false,
             detailedListeningStatistics: process.env.SEED_STATISTICS === '1',
+            useLightBackgroundTheme: process.env.LIGHT === '1',
             audioEqualizerEnabled: true,
             audioEqualizerMode: 'parametric',
             audioEqualizerParametricProfile: JSON.stringify({

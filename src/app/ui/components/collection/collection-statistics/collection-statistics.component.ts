@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Logger } from '../../../../common/logger';
 import { SettingsBase } from '../../../../common/settings/settings.base';
-import { ListeningTotal } from '../../../../data/repositories/listening-session-repository.base';
+import { ListeningSkipTotal, ListeningTotal } from '../../../../data/repositories/listening-session-repository.base';
 import { PlaybackService } from '../../../../services/playback/playback.service';
 import { StatisticsPeriod, statisticsPeriods } from '../../../../services/statistics/statistics-period';
 import {
@@ -126,6 +126,17 @@ export class CollectionStatisticsComponent implements OnInit, OnDestroy {
         }
 
         this.refresh();
+    }
+
+    /** Width (percent) of the faint bar behind a top list row: its listening time compared to the first one. */
+    public share(item: ListeningTotal, items: ListeningTotal[]): number {
+        const first: number = items[0]?.listenedMs ?? 0;
+        return first > 0 && Number.isFinite(item.listenedMs) ? Math.min(100, Math.max(0, (item.listenedMs / first) * 100)) : 0;
+    }
+
+    /** Width (percent) of the faint bar behind a most-skipped row: how often it was skipped. */
+    public skipRate(item: ListeningSkipTotal): number {
+        return item.sessions > 0 ? Math.min(100, Math.max(0, (item.skipped / item.sessions) * 100)) : 0;
     }
 
     /** Opacity of a heatmap cell (0 when nothing was played, otherwise at least a little visible). */

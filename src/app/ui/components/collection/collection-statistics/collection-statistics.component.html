@@ -12,90 +12,117 @@
                 </div>
             </div>
             <div class="secondary-text smaller">{{ 'statistics-description' | translate }}</div>
-            <app-toggle-switch class="statistics__detailed-toggle" [(isChecked)]="isDetailed">{{
-                'detailed-statistics' | translate
-            }}</app-toggle-switch>
-            <div class="secondary-text smaller">{{ 'detailed-statistics-description' | translate }}</div>
+            <div class="statistics__detailed">
+                <app-toggle-switch [(isChecked)]="isDetailed">{{ 'detailed-statistics' | translate }}</app-toggle-switch>
+                <div class="secondary-text smaller">{{ 'detailed-statistics-description' | translate }}</div>
+            </div>
         </div>
 
-        <div *ngIf="!hasData" class="statistics__empty secondary-text">{{ 'no-listening-history' | translate }}</div>
+        <div *ngIf="!hasData" class="statistics__empty secondary-text">
+            <i class="las la-headphones statistics__empty-icon"></i>
+            <div>{{ 'no-listening-history' | translate }}</div>
+        </div>
 
         <ng-container *ngIf="hasData && overview">
             <div class="statistics__summary">
-                <div class="statistics__card">
-                    <div class="statistics__card-value accent-color">
+                <div class="statistics__card statistics__card--hero">
+                    <i class="las la-headphones statistics__card-icon"></i>
+                    <div class="statistics__card-value">
                         {{ overview.summary.listenedMs | formatTotalDuration: settings.useCompactTotalDuration }}
                     </div>
-                    <div class="secondary-text">{{ 'listening-time' | translate }}</div>
+                    <div class="statistics__card-label">{{ 'listening-time' | translate }}</div>
                 </div>
-                <div class="statistics__card">
-                    <div class="statistics__card-value">{{ overview.summary.plays }}</div>
-                    <div class="secondary-text">{{ 'plays' | translate }}</div>
-                </div>
-                <div class="statistics__card">
-                    <div class="statistics__card-value">{{ overview.summary.distinctTracks }}</div>
-                    <div class="secondary-text">{{ 'tracks' | translate }}</div>
-                </div>
-                <div class="statistics__card">
-                    <div class="statistics__card-value">{{ overview.summary.distinctAlbums }}</div>
-                    <div class="secondary-text">{{ 'albums' | translate }}</div>
-                </div>
-                <div class="statistics__card">
-                    <div class="statistics__card-value">{{ overview.summary.activeDays }}</div>
-                    <div class="secondary-text">{{ 'active-days' | translate }}</div>
-                </div>
+                <ng-container
+                    *ngTemplateOutlet="card; context: { icon: 'la-play-circle', value: overview.summary.plays, label: 'plays' }"
+                ></ng-container>
+                <ng-container
+                    *ngTemplateOutlet="card; context: { icon: 'la-music', value: overview.summary.distinctTracks, label: 'tracks' }"
+                ></ng-container>
+                <ng-container
+                    *ngTemplateOutlet="card; context: { icon: 'la-compact-disc', value: overview.summary.distinctAlbums, label: 'albums' }"
+                ></ng-container>
+                <ng-container
+                    *ngTemplateOutlet="
+                        card;
+                        context: { icon: 'la-calendar-check', value: overview.summary.activeDays, label: 'active-days' }
+                    "
+                ></ng-container>
             </div>
 
             <div class="statistics__tops">
                 <ng-container
-                    *ngTemplateOutlet="topList; context: { title: 'top-tracks', items: overview.topTracks, showSpan: isDetailed }"
+                    *ngTemplateOutlet="
+                        topList;
+                        context: { title: 'top-tracks', icon: 'la-music', items: overview.topTracks, showSpan: isDetailed }
+                    "
                 ></ng-container>
                 <ng-container
-                    *ngTemplateOutlet="topList; context: { title: 'top-albums', items: overview.topAlbums, showSpan: isDetailed }"
+                    *ngTemplateOutlet="
+                        topList;
+                        context: { title: 'top-albums', icon: 'la-compact-disc', items: overview.topAlbums, showSpan: isDetailed }
+                    "
                 ></ng-container>
                 <ng-container
-                    *ngTemplateOutlet="topList; context: { title: 'top-artists', items: overview.topArtists, showSpan: isDetailed }"
+                    *ngTemplateOutlet="
+                        topList;
+                        context: { title: 'top-artists', icon: 'la-user', items: overview.topArtists, showSpan: isDetailed }
+                    "
                 ></ng-container>
             </div>
 
             <ng-container *ngIf="isDetailed && details">
                 <div class="statistics__summary">
-                    <div class="statistics__card">
-                        <div class="statistics__card-value accent-color">
-                            {{ 'days-count' | translate: { count: details.streaks.currentDays } }}
-                        </div>
-                        <div class="secondary-text">{{ 'current-streak' | translate }}</div>
+                    <div class="statistics__card statistics__card--accent">
+                        <i class="las la-fire statistics__card-icon"></i>
+                        <div class="statistics__card-value">{{ 'days-count' | translate: { count: details.streaks.currentDays } }}</div>
+                        <div class="statistics__card-label">{{ 'current-streak' | translate }}</div>
                     </div>
-                    <div class="statistics__card">
-                        <div class="statistics__card-value">{{ 'days-count' | translate: { count: details.streaks.longestDays } }}</div>
-                        <div class="secondary-text">{{ 'longest-streak' | translate }}</div>
-                    </div>
+                    <ng-container
+                        *ngTemplateOutlet="
+                            card;
+                            context: {
+                                icon: 'la-trophy',
+                                value: ('days-count' | translate: { count: details.streaks.longestDays }),
+                                label: 'longest-streak',
+                            }
+                        "
+                    ></ng-container>
                     <ng-container *ngIf="hasDetails">
-                        <div class="statistics__card">
-                            <div class="statistics__card-value">{{ details.ends.completed }}</div>
-                            <div class="secondary-text">{{ 'finished-plays' | translate }}</div>
-                        </div>
-                        <div class="statistics__card">
-                            <div class="statistics__card-value">{{ details.ends.skipped }}</div>
-                            <div class="secondary-text">{{ 'skipped-plays' | translate }}</div>
-                        </div>
-                        <div class="statistics__card">
-                            <div class="statistics__card-value">{{ details.ends.stopped }}</div>
-                            <div class="secondary-text">{{ 'stopped-plays' | translate }}</div>
-                        </div>
-                        <div class="statistics__card">
-                            <div class="statistics__card-value">{{ percent(details.ends.averageCompletion) }}%</div>
-                            <div class="secondary-text">{{ 'average-completion' | translate }}</div>
+                        <ng-container
+                            *ngTemplateOutlet="
+                                card;
+                                context: { icon: 'la-check-circle', value: details.ends.completed, label: 'finished-plays' }
+                            "
+                        ></ng-container>
+                        <ng-container
+                            *ngTemplateOutlet="card; context: { icon: 'la-forward', value: details.ends.skipped, label: 'skipped-plays' }"
+                        ></ng-container>
+                        <ng-container
+                            *ngTemplateOutlet="
+                                card;
+                                context: { icon: 'la-stop-circle', value: details.ends.stopped, label: 'stopped-plays' }
+                            "
+                        ></ng-container>
+                        <div class="statistics__card statistics__card--ring">
+                            <div class="statistics__ring" [style.--percent]="percent(details.ends.averageCompletion)">
+                                <span>{{ percent(details.ends.averageCompletion) }}%</span>
+                            </div>
+                            <div class="statistics__card-label">{{ 'average-completion' | translate }}</div>
                         </div>
                     </ng-container>
                 </div>
-                <div *ngIf="!hasDetails" class="statistics__note secondary-text smaller">{{ 'detailed-statistics-empty' | translate }}</div>
+                <div *ngIf="!hasDetails" class="statistics__note secondary-text smaller">
+                    <i class="las la-info-circle"></i> {{ 'detailed-statistics-empty' | translate }}
+                </div>
 
                 <div *ngIf="hasDetails" class="statistics__tops">
                     <div *ngIf="details.mostSkipped.length > 0" class="statistics__top">
-                        <div class="statistics__section-title">{{ 'most-skipped' | translate }}</div>
+                        <ng-container
+                            *ngTemplateOutlet="sectionTitle; context: { title: 'most-skipped', icon: 'la-forward' }"
+                        ></ng-container>
                         <div *ngFor="let item of details.mostSkipped; let i = index" class="statistics__top-row">
-                            <div class="statistics__rank secondary-text">{{ i + 1 }}</div>
+                            <div class="statistics__top-share" [style.width.%]="skipRate(item)"></div>
+                            <div class="statistics__rank" [class.statistics__rank--top]="i < 3">{{ i + 1 }}</div>
                             <div class="statistics__top-text">
                                 <div class="ellipsis">{{ item.title }}</div>
                                 <div *ngIf="item.subtitle" class="ellipsis secondary-text smaller">{{ item.subtitle }}</div>
@@ -106,9 +133,11 @@
                         </div>
                     </div>
                     <div *ngIf="details.alwaysFinished.length > 0" class="statistics__top">
-                        <div class="statistics__section-title">{{ 'always-finished' | translate }}</div>
+                        <ng-container
+                            *ngTemplateOutlet="sectionTitle; context: { title: 'always-finished', icon: 'la-heart' }"
+                        ></ng-container>
                         <div *ngFor="let item of details.alwaysFinished; let i = index" class="statistics__top-row">
-                            <div class="statistics__rank secondary-text">{{ i + 1 }}</div>
+                            <div class="statistics__rank" [class.statistics__rank--top]="i < 3">{{ i + 1 }}</div>
                             <div class="statistics__top-text">
                                 <div class="ellipsis">{{ item.title }}</div>
                                 <div *ngIf="item.subtitle" class="ellipsis secondary-text smaller">{{ item.subtitle }}</div>
@@ -120,35 +149,64 @@
                     </div>
                 </div>
 
-                <ng-container *ngIf="details.heatmap.maxMs > 0">
-                    <div class="statistics__section-title">{{ 'when-you-listen' | translate }}</div>
-                    <div class="statistics__heatmap">
-                        <div></div>
-                        <div *ngFor="let hour of hours" class="statistics__heatmap-hour secondary-text">{{ hour % 3 === 0 ? hour : '' }}</div>
-                        <ng-container *ngFor="let row of details.heatmap.cells; let day = index">
-                            <div class="statistics__heatmap-day secondary-text">{{ weekdays[day] }}</div>
-                            <div
-                                *ngFor="let ms of row; let hour = index"
-                                class="statistics__heatmap-cell"
-                                [title]="weekdays[day] + ' ' + hour + ':00 · ' + (ms | formatTotalDuration: true)"
-                            >
-                                <div class="statistics__heatmap-fill" [style.opacity]="heat(ms)"></div>
+                <div class="statistics__charts">
+                    <div *ngIf="details.heatmap.maxMs > 0" class="statistics__panel">
+                        <ng-container
+                            *ngTemplateOutlet="sectionTitle; context: { title: 'when-you-listen', icon: 'la-clock' }"
+                        ></ng-container>
+                        <div class="statistics__heatmap">
+                            <div></div>
+                            <div *ngFor="let hour of hours" class="statistics__heatmap-hour secondary-text">
+                                {{ hour % 3 === 0 ? hour : '' }}
                             </div>
-                        </ng-container>
+                            <ng-container *ngFor="let row of details.heatmap.cells; let day = index">
+                                <div class="statistics__heatmap-day secondary-text">{{ weekdays[day] }}</div>
+                                <div
+                                    *ngFor="let ms of row; let hour = index"
+                                    class="statistics__heatmap-cell"
+                                    [title]="weekdays[day] + ' ' + hour + ':00 · ' + (ms | formatTotalDuration: true)"
+                                >
+                                    <div class="statistics__heatmap-fill" [style.opacity]="heat(ms)"></div>
+                                </div>
+                            </ng-container>
+                        </div>
+                        <div class="statistics__legend secondary-text smaller">
+                            {{ 'less' | translate }}
+                            <span *ngFor="let level of [0.15, 0.4, 0.7, 1]" class="statistics__legend-cell" [style.opacity]="level"></span>
+                            {{ 'more' | translate }}
+                        </div>
                     </div>
-                </ng-container>
 
-                <div class="statistics__section-title">
-                    {{ (details.barUnit === 'month' ? 'listening-per-month' : 'listening-per-day') | translate }}
-                </div>
-                <div class="statistics__bars">
-                    <div *ngFor="let bar of details.bars" class="statistics__bar" [title]="formatBar(bar) + ' · ' + (bar.listenedMs | formatTotalDuration: true)">
-                        <div class="statistics__bar-fill" [style.height.%]="barHeight(bar)"></div>
+                    <div class="statistics__panel">
+                        <ng-container
+                            *ngTemplateOutlet="
+                                sectionTitle;
+                                context: {
+                                    title: details.barUnit === 'month' ? 'listening-per-month' : 'listening-per-day',
+                                    icon: 'la-chart-bar',
+                                }
+                            "
+                        ></ng-container>
+                        <div class="statistics__bar-chart">
+                            <div class="statistics__bars">
+                                <div
+                                    *ngFor="let bar of details.bars"
+                                    class="statistics__bar"
+                                    [title]="formatBar(bar) + ' · ' + (bar.listenedMs | formatTotalDuration: true)"
+                                >
+                                    <div class="statistics__bar-fill" [style.height.%]="barHeight(bar)"></div>
+                                </div>
+                            </div>
+                            <div *ngIf="details.bars.length > 1" class="statistics__bars-axis secondary-text smaller">
+                                <span>{{ formatBar(details.bars[0]) }}</span>
+                                <span>{{ formatBar(details.bars[details.bars.length - 1]) }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </ng-container>
 
-            <div class="statistics__section-title">{{ 'listening-history' | translate }}</div>
+            <ng-container *ngTemplateOutlet="sectionTitle; context: { title: 'listening-history', icon: 'la-history' }"></ng-container>
             <div class="statistics__history">
                 <div *ngFor="let item of history" class="statistics__history-row">
                     <div class="statistics__history-date secondary-text">{{ formatDateTime(item.startedAtMs) }}</div>
@@ -158,7 +216,12 @@
                     </div>
                     <div class="statistics__history-album ellipsis secondary-text">{{ item.albumTitle }}</div>
                     <div class="statistics__history-duration secondary-text">
-                        <span *ngIf="item.endReason === endReasons.skipped">{{ 'skipped-plays' | translate }} · </span>
+                        <span *ngIf="item.endReason === endReasons.skipped" class="statistics__chip">{{
+                            'skipped-plays' | translate
+                        }}</span>
+                        <span *ngIf="item.endReason === endReasons.stopped" class="statistics__chip">{{
+                            'stopped-plays' | translate
+                        }}</span>
                         {{ item.listenedMs | formatTrackDuration }}
                     </div>
                     <div *ngIf="item.heardParts.length > 0" class="statistics__history-parts">
@@ -183,20 +246,38 @@
     </div>
 </div>
 
-<ng-template #topList let-title="title" let-items="items" let-showSpan="showSpan">
+<ng-template #sectionTitle let-title="title" let-icon="icon">
+    <div class="statistics__section-title">
+        <i class="las {{ icon }} statistics__section-icon"></i>
+        <span>{{ title | translate }}</span>
+    </div>
+</ng-template>
+
+<ng-template #card let-icon="icon" let-value="value" let-label="label">
+    <div class="statistics__card">
+        <i class="las {{ icon }} statistics__card-icon"></i>
+        <div class="statistics__card-value">{{ value }}</div>
+        <div class="statistics__card-label">{{ label | translate }}</div>
+    </div>
+</ng-template>
+
+<ng-template #topList let-title="title" let-icon="icon" let-items="items" let-showSpan="showSpan">
     <div class="statistics__top">
-        <div class="statistics__section-title">{{ title | translate }}</div>
+        <ng-container *ngTemplateOutlet="sectionTitle; context: { title: title, icon: icon }"></ng-container>
         <div *ngFor="let item of items; let i = index; trackBy: trackByKey" class="statistics__top-row">
-            <div class="statistics__rank secondary-text">{{ i + 1 }}</div>
+            <div class="statistics__top-share" [style.width.%]="share(item, items)"></div>
+            <div class="statistics__rank" [class.statistics__rank--top]="i < 3">{{ i + 1 }}</div>
             <div class="statistics__top-text">
                 <div class="ellipsis">{{ item.title }}</div>
                 <div *ngIf="item.subtitle" class="ellipsis secondary-text smaller">{{ item.subtitle }}</div>
                 <div *ngIf="showSpan && item.firstPlayedMs" class="ellipsis secondary-text smaller">
-                    {{ 'first-and-last-played' | translate: { first: formatDate(item.firstPlayedMs), last: formatDate(item.lastPlayedMs) } }}
+                    {{
+                        'first-and-last-played' | translate: { first: formatDate(item.firstPlayedMs), last: formatDate(item.lastPlayedMs) }
+                    }}
                 </div>
             </div>
             <div class="statistics__top-numbers secondary-text smaller">
-                <div>{{ item.listenedMs | formatTotalDuration: true }}</div>
+                <div class="statistics__top-time">{{ item.listenedMs | formatTotalDuration: true }}</div>
                 <div>{{ item.plays }} {{ 'plays' | translate | lowercase }}</div>
             </div>
         </div>
