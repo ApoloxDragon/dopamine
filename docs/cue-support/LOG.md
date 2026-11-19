@@ -219,3 +219,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - actions/checkout v2 -> v4 and actions/setup-node @master (unpinned branch) -> v4
     - Removed the third-party notiz-dev/github-action-json-property steps (12): their output was never used
     - npm install -> npm ci (exact lockfile install) with the npm download cache; Electron and electron-builder downloads cached per lockfile
+
+- **2026-11-19** · `Fixed` · Security: 40 critical/high advisories fixed with npm overrides kept within compatible versions
+    - piscina ^4.9.4 (critical), follow-redirects ^1.16.2 (in the app), joi, js-yaml, node-forge, picomatch, postcss, minimatch 3.x, tmp 0.2.x
+    - npm audit: critical 2 -> 1, high 64 -> 57; all gates pass (unit and database tests, production build); baseline updated
