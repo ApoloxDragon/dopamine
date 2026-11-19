@@ -1,5 +1,15 @@
 ![Dopamine](Dopamine.full.png)
 
+> **This is ApoloxDragon's version of Dopamine (3.1.0-apolox), an unofficial fork.**
+> It adds CUE sheet albums (single-file CD rips), a Statistics page, a parametric equalizer with AutoEQ import,
+> fade on pause, a Spotify-like Discord presence and lock screen covers. See the [change log](CHANGELOG.md).
+>
+> - Downloads of this version: [github.com/ApoloxDragon/dopamine/releases](https://github.com/ApoloxDragon/dopamine/releases)
+> - This version's source: [github.com/ApoloxDragon/dopamine](https://github.com/ApoloxDragon/dopamine)
+> - **Original Dopamine by Digimezzo:** [github.com/digimezzo/dopamine](https://github.com/digimezzo/dopamine). Please report problems with this version on the fork, not on the original project.
+>
+> The rest of this page is the original Dopamine read-me.
+
 # Dopamine
 
 Dopamine is an elegant audio player which tries to make organizing and listening to music as simple and pretty as possible. This version is written using Electron, Angular and Typescript and works on Windows, Linux and Mac.

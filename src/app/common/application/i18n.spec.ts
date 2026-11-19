@@ -6,6 +6,11 @@ describe('validate i18n', () => {
     const validKeys = [
         'Information',
         'about',
+        'about-this-version',
+        'about-this-version-text',
+        'this-version-repository',
+        'this-version-releases',
+        'original-dopamine-repository',
         'add',
         'add-artist',
         'add-artist-error',

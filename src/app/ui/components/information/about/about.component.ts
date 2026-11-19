@@ -23,6 +23,9 @@ export class AboutComponent {
     public mastodonUrl: string = ContactInformation.mastodonUrl;
     public blueskyUrl: string = ContactInformation.blueskyUrl;
     public githubUrl: string = ContactInformation.githubUrl;
+    public originalRepositoryUrl: string = ContactInformation.originalRepositoryUrl;
+    public forkRepositoryUrl: string = ContactInformation.forkRepositoryUrl;
+    public forkReleasesUrl: string = ContactInformation.forkReleasesUrl;
 
     public showLicenseDialog(): void {
         this.dialogService.showLicenseDialog();

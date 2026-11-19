@@ -2,7 +2,7 @@ name: Release builds
 # Builds the installers for every platform and creates a GitHub release with them.
 #
 # Start it by pushing a version tag that matches the app version (package.json version + versionSuffix), for example:
-#   git tag v3.1.0-apolox.1 && git push origin v3.1.0-apolox.1
+#   git tag v3.1.0-apolox && git push origin v3.1.0-apolox
 # A tag push always creates a DRAFT release: review it on GitHub and press Publish.
 #
 # It can also be started by hand (Actions > Release builds > Run workflow) when this file is on the default branch.
