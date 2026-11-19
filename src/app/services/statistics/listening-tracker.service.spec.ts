@@ -11,19 +11,30 @@ import { Logger } from '../../common/logger';
 
 class FakeRepository implements ListeningSessionRepositoryBase {
     public sessions: Map<number, ListeningSession> = new Map();
+    /** Simulates the indexing worker keeping the database busy. */
+    public isLocked: boolean = false;
     private nextId: number = 1;
 
+    private throwIfLocked(): void {
+        if (this.isLocked) {
+            throw new Error('database is locked');
+        }
+    }
+
     public addSession(session: ListeningSession): number {
+        this.throwIfLocked();
         const id: number = this.nextId++;
         this.sessions.set(id, { ...session, listeningSessionId: id });
         return id;
     }
     public updateListened(id: number, listenedMs: number, isCountedAsPlay: boolean): void {
+        this.throwIfLocked();
         const s: ListeningSession = this.sessions.get(id)!;
         s.listenedMs = listenedMs;
         s.isCountedAsPlay = isCountedAsPlay ? 1 : 0;
     }
     public deleteSession(id: number): void {
+        this.throwIfLocked();
         this.sessions.delete(id);
     }
     public deleteAllSessions(): number {
@@ -70,6 +81,7 @@ describe('ListeningTrackerService', () => {
     let now: number;
     let repository: FakeRepository;
     let tracker: ListeningTrackerService;
+    let warnings: number;
 
     const minute: number = 60000;
 
@@ -96,7 +108,8 @@ describe('ListeningTrackerService', () => {
         } as unknown as PlaybackService;
         const ipcProxy = { onApplicationClose$: appClose.asObservable() } as unknown as IpcProxyBase;
         const dateProxy = { now: (): number => now } as DateProxy;
-        const logger = { error: (): void => {}, info: (): void => {} } as unknown as Logger;
+        warnings = 0;
+        const logger = { error: (): void => {}, info: (): void => {}, warn: (): number => warnings++ } as unknown as Logger;
 
         tracker = new ListeningTrackerService(playbackService, repository, ipcProxy, dateProxy, logger);
         tracker.initialize();
@@ -249,5 +262,79 @@ describe('ListeningTrackerService', () => {
         stopped.next();
 
         expect(only().listenedMs).toEqual(2 * minute);
+    });
+
+    describe('while the database is locked (collection being indexed)', () => {
+        it('should still record a song that starts while locked', () => {
+            repository.isLocked = true;
+            started.next(new PlaybackStarted(track('/m/a.flac', 4 * minute), false));
+            now += 30000;
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs);
+            expect(repository.sessions.size).toEqual(0);
+
+            repository.isLocked = false;
+            now += 30000;
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs);
+
+            const s: ListeningSession = only();
+            expect(s.trackPath).toEqual('/m/a.flac');
+            expect(s.listenedMs).toEqual(60000);
+        });
+
+        it('should not lose a song that ends while locked', () => {
+            started.next(new PlaybackStarted(track('/m/a.flac', 4 * minute), false));
+            repository.isLocked = true;
+            now += 3 * minute;
+            started.next(new PlaybackStarted(track('/m/b.flac', 4 * minute), false));
+            expect(repository.sessions.get(1)!.listenedMs).toEqual(0);
+
+            repository.isLocked = false;
+            now += minute;
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs);
+
+            const first: ListeningSession = repository.sessions.get(1)!;
+            expect(first.listenedMs).toEqual(3 * minute);
+            expect(first.isCountedAsPlay).toEqual(1);
+            const second: ListeningSession = Array.from(repository.sessions.values()).find((x) => x.trackPath === '/m/b.flac')!;
+            expect(second.listenedMs).toEqual(minute);
+        });
+
+        it('should still drop a too short session that ends while locked', () => {
+            started.next(new PlaybackStarted(track('/m/a.flac', 4 * minute), false));
+            repository.isLocked = true;
+            now += 500;
+            stopped.next();
+
+            repository.isLocked = false;
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs);
+
+            expect(repository.sessions.size).toEqual(0);
+        });
+
+        it('should warn once per period of failures, not at every retry', () => {
+            started.next(new PlaybackStarted(track('/m/a.flac', 4 * minute), false));
+            repository.isLocked = true;
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs * 4);
+            expect(warnings).toEqual(1);
+
+            repository.isLocked = false;
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs);
+            repository.isLocked = true;
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs);
+            expect(warnings).toEqual(2);
+        });
+
+        it('should not write waiting sessions back after the history is cleared', () => {
+            started.next(new PlaybackStarted(track('/m/a.flac', 4 * minute), false));
+            repository.isLocked = true;
+            now += 3 * minute;
+            stopped.next();
+
+            repository.isLocked = false;
+            tracker.clearHistory();
+            jest.advanceTimersByTime(ListeningTrackerService.saveIntervalMs);
+
+            expect(repository.sessions.size).toEqual(0);
+        });
     });
 });

@@ -23,6 +23,8 @@ export class LegacyAudioPlayer implements IAudioPlayer {
 
     // CUE sheet tracks (a range of a single-file album). See docs/cue-support/LOG.md.
     // _cueRange is the range of the current track in the audio file, in seconds; undefined for normal tracks.
+    // MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED: the file could not be opened or decoded.
+    private static readonly mediaErrorSourceNotSupported: number = 4;
     private static readonly cueEndCheckIntervalMs: number = 50;
     private static readonly cueContinuityToleranceSeconds: number = 0.25;
     private static readonly cueOverrunPauseDelayMs: number = 1000;
@@ -288,7 +290,7 @@ export class LegacyAudioPlayer implements IAudioPlayer {
 
         try {
             if (!isSameFile) {
-                await this.waitForMetadataAsync(audio);
+                await this.loadMetadataAsync(audio, track.audioPath);
             }
 
             if (audio !== this._audio || this._cueRange?.start !== start) {
@@ -342,6 +344,31 @@ export class LegacyAudioPlayer implements IAudioPlayer {
             this.skipSecondsAfterStarting = 0;
 
             this._playbackFailed.next(track.audioPath);
+        }
+    }
+
+    /**
+     * Waits until the audio file is open. If the <audio> element cannot open it through file:// (media error 4, for
+     * example a FLAC whose cover has no MIME type, which Chromium's FFmpeg refuses), it is opened once more through the
+     * dopamine-audio:// protocol, which streams the same file with such metadata hidden (main/audio-protocol.js).
+     */
+    private async loadMetadataAsync(audio: HTMLAudioElement, audioPath: string): Promise<void> {
+        try {
+            await this.waitForMetadataAsync(audio);
+        } catch (e: unknown) {
+            const cannotOpen: boolean = audio.error?.code === LegacyAudioPlayer.mediaErrorSourceNotSupported;
+
+            if (!cannotOpen || audio !== this._audio || !audio.src.startsWith('file:')) {
+                throw e;
+            }
+
+            this.logger.warn(
+                `Could not open '${audioPath}' directly (${audio.error?.message ?? ''}). Opening it through the audio protocol.`,
+                'LegacyAudioPlayer',
+                'loadMetadataAsync',
+            );
+            audio.src = PathUtils.createStreamingAudioFilePath(audioPath);
+            await this.waitForMetadataAsync(audio);
         }
     }
 

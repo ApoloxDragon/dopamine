@@ -270,3 +270,22 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Tooling` · Effort and usage guard: CLAUDE.md rules and a UserPromptSubmit hook (scripts/dev/effort-check.js) that flags high-effort prompts
     - Skip per prompt with #high or #medium; edit the pattern list at the top of the script
+
+- **2026-11-19** · `Note` · Real-music checks also pass on 5 public-domain FLAC transfers (Schubert, Winterreise 1-5, 44.1 kHz/16-bit, 16.5 min album): 4 boundaries + mid-music cut exact, fade even, EQ within 1 dB
+
+- **2026-11-19** · `Note` · Found why the user's CUE album does not play: its FLAC cover has an empty MIME type, which Chromium's FFmpeg refuses (see DRAFTS D12)
+    - Reproduced with a 30 MB sample of the real file and with an empty-MIME cover added to a good FLAC; a metaflac re-import fixes it losslessly
+
+- **2026-11-19** · `Fixed` · CUE albums whose FLAC cover has no MIME type now play (draft D12, option 2)
+    - main/audio-protocol.js: dopamine-audio:// streams the file with PICTURE blocks hidden (type byte -> PADDING, same offsets, ranges); LegacyAudioPlayer falls back to it for CUE tracks on media error 4
+    - Checked: audio-protocol.spec.js (24 tests), path-utils.spec.ts, electron-fallback.js in real Electron with the user's sample (plays, seeks; good files keep file://); unit tests 3367 pass
+    - Follow-up D13: normal tracks with such covers fail in all three players (also upstream)
+
+- **2026-11-19** · `Changed` · Version 3.2.1-apolox (CUE fix for FLAC covers without a MIME type); 3.2.0 was not released on its own
+
+- **2026-11-19** · `Fixed` · Listening statistics lost songs played during indexing ('database is locked' in the user's 3.2.0 log)
+    - ListeningTrackerService keeps sessions it could not create or finish and writes them at the next save; warns once per failure period; 5 new specs
+    - Draft D14: WAL journal mode as the root fix (needs a decision)
+
+- **2026-11-19** · `Changed` · Database in WAL journal mode (draft D14, approved): the window no longer blocks or fails while the indexer writes
+    - Both DatabaseFactory classes set journal_mode=WAL on open; scripts/dev/db-lock-check.js: default mode 1 window write in 4 s (blocked 4 s), WAL 58 writes, none failed, longest 28 ms

@@ -108,3 +108,52 @@ The Statistics page counts plays from its own history: a song counts after half 
 The play count Dopamine already showed for songs (Track.PlayCount) has its own older rule and also includes plays from before this feature existed.
 So the two numbers can differ. The history starts empty when you install this version: earlier listening cannot be reconstructed
 (only per-song play counts and the last-played date were kept before).
+
+## D12. FLAC files whose cover has an empty MIME type do not play as CUE tracks: `implemented` (option 2, approved)
+
+**Cause (confirmed on a sample of the real file):** the album FLAC has a PICTURE block with an empty MIME type (the JPEG
+data itself is fine). Chromium's FFmpeg refuses to open such a file in the `<audio>` element
+(`DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed`). CUE tracks use that element (the streaming player);
+normal tracks are decoded differently, which is why other songs play. Adding an empty-MIME cover to a good FLAC
+reproduces it; removing the cover, or importing it again with `metaflac`, fixes it (audio identical).
+
+**Options:**
+1. Fix the files (no app change): export the cover, remove it, import it again; `metaflac` sets the MIME type. Lossless,
+   but it changes the user's files. A script could find and fix all such files in a folder (dry run first).
+2. Fix in the app: serve CUE album files to the `<audio>` element through a small custom protocol that reads the file
+   and changes one byte, the type of such a PICTURE block, to PADDING, so FFmpeg skips it. Byte offsets stay the same,
+   so seeking (HTTP ranges) maps 1:1. Needs care: the protocol must only serve audio files of the collection, and must
+   support ranges. Playback change, so a high-effort session.
+3. Fall back to a decoding player for such files: not suitable, it would decode the whole album into memory (about
+   1.3 GB per hour).
+
+**Implemented (option 2):** `main/audio-protocol.js` registers `dopamine-audio://`. It serves absolute paths of supported
+audio files only, read-only, with HTTP ranges, and in FLAC files changes the type byte of every PICTURE block to
+PADDING while streaming. LegacyAudioPlayer uses it only as a fallback for CUE tracks: when file:// fails with media
+error 4, the same file is opened once more through the protocol, and a warning is logged. Files that open normally
+keep using file://. Checked:
+- `main/audio-protocol.spec.js`: patching, ranges, refusals
+- `scripts/dev/playback-harness/electron-fallback.js`: real Electron, real protocol and player, a 30 MB sample of the
+  user's file. It plays from the right place and seeking works; a good file still uses file://.
+
+## D13. The same FLAC files as normal (non-CUE) tracks: `draft`, not started
+
+The gapless player (the default) decodes whole files with `decodeAudioData`, which fails on the same files ("Unable to
+decode audio data", checked in Electron). The crossfade and legacy players use the `<audio>` element, which fails as
+in D12. This is the same in upstream Dopamine. Fix: the same fallback in each player. The gapless player would
+re-fetch through the protocol (registered with `supportFetchAPI`) when decoding fails; the crossfade and legacy players
+would retry the element with the protocol URL. Playback change, so a high-effort session, with a test per player.
+
+## D14. The indexing worker keeps the database busy: `implemented` (WAL, approved for 3.2.1)
+
+While the collection is indexed (63 s in a user's log), writes from the window fail with "database is locked". The
+listening tracker now retries them (3.2.1). Other writes from the window (play counts, ratings, playlists) can still
+fail during indexing, also in upstream Dopamine. A root fix is SQLite's WAL journal mode
+(`PRAGMA journal_mode=WAL`): readers and the writer no longer block each other. That is a lasting change to the
+database file (it adds -wal and -shm files next to it), so it needs your decision and a test with the real indexer.
+
+**Implemented:** both DatabaseFactory classes (window and indexing worker) set `PRAGMA journal_mode = WAL` when they
+open the database (a no-op once the file is in WAL mode; retried by the next connection if the switch fails).
+`scripts/dev/db-lock-check.js` compares both modes with a continuous writer like the indexer: before, the window got
+1 write through in 4 s and was blocked for 4 s; with WAL, 58 writes, none failed, longest 28 ms (and the indexer wrote
+about 6 times faster). Database and unit tests pass.

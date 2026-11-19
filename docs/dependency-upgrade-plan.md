@@ -18,7 +18,8 @@ with testing between every step. Each phase is small enough to try, test, and th
    - The manual smoke test below passes on at least the platform you use daily.
    - `npm audit --omit=dev` shows the targeted advisories gone and no new ones.
 4. **Keep a way back.** Before installing a test build, copy the database (`Dopamine.db` in the app data folder) and keep the last
-   good installer. Database migrations cannot be undone, so the copy is the only way back if a build corrupts data.
+   good installer. Database migrations cannot be undone, so the copy is the only way back if a build corrupts data. Close Dopamine first, and also copy `Dopamine.db-wal`
+   and `Dopamine.db-shm` if they are there (the database uses WAL mode since 3.2.1).
 5. **Write down what happened** in `docs/cue-support/LOG.md` (or a new `docs/dependency-log.md`): what was tried, what broke, what was done.
    "Trial and error" is fine as long as the errors are recorded.
 

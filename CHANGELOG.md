@@ -3,6 +3,19 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1-apolox] - 2026-11-19
+
+Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+
+### Changed
+
+- The database uses SQLite's WAL mode, so the app no longer freezes or fails to save (play counts, ratings, statistics) while the collection is being indexed. If you back up `Dopamine.db` by hand, close Dopamine first, and copy `Dopamine.db-wal` and `Dopamine.db-shm` too if they are there
+
+### Fixed
+
+- Listening statistics: songs played while the collection was being indexed were not recorded, or lost their last seconds ("database is locked"). Such writes are now retried
+- CUE albums whose FLAC file has a cover without a file type (MIME type) did not play ("open context failed"). They now play: such files are streamed through the app with the cover hidden from the player. The file itself is not changed
+
 ## [3.2.0-apolox] - 2026-11-19
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
