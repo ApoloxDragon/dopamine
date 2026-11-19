@@ -132,3 +132,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - 2 new text keys in all 25 languages (English placeholder)
 
 - **2026-11-19** · `Note` · Dependency audit written to docs/dependency-audit.md: 110 vulnerable packages, 47 of them shipped in the app; nothing changed yet
+
+- **2026-11-19** · `Changed` · Security updates: fast-xml-parser 4.3.2 -> 4.5.7 (removes the only critical issue in the app) and moment 2.29.4 -> 2.31.0
+    - jimp 1.6.1 was tried and reverted: it does not fix its advisories (zod 3) and broke the artwork tests (ESM-only file-type 21). Details in docs/dependency-audit.md
+    - Full test run: everything passes except the pre-existing contact-information.spec.ts failure
