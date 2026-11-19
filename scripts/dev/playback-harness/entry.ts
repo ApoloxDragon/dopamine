@@ -8,7 +8,9 @@ const logger: any = {
     warn: (m: string) => console.log('[warn] ' + m),
     error: (e: unknown, m: string) => console.log('[error] ' + m + ' ' + String(e)),
 };
-const equalizerService: any = { register: () => {} };
+// Every player's equalizer, so a harness can change filters and fades of the player it plays on.
+const equalizers: any[] = [];
+const equalizerService: any = { register: (equalizer: any) => equalizers.push(equalizer) };
 const settings: any = { preferredAudioOutputDeviceId: '' };
 
 function createLegacy(): LegacyAudioPlayer {
@@ -32,6 +34,7 @@ function createNormalTrack(path: string): any {
 }
 
 (window as any).harness = {
+    equalizers,
     createLegacy,
     createRouter: () => new CueAwareAudioPlayer(createLegacy(), createLegacy, true),
     // Like a gapless/crossfade setup: a separate main player, and a CUE player created on demand.
