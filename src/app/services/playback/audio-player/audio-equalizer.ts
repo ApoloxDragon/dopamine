@@ -66,19 +66,18 @@ export class AudioEqualizer {
         const seconds: number = Math.max(0.001, durationMs / 1000);
         const target: number = Math.max(AudioEqualizer.silentLevel, level);
 
-        // Freeze any fade in progress at its current value, then ramp from there.
+        // Freeze any fade in progress at its current value, then ramp from there. The start must always be set at
+        // `now`: a ramp starts at the previous event, and after an earlier fade has ended that event is in the past
+        // (the end of the last fade in), so without it a fade out would begin almost at its end and cut the sound.
+        const current: number = gain.value;
         if (typeof gain.cancelAndHoldAtTime === 'function') {
             gain.cancelAndHoldAtTime(now);
         } else {
-            const current: number = gain.value;
             gain.cancelScheduledValues(now);
-            gain.setValueAtTime(current, now);
         }
 
-        if (gain.value < AudioEqualizer.silentLevel) {
-            // An exponential ramp cannot start from 0.
-            gain.setValueAtTime(AudioEqualizer.silentLevel, now);
-        }
+        // An exponential ramp cannot start from 0.
+        gain.setValueAtTime(Math.max(AudioEqualizer.silentLevel, current), now);
 
         gain.exponentialRampToValueAtTime(target, now + seconds);
 

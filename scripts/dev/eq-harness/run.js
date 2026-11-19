@@ -144,6 +144,22 @@ async function main() {
             maxSampleStep: +maxStep.toFixed(5),
         };
 
+        // Real use: resume (fade in from 0), listen, then pause (fade out). The fade in leaves its ramp in the gain's
+        // timeline; the fade out must still start from full level at the moment of the pause.
+        const afterFadeIn = await renderFade(async (ctx, eq) => {
+            eq.setFadeLevel(0);
+            eq.fadeAsync(1, 200);
+            ctx.suspend(1).then(() => {
+                eq.fadeAsync(0, 500);
+                ctx.resume();
+            });
+        }, 1.7);
+        out.fadeOutAfterFadeIn = {
+            atPauseDb: +db(afterFadeIn[Math.round(sampleRate * 1.01)]).toFixed(1),
+            halfDb: +db(afterFadeIn[Math.round(sampleRate * 1.25)]).toFixed(1),
+            afterEnd: afterFadeIn[Math.round(sampleRate * 1.6)],
+        };
+
         // A very short fade (1 ms) and an instant level change
         const short = await renderFade(async (ctx, eq) => {
             eq.fadeAsync(0, 1);
@@ -162,10 +178,19 @@ async function main() {
         ['changing values keeps the same filter nodes (no clicks)', result.sameNodesForValueChange],
         ['switching to parametric rebuilds the chain', result.rebuiltForParametric],
         ['fade out starts at full level', Math.abs(result.fadeOut.startDb) < 0.1],
-        ['fade out is even in dB (about -40 dB half way, -20 dB a quarter in)', Math.abs(result.fadeOut.halfDb + 40) < 1.5 && Math.abs(result.fadeOut.quarterDb + 20) < 1.5],
+        [
+            'fade out is even in dB (about -40 dB half way, -20 dB a quarter in)',
+            Math.abs(result.fadeOut.halfDb + 40) < 1.5 && Math.abs(result.fadeOut.quarterDb + 20) < 1.5,
+        ],
         ['fade out only goes down and ends in silence', result.fadeOut.monotonic && result.fadeOut.afterEnd === 0],
         ['reversing a fade half way has no jump (largest step under 0.002)', result.reversal.maxSampleStep < 0.002],
         ['reversed fade is back at full level', Math.abs(result.reversal.endLevel - 1) < 0.001],
+        [
+            'fade out after a fade in starts from full level (no cut) and is about -40 dB half way',
+            result.fadeOutAfterFadeIn.atPauseDb > -2 &&
+                Math.abs(result.fadeOutAfterFadeIn.halfDb + 40) < 1.5 &&
+                result.fadeOutAfterFadeIn.afterEnd === 0,
+        ],
         ['a 1 ms fade works', result.shortFadeSilentAfter5ms],
     ];
     console.log(JSON.stringify(result));

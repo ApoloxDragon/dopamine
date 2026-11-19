@@ -295,3 +295,9 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Tests incl. break-it cases and a seeded chaos test; unit 3415, database 46; tools: i18n-add.js, seed-statistics.js, SEED_STATISTICS/LIGHT for app-screenshots.js
 
 - **2026-11-19** · `Note` · Android plan written as a draft (docs/android-plan.md, D15), on hold; leaning towards forking an existing FOSS Android player
+
+- **2026-11-19** · `Fixed` · Fade out cut instead of fading after any earlier fade in
+    - Cause: the exponential ramp started at the previous timeline event (the end of the last fade in, possibly minutes ago). Fix: always setValueAtTime(current, now) first. New eq-harness check reproduces it (-50 dB 10 ms into a 500 ms fade before, -1.6 dB after).
+
+- **2026-11-19** · `Added` · Discord cover for split-disc albums
+    - DiscordAlbumArtResolver keys the cache on the title without the disc part and falls back to it on Last.fm when the exact title has no cover. Regexes are bounded (a break-it test caught quadratic backtracking).

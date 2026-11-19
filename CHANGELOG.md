@@ -3,6 +3,16 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Discord: albums split into discs ("Album (CD1)", "Album [Disc 2]") now show the album cover; all discs share it
+
+### Fixed
+
+- Fade out on pause and stop cut the sound almost at once after a fade in had happened (fade in worked)
+
 ## [3.2.2-apolox] - 2026-11-19
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
