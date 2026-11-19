@@ -26,6 +26,11 @@ class FakeRepository implements ListeningSessionRepositoryBase {
     public deleteSession(id: number): void {
         this.sessions.delete(id);
     }
+    public deleteAllSessions(): number {
+        const count: number = this.sessions.size;
+        this.sessions.clear();
+        return count;
+    }
     public getSummary(): ListeningSummary {
         throw new Error('not used');
     }
@@ -91,7 +96,7 @@ describe('ListeningTrackerService', () => {
         } as unknown as PlaybackService;
         const ipcProxy = { onApplicationClose$: appClose.asObservable() } as unknown as IpcProxyBase;
         const dateProxy = { now: (): number => now } as DateProxy;
-        const logger = { error: (): void => {} } as unknown as Logger;
+        const logger = { error: (): void => {}, info: (): void => {} } as unknown as Logger;
 
         tracker = new ListeningTrackerService(playbackService, repository, ipcProxy, dateProxy, logger);
         tracker.initialize();
@@ -194,6 +199,45 @@ describe('ListeningTrackerService', () => {
         resumed.next();
         stopped.next();
 
+        expect(repository.sessions.size).toEqual(0);
+    });
+
+    it('should clear the history and keep recording the playing song from now', () => {
+        started.next(new PlaybackStarted(track('/m/old.flac', 4 * minute), false));
+        now += 3 * minute;
+        started.next(new PlaybackStarted(track('/m/a.flac', 10 * minute), false));
+        now += 2 * minute;
+
+        const deleted: number = tracker.clearHistory();
+        now += 1 * minute;
+        stopped.next();
+
+        expect(deleted).toEqual(2);
+        const s: ListeningSession = only();
+        expect(s.trackPath).toEqual('/m/a.flac');
+        expect(s.listenedMs).toEqual(1 * minute);
+        expect(s.startedAtMs).toEqual(1_000_000 + 5 * minute);
+    });
+
+    it('should keep a paused song paused after clearing', () => {
+        started.next(new PlaybackStarted(track('/m/a.flac', 10 * minute), false));
+        now += 1 * minute;
+        paused.next();
+        tracker.clearHistory();
+        now += 5 * minute;
+        resumed.next();
+        now += 2 * minute;
+        stopped.next();
+
+        expect(only().listenedMs).toEqual(2 * minute);
+    });
+
+    it('should clear the history when nothing is playing', () => {
+        started.next(new PlaybackStarted(track('/m/a.flac', 4 * minute), false));
+        now += 3 * minute;
+        stopped.next();
+
+        expect(tracker.clearHistory()).toEqual(1);
         expect(repository.sessions.size).toEqual(0);
     });
 

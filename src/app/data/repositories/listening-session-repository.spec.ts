@@ -65,6 +65,14 @@ describe('ListeningSessionRepository', () => {
         expect(repository.getHistory(now, 10, 0)).toEqual([]);
     });
 
+    it('should delete the whole history', () => {
+        const deleted: number = repository.deleteAllSessions();
+
+        expect(deleted).toEqual(4);
+        expect(repository.getHistory(0, 10, 0)).toEqual([]);
+        expect(repository.getSummary(0).listenedMs).toEqual(0);
+    });
+
     it('should summarize all time', () => {
         const summary = repository.getSummary(0);
 

@@ -126,3 +126,9 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Everything stays in the local database. Open points in DRAFTS D10 (clearing history) and D11 (two kinds of play counts)
 
 - **2026-11-19** · `Tooling` · check.sh --db runs repository specs against SQLite (src/app/data/repositories)
+
+- **2026-11-19** · `Added` · Clear listening history button on the Statistics page, with a confirmation dialog (DRAFTS D10)
+    - Deletes all ListeningSession rows only; the playing song keeps being recorded from that moment
+    - 2 new text keys in all 25 languages (English placeholder)
+
+- **2026-11-19** · `Note` · Dependency audit written to docs/dependency-audit.md: 110 vulnerable packages, 47 of them shipped in the app; nothing changed yet

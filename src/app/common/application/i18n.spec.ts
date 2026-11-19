@@ -258,6 +258,8 @@ describe('validate i18n', () => {
         'top-artists',
         'listening-history',
         'load-more',
+        'clear-listening-history',
+        'confirm-clear-listening-history',
         'previous',
         'random',
         'rating',

@@ -6,12 +6,18 @@ import { PlaybackService } from '../../../../services/playback/playback.service'
 import { SettingsMock } from '../../../../testing/settings-mock';
 import { Logger } from '../../../../common/logger';
 import { statisticsPeriods } from '../../../../services/statistics/statistics-period';
+import { ListeningTrackerService } from '../../../../services/statistics/listening-tracker.service';
+import { DialogServiceBase } from '../../../../services/dialog/dialog.service.base';
+import { TranslatorServiceBase } from '../../../../services/translator/translator.service.base';
 
 describe('CollectionStatisticsComponent', () => {
     let statisticsServiceMock: IMock<StatisticsService>;
     let settings: SettingsMock;
     let started: Subject<unknown>;
     let stopped: Subject<void>;
+    let trackerMock: IMock<ListeningTrackerService>;
+    let dialogServiceMock: IMock<DialogServiceBase>;
+    let translatorServiceMock: IMock<TranslatorServiceBase>;
 
     const emptyOverview: StatisticsOverview = {
         summary: { listenedMs: 0, plays: 0, distinctTracks: 0, distinctAlbums: 0, activeDays: 0 },
@@ -33,7 +39,15 @@ describe('CollectionStatisticsComponent', () => {
 
     function create(): CollectionStatisticsComponent {
         const playbackService = { playbackStarted$: started.asObservable(), playbackStopped$: stopped.asObservable() } as unknown as PlaybackService;
-        return new CollectionStatisticsComponent(statisticsServiceMock.object, playbackService, settings, Mock.ofType<Logger>().object);
+        return new CollectionStatisticsComponent(
+            statisticsServiceMock.object,
+            playbackService,
+            settings,
+            Mock.ofType<Logger>().object,
+            trackerMock.object,
+            dialogServiceMock.object,
+            translatorServiceMock.object,
+        );
     }
 
     beforeEach(() => {
@@ -43,6 +57,33 @@ describe('CollectionStatisticsComponent', () => {
         settings = new SettingsMock();
         started = new Subject();
         stopped = new Subject();
+        trackerMock = Mock.ofType<ListeningTrackerService>();
+        dialogServiceMock = Mock.ofType<DialogServiceBase>();
+        translatorServiceMock = Mock.ofType<TranslatorServiceBase>();
+        translatorServiceMock.setup((x) => x.getAsync(It.isAny())).returns((key: string) => Promise.resolve(key));
+    });
+
+    it('should clear the history after confirmation and reload', async () => {
+        dialogServiceMock
+            .setup((x) => x.showConfirmationDialogAsync('clear-listening-history', 'confirm-clear-listening-history'))
+            .returns(() => Promise.resolve(true));
+        const component = create();
+        component.ngOnInit();
+
+        await component.clearHistoryAsync();
+
+        trackerMock.verify((x) => x.clearHistory(), Times.once());
+        statisticsServiceMock.verify((x) => x.getOverview(It.isAny()), Times.exactly(2));
+    });
+
+    it('should not clear the history when the confirmation is cancelled', async () => {
+        dialogServiceMock.setup((x) => x.showConfirmationDialogAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve(false));
+        const component = create();
+        component.ngOnInit();
+
+        await component.clearHistoryAsync();
+
+        trackerMock.verify((x) => x.clearHistory(), Times.never());
     });
 
     it('should start with the saved period', () => {

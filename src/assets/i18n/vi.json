@@ -240,6 +240,8 @@
     "top-artists": "Top artists",
     "listening-history": "Listening history",
     "load-more": "Load more",
+    "clear-listening-history": "Clear listening history",
+    "confirm-clear-listening-history": "Are you sure you want to delete your whole listening history, for all periods? This cannot be undone. Your songs and their play counts are not affected.",
     "skips": "Bỏ qua",
     "last-played": "Nghe lần cuối",
     "date-added": "Ngày thêm",

@@ -96,10 +96,11 @@ while the app runs. There is a separate switch under Settings > Online > Discord
 - Albums that Last.fm does not know keep the Dopamine icon. Covers from your own files cannot be shown on Discord.
 - Song titles of one character are padded to Discord's minimum length with a space. Not verified that Discord accepts this.
 
-## D10. Clearing or exporting the listening history: `draft`, not started
+## D10. Clearing the listening history: `implemented`
 
-The Statistics page has no way to delete history yet, because deleting data should be a deliberate choice. Options: a
-"Clear listening history" button with a confirmation, removing single entries, or exporting the history to CSV. Nothing is sent anywhere either way.
+A "Clear listening history" button at the bottom of the Statistics page deletes the whole history (all periods) after a confirmation
+dialog. It only deletes listening sessions: songs, their play counts, ratings and playlists are not touched. The song that is playing
+while you clear keeps being recorded, as if it started at that moment. Removing single entries and exporting to CSV are still open ideas.
 
 ## D11. Two kinds of play counts: `note`, needs your review
 

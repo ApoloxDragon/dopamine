@@ -6,6 +6,9 @@ import { ListeningTotal } from '../../../../data/repositories/listening-session-
 import { PlaybackService } from '../../../../services/playback/playback.service';
 import { StatisticsPeriod, statisticsPeriods } from '../../../../services/statistics/statistics-period';
 import { ListeningHistoryItem, StatisticsOverview, StatisticsService } from '../../../../services/statistics/statistics.service';
+import { ListeningTrackerService } from '../../../../services/statistics/listening-tracker.service';
+import { DialogServiceBase } from '../../../../services/dialog/dialog.service.base';
+import { TranslatorServiceBase } from '../../../../services/translator/translator.service.base';
 
 @Component({
     selector: 'app-collection-statistics',
@@ -27,6 +30,9 @@ export class CollectionStatisticsComponent implements OnInit, OnDestroy {
         private playbackService: PlaybackService,
         public settings: SettingsBase,
         private logger: Logger,
+        private listeningTracker: ListeningTrackerService,
+        private dialogService: DialogServiceBase,
+        private translatorService: TranslatorServiceBase,
     ) {}
 
     public get hasData(): boolean {
@@ -71,6 +77,24 @@ export class CollectionStatisticsComponent implements OnInit, OnDestroy {
         } catch (e: unknown) {
             this.logger.error(e, 'Could not load listening history', 'CollectionStatisticsComponent', 'loadMoreHistory');
         }
+    }
+
+    /** Deletes the whole listening history (all periods), after the user confirms. */
+    public async clearHistoryAsync(): Promise<void> {
+        const title: string = await this.translatorService.getAsync('clear-listening-history');
+        const text: string = await this.translatorService.getAsync('confirm-clear-listening-history');
+
+        if (!(await this.dialogService.showConfirmationDialogAsync(title, text))) {
+            return;
+        }
+
+        try {
+            this.listeningTracker.clearHistory();
+        } catch (e: unknown) {
+            this.logger.error(e, 'Could not clear listening history', 'CollectionStatisticsComponent', 'clearHistoryAsync');
+        }
+
+        this.refresh();
     }
 
     public formatDateTime(ms: number): string {

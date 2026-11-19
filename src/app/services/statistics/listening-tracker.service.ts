@@ -11,6 +11,7 @@ import { TrackModel } from '../track/track-model';
 
 interface CurrentSession {
     id: number;
+    snapshot: ListeningSession;
     durationMs: number;
     listenedMs: number;
     /** Wall clock time playback (re)started, undefined while paused. */
@@ -89,6 +90,31 @@ export class ListeningTrackerService {
         }
     }
 
+    /**
+     * Deletes the whole listening history. The song that is playing keeps being recorded, as if it started now,
+     * so that clearing during playback does not leave a session that can no longer be saved.
+     */
+    public clearHistory(): number {
+        const running: CurrentSession | undefined = this.current;
+        const deleted: number = this.repository.deleteAllSessions();
+
+        if (running != undefined) {
+            const restarted: ListeningSession = { ...running.snapshot, listeningSessionId: 0, startedAtMs: this.dateProxy.now(), listenedMs: 0, isCountedAsPlay: 0 };
+            const isPlaying: boolean = running.playingSinceMs != undefined;
+            this.current = {
+                id: this.repository.addSession(restarted),
+                snapshot: restarted,
+                durationMs: running.durationMs,
+                listenedMs: 0,
+                playingSinceMs: isPlaying ? this.dateProxy.now() : undefined,
+            };
+        }
+
+        this.logger.info(`Cleared listening history (${deleted} sessions)`, 'ListeningTrackerService', 'clearHistory');
+
+        return deleted;
+    }
+
     private start(track: TrackModel): void {
         // A new track (also after a gapless transition) ends the session of the previous one.
         this.finish();
@@ -105,7 +131,7 @@ export class ListeningTrackerService {
 
         try {
             const id: number = this.repository.addSession(session);
-            this.current = { id, durationMs: track.durationInMilliseconds, listenedMs: 0, playingSinceMs: this.dateProxy.now() };
+            this.current = { id, snapshot: session, durationMs: track.durationInMilliseconds, listenedMs: 0, playingSinceMs: this.dateProxy.now() };
         } catch (e: unknown) {
             this.logger.error(e, 'Could not start listening session', 'ListeningTrackerService', 'start');
         }

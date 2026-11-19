@@ -69,6 +69,11 @@
             <div *ngIf="canLoadMoreHistory" class="statistics__load-more accent-color" (click)="loadMoreHistory()">
                 {{ 'load-more' | translate }}
             </div>
+            <div class="statistics__clear">
+                <app-icon-text-button icon="las la-trash-alt" (click)="clearHistoryAsync()">{{
+                    'clear-listening-history' | translate
+                }}</app-icon-text-button>
+            </div>
         </ng-container>
     </div>
 </div>

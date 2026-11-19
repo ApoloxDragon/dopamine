@@ -50,6 +50,13 @@ export class ListeningSessionRepository implements ListeningSessionRepositoryBas
         database.prepare('DELETE FROM ListeningSession WHERE ListeningSessionID=?;').run(listeningSessionId);
     }
 
+    public deleteAllSessions(): number {
+        const database: any = this.databaseFactory.create();
+        const info: any = database.prepare('DELETE FROM ListeningSession;').run();
+
+        return info.changes;
+    }
+
     public getSummary(sinceMs: number): ListeningSummary {
         const database: any = this.databaseFactory.create();
         // Active days are counted in local time ('localtime'), so a late evening counts for that evening's day.
