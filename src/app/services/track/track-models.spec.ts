@@ -208,4 +208,58 @@ describe('TrackModel', () => {
             expect(trackModels.numberOfTracks).toEqual(1);
         });
     });
+
+    describe('total file size', () => {
+        const track = (path: string, audioPath: string, fileSize: number): TrackModel => {
+            const entity: Track = new Track(path);
+            entity.audioPath = audioPath;
+            entity.fileSize = fileSize;
+            return new TrackModel(entity, dateTimeMock.object, translatorServiceMock.object, settingsMock);
+        };
+
+        it('should count the file of a CUE album once, not once per track', () => {
+            for (let i = 1; i <= 10; i++) {
+                trackModels.addTrack(track(`/music/Album.flac|${i}`, '/music/Album.flac', 300_000_000));
+            }
+            trackModels.addTrack(track('/music/Other.flac|1', '/music/Other.flac', 200_000_000));
+
+            expect(trackModels.totalFileSizeInBytes).toEqual(500_000_000);
+            expect(trackModels.numberOfTracks).toEqual(11);
+        });
+
+        it('should still add up normal tracks', () => {
+            trackModels.addTrack(track('/music/a.mp3', '', 5));
+            trackModels.addTrack(track('/music/b.mp3', '', 7));
+
+            expect(trackModels.totalFileSizeInBytes).toEqual(12);
+        });
+
+        // Trying to break it.
+
+        it('should count the same song queued twice once', () => {
+            const song: TrackModel = track('/music/a.mp3', '', 5);
+            trackModels.addTrack(song);
+            trackModels.addTrack(song);
+
+            expect(trackModels.totalFileSizeInBytes).toEqual(5);
+            expect(trackModels.numberOfTracks).toEqual(2);
+        });
+
+        it.each([NaN, -1, Infinity, undefined as unknown as number])('should ignore a file size of %p', (size: number) => {
+            trackModels.addTrack(track('/music/a.mp3', '', size));
+            trackModels.addTrack(track('/music/b.mp3', '', 7));
+
+            expect(trackModels.totalFileSizeInBytes).toEqual(7);
+        });
+
+        it('should handle 200 000 CUE tracks quickly', () => {
+            const started: number = Date.now();
+            for (let i = 0; i < 200_000; i++) {
+                trackModels.addTrack(track(`/music/${i % 1000}.flac|${i}`, `/music/${i % 1000}.flac`, 1000));
+            }
+
+            expect(trackModels.totalFileSizeInBytes).toEqual(1_000_000);
+            expect(Date.now() - started).toBeLessThan(3000);
+        });
+    });
 });

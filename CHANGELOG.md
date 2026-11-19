@@ -3,6 +3,13 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- The total size of songs counted the file of a CUE album once per track (a 10 track album counted 10 times), so the
+  Songs page could show 177 GB for 53 GB of music. Each file is now counted once.
+
 ## [3.3.0-apolox] - 2026-11-19
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo. Mostly fixes, many found by new

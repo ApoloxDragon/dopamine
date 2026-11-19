@@ -320,3 +320,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - electron-jest.js never passed on Jest's exit code (failures looked green); fixed, and the database tests now run in the Linux CI job.
 
 - **2026-11-19** · `Note` · Version 3.3.0-apolox
+
+- **2026-11-19** · `Fixed` · Total file size counted CUE album files once per track
+    - Owner's library: 173.9 GB counted for CUE tracks whose 140 album files are 33.7 GB. TrackModels now counts each audio file once (the stored FileSize stays the whole file: TrackVerifier compares it with the file on disk).
