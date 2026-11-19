@@ -196,3 +196,9 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Not verified: the Windows/macOS media controls (same Chromium media session code, likely to benefit too)
 
 - **2026-11-19** · `Tooling` · scripts/dev/mpris-probe.sh and mpris-cover-check.js read what the app publishes to the Linux desktop over D-Bus
+
+- **2026-11-19** · `Changed` · Release 3.1.0-apolox.1 prepared
+    - Version 3.1.0 with versionSuffix apolox.1 (installers: Dopamine-3.1.0-apolox.1.*); CHANGELOG.md section for it
+    - Update check and download link point to ApoloxDragon/dopamine (ProductInformation.releasesOwner)
+    - VersionComparer: custom build lines (apolox.N) now compare correctly (3.1.0-apolox.1 < 3.1.0-apolox.2 < 3.2.0-apolox.1); official preview/rc rules unchanged
+    - .github/workflows/release.yml: on a pushed v* tag builds all platforms (same jobs as nightly) and creates a DRAFT release with installers, SHA256SUMS.txt and the change log section; refuses a tag that does not match the app version; manual runs can publish at once

@@ -222,4 +222,32 @@ describe('VersionComparer', () => {
             expect(isNewerVersion).toBeTruthy();
         });
     });
+
+    describe('custom build lines (for example 3.1.0-apolox.1)', () => {
+        it('should see a higher iteration of the same version as newer', () => {
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox.1', '3.1.0-apolox.2')).toBeTruthy();
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox.2', '3.1.0-apolox.10')).toBeTruthy();
+        });
+
+        it('should not see the same or a lower iteration as newer', () => {
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox.2', '3.1.0-apolox.2')).toBeFalsy();
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox.2', '3.1.0-apolox.1')).toBeFalsy();
+        });
+
+        it('should see a higher version number as newer, whatever the iteration', () => {
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox.3', '3.2.0-apolox.1')).toBeTruthy();
+            expect(VersionComparer.isNewerVersion('3.2.0-apolox.1', '3.1.0-apolox.9')).toBeFalsy();
+        });
+
+        it('should compare against an official version by version number only', () => {
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox.1', '3.1.1')).toBeTruthy();
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox.1', '3.0.12')).toBeFalsy();
+        });
+
+        it('should keep the official preview and release candidate rules', () => {
+            expect(VersionComparer.isNewerVersion('3.1.0-preview.1', '3.1.0-preview.2')).toBeTruthy();
+            expect(VersionComparer.isNewerVersion('3.1.0-preview.3', '3.1.0-rc.1')).toBeTruthy();
+            expect(VersionComparer.isNewerVersion('3.1.0-rc.1', '3.1.0-preview.4')).toBeFalsy();
+        });
+    });
 });
