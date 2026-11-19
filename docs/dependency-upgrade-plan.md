@@ -1,5 +1,7 @@
 # Dependency upgrade plan
 
+The release plan that uses this, with target versions, is [3.4.0-plan.md](3.4.0-plan.md).
+
 A step-by-step plan to fix the remaining vulnerable dependencies (see [dependency-audit.md](dependency-audit.md)) over a long period,
 with testing between every step. Each phase is small enough to try, test, and throw away if it goes wrong.
 

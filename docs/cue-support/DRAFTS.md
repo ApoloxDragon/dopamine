@@ -188,3 +188,19 @@ The Veleno album has a sheet in the album folder (works) and a copy in Scans/ th
 with a warning on every index. It is not resolved against the parent folder on purpose: two sheets for one album would
 give every track twice. Deleting or renaming the copy (for example to .cue.old) stops the warning.
 
+
+## D19. Change album details with a small file in the album folder: `draft`, for 3.3.1 or later
+
+Owner's idea: fix small things such as an album's year without retagging every file, using a file next to the music.
+Proposal: an optional `dopamine.json` in the album folder (or next to a .cue sheet), read by the indexer, for example:
+
+```json
+{ "year": 1970, "albumTitle": "Paranoid", "albumArtist": "Black Sabbath", "genre": "Heavy Metal", "discNumber": 1, "discCount": 2 }
+```
+
+- Only those fields, all optional; it overrides the tags and the .cue values for every song in that folder. The files are never changed.
+- Read with a size limit and strict checks (unknown keys ignored, wrong types ignored and logged); torture-tested like the CUE parser.
+- Changing the file triggers a re-read of that folder on the next collection refresh.
+- `discNumber`/`discCount` would also give a simple answer to D17 (CD1/CD2 albums) without merging logic.
+- Open question: JSON only, or also a simple `key = value` text format (easier to type)? JSON is stricter and easier to check.
+Effort: medium to high (indexer, refresh detection, tests).

@@ -323,3 +323,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Fixed` · Total file size counted CUE album files once per track
     - Owner's library: 173.9 GB counted for CUE tracks whose 140 album files are 33.7 GB. TrackModels now counts each audio file once (the stored FileSize stays the whole file: TrackVerifier compares it with the file on disk).
+
+- **2026-11-19** · `Note` · Plans: docs/3.4.0-plan.md (everything up to date) and D19 (album details from a dopamine.json file)
+    - npm outdated: 47 direct packages a major behind (Angular 16→22, Electron 38→45, TypeScript 4.9, RxJS 6). npm audit: 88 advisories (high 41, critical 0).
