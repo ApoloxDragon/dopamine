@@ -223,3 +223,8 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-19** · `Fixed` · Security: 40 critical/high advisories fixed with npm overrides kept within compatible versions
     - piscina ^4.9.4 (critical), follow-redirects ^1.16.2 (in the app), joi, js-yaml, node-forge, picomatch, postcss, minimatch 3.x, tmp 0.2.x
     - npm audit: critical 2 -> 1, high 64 -> 57; all gates pass (unit and database tests, production build); baseline updated
+
+- **2026-11-19** · `Fixed` · Security: last critical advisory fixed (tar 6 -> 7 for Angular CLI's pacote/cacache/node-gyp)
+    - npm did not re-resolve the locked nested tar 6 copies after adding the override; their lockfile entries were removed so npm resolved them again (a known npm limitation)
+    - Checked: Angular CLI's pacote downloads and extracts a real package with tar 7; npm ci accepts the lockfile; all gates pass
+    - npm audit: critical 0 (was 2), high 50 (was 64)
