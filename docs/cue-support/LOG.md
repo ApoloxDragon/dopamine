@@ -209,3 +209,13 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - About page: 'About this version' section with this version's repository, its downloads, and the original Dopamine repository (the original author's contact links stay)
     - README: note at the top with the same links and a short list of what this version adds
     - 5 new text keys in all 25 languages (English placeholder)
+
+- **2026-11-19** · `Tooling` · Security tooling
+    - scripts/dev/vuln-report.js: compact npm audit report per vulnerable package (app or dev, fix within the compatible range or major, which direct dependencies pull it in); --write-baseline / --check for new critical/high advisories
+    - scripts/dev/audit-baseline.json: the 139 known critical/high advisories as of today
+    - scripts/dev/try-fix.sh: after a dependency change, runs install, unit tests, database tests, production build and the advisory check, printing PASS/FAIL per step
+
+- **2026-11-19** · `Changed` · CI workflows (nightly, merge, release): faster and safer
+    - actions/checkout v2 -> v4 and actions/setup-node @master (unpinned branch) -> v4
+    - Removed the third-party notiz-dev/github-action-json-property steps (12): their output was never used
+    - npm install -> npm ci (exact lockfile install) with the npm download cache; Electron and electron-builder downloads cached per lockfile
