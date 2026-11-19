@@ -275,3 +275,8 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Note` · Found why the user's CUE album does not play: its FLAC cover has an empty MIME type, which Chromium's FFmpeg refuses (see DRAFTS D12)
     - Reproduced with a 30 MB sample of the real file and with an empty-MIME cover added to a good FLAC; a metaflac re-import fixes it losslessly
+
+- **2026-11-19** · `Fixed` · CUE albums whose FLAC cover has no MIME type now play (draft D12, option 2)
+    - main/audio-protocol.js: dopamine-audio:// streams the file with PICTURE blocks hidden (type byte -> PADDING, same offsets, ranges); LegacyAudioPlayer falls back to it for CUE tracks on media error 4
+    - Checked: audio-protocol.spec.js (24 tests), path-utils.spec.ts, electron-fallback.js in real Electron with the user's sample (plays, seeks; good files keep file://); unit tests 3367 pass
+    - Follow-up D13: normal tracks with such covers fail in all three players (also upstream)

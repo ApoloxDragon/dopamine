@@ -109,7 +109,7 @@ The play count Dopamine already showed for songs (Track.PlayCount) has its own o
 So the two numbers can differ. The history starts empty when you install this version: earlier listening cannot be reconstructed
 (only per-song play counts and the last-played date were kept before).
 
-## D12. FLAC files whose cover has an empty MIME type do not play as CUE tracks: `draft`, needs your decision
+## D12. FLAC files whose cover has an empty MIME type do not play as CUE tracks: `implemented` (option 2, approved)
 
 **Cause (confirmed on a sample of the real file):** the album FLAC has a PICTURE block with an empty MIME type (the JPEG
 data itself is fine). Chromium's FFmpeg refuses to open such a file in the `<audio>` element
@@ -126,3 +126,20 @@ reproduces it; removing the cover, or importing it again with `metaflac`, fixes 
    support ranges. Playback change, so a high-effort session.
 3. Fall back to a decoding player for such files: not suitable, it would decode the whole album into memory (about
    1.3 GB per hour).
+
+**Implemented (option 2):** `main/audio-protocol.js` registers `dopamine-audio://`. It serves absolute paths of supported
+audio files only, read-only, with HTTP ranges, and in FLAC files changes the type byte of every PICTURE block to
+PADDING while streaming. LegacyAudioPlayer uses it only as a fallback for CUE tracks: when file:// fails with media
+error 4, the same file is opened once more through the protocol, and a warning is logged. Files that open normally
+keep using file://. Checked:
+- `main/audio-protocol.spec.js`: patching, ranges, refusals
+- `scripts/dev/playback-harness/electron-fallback.js`: real Electron, real protocol and player, a 30 MB sample of the
+  user's file. It plays from the right place and seeking works; a good file still uses file://.
+
+## D13. The same FLAC files as normal (non-CUE) tracks: `draft`, not started
+
+The gapless player (the default) decodes whole files with `decodeAudioData`, which fails on the same files ("Unable to
+decode audio data", checked in Electron). The crossfade and legacy players use the `<audio>` element, which fails as
+in D12. This is the same in upstream Dopamine. Fix: the same fallback in each player. The gapless player would
+re-fetch through the protocol (registered with `supportFetchAPI`) when decoding fails; the crossfade and legacy players
+would retry the element with the protocol URL. Playback change, so a high-effort session, with a test per player.

@@ -19,6 +19,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 - Update check with release tags written in capitals (for example V3.1.0-Apolox)
 - CUE sheets: a FILE name that differs only in spaces or punctuation from the file on disk is found (when only one file matches), and spaces inside quoted titles are removed
 - CUE tracks that cannot be played now log why (the media error), to find the cause
+- CUE albums whose FLAC file has a cover without a file type (MIME type) did not play ("open context failed"). They now play: such files are streamed through the app with the cover hidden from the player. The file itself is not changed
 
 ### Changed
 

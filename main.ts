@@ -28,6 +28,13 @@ app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required'); // 
 app.commandLine.appendSwitch('disable-http-cache'); // Disables clearing of the cache folder at each startup
 
 /**
+ * Audio streaming protocol (dopamine-audio://), used as a fallback for files the <audio> element cannot open through
+ * file:// (see main/audio-protocol.js). Schemes must be registered as privileged before the app is ready.
+ */
+const audioProtocol = require('./main/audio-protocol');
+protocol.registerSchemesAsPrivileged([audioProtocol.privilegedScheme]);
+
+/**
  * Settings
  */
 const settings = new SettingsStore();
@@ -647,6 +654,8 @@ try {
                 const pathname = decodeURI(request.url.replace('file:///', ''));
                 callback(pathname);
             });
+
+            audioProtocol.registerAudioProtocol(protocol, log);
 
             if (shouldShowIconInNotificationArea()) {
                 tray = new Tray(getTrayIcon());
