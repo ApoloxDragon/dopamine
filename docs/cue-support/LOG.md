@@ -139,3 +139,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Fixed` · contact-information.spec.ts expected the old website URLs; updated to the URLs the code uses since 'Update website'
     - The full test suite is now green (319 suites), which the CI build workflows require before they build
+
+- **2026-11-19** · `Added` · docs/dependency-upgrade-plan.md: phased plan to fix all remaining vulnerable dependencies, with test gates, a smoke test and rollback rules
+    - Found and documented an urgent risk: the Last.fm artist biography is inserted as HTML while the window has full Node access
