@@ -34,6 +34,7 @@ export class SettingsMock implements SettingsBase {
     public showArtistImages: boolean;
     public showArtistImagesAsBackground: boolean;
     public enableDiscordRichPresence: boolean;
+    public showAlbumCoverInDiscordRichPresence: boolean = true;
     public enableLastFmScrobbling: boolean;
     public enableListenbrainzScrobbling: boolean;
     public foldersLeftPaneWidthPercent: number;
@@ -71,6 +72,8 @@ export class SettingsMock implements SettingsBase {
     public saveRatingToAudioFiles: boolean;
     public selectedCollectionPage: number;
     public showAlbumsPage: boolean;
+    public showStatisticsPage: boolean = true;
+    public statisticsSelectedPeriod: string = 'all-time';
     public showAllFoldersInCollection: boolean;
     public showArtistsPage: boolean;
     public showAudioVisualizer: boolean;

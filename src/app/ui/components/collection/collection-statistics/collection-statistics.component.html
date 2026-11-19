@@ -1,0 +1,96 @@
+<div class="collection-viewport">
+    <div class="statistics p-3">
+        <div class="statistics__header">
+            <div class="statistics__periods">
+                <div
+                    *ngFor="let period of periods"
+                    class="statistics__period"
+                    [class.statistics__period--selected]="period.id === selectedPeriod.id"
+                    (click)="selectPeriod(period)"
+                >
+                    {{ period.translationKey | translate }}
+                </div>
+            </div>
+            <div class="secondary-text smaller">{{ 'statistics-description' | translate }}</div>
+        </div>
+
+        <div *ngIf="!hasData" class="statistics__empty secondary-text">{{ 'no-listening-history' | translate }}</div>
+
+        <ng-container *ngIf="hasData && overview">
+            <div class="statistics__summary">
+                <div class="statistics__card">
+                    <div class="statistics__card-value accent-color">
+                        {{ overview.summary.listenedMs | formatTotalDuration: settings.useCompactTotalDuration }}
+                    </div>
+                    <div class="secondary-text">{{ 'listening-time' | translate }}</div>
+                </div>
+                <div class="statistics__card">
+                    <div class="statistics__card-value">{{ overview.summary.plays }}</div>
+                    <div class="secondary-text">{{ 'plays' | translate }}</div>
+                </div>
+                <div class="statistics__card">
+                    <div class="statistics__card-value">{{ overview.summary.distinctTracks }}</div>
+                    <div class="secondary-text">{{ 'tracks' | translate }}</div>
+                </div>
+                <div class="statistics__card">
+                    <div class="statistics__card-value">{{ overview.summary.distinctAlbums }}</div>
+                    <div class="secondary-text">{{ 'albums' | translate }}</div>
+                </div>
+                <div class="statistics__card">
+                    <div class="statistics__card-value">{{ overview.summary.activeDays }}</div>
+                    <div class="secondary-text">{{ 'active-days' | translate }}</div>
+                </div>
+            </div>
+
+            <div class="statistics__tops">
+                <ng-container
+                    *ngTemplateOutlet="topList; context: { title: 'top-tracks', items: overview.topTracks }"
+                ></ng-container>
+                <ng-container
+                    *ngTemplateOutlet="topList; context: { title: 'top-albums', items: overview.topAlbums }"
+                ></ng-container>
+                <ng-container
+                    *ngTemplateOutlet="topList; context: { title: 'top-artists', items: overview.topArtists }"
+                ></ng-container>
+            </div>
+
+            <div class="statistics__section-title">{{ 'listening-history' | translate }}</div>
+            <div class="statistics__history">
+                <div *ngFor="let item of history" class="statistics__history-row">
+                    <div class="statistics__history-date secondary-text">{{ formatDateTime(item.startedAtMs) }}</div>
+                    <div class="statistics__history-track ellipsis">
+                        <span>{{ item.title }}</span>
+                        <span class="secondary-text"> · {{ item.artists }}</span>
+                    </div>
+                    <div class="statistics__history-album ellipsis secondary-text">{{ item.albumTitle }}</div>
+                    <div class="statistics__history-duration secondary-text">{{ item.listenedMs | formatTrackDuration }}</div>
+                </div>
+            </div>
+            <div *ngIf="canLoadMoreHistory" class="statistics__load-more accent-color" (click)="loadMoreHistory()">
+                {{ 'load-more' | translate }}
+            </div>
+            <div class="statistics__clear">
+                <app-icon-text-button icon="las la-trash-alt" (click)="clearHistoryAsync()">{{
+                    'clear-listening-history' | translate
+                }}</app-icon-text-button>
+            </div>
+        </ng-container>
+    </div>
+</div>
+
+<ng-template #topList let-title="title" let-items="items">
+    <div class="statistics__top">
+        <div class="statistics__section-title">{{ title | translate }}</div>
+        <div *ngFor="let item of items; let i = index; trackBy: trackByKey" class="statistics__top-row">
+            <div class="statistics__rank secondary-text">{{ i + 1 }}</div>
+            <div class="statistics__top-text">
+                <div class="ellipsis">{{ item.title }}</div>
+                <div *ngIf="item.subtitle" class="ellipsis secondary-text smaller">{{ item.subtitle }}</div>
+            </div>
+            <div class="statistics__top-numbers secondary-text smaller">
+                <div>{{ item.listenedMs | formatTotalDuration: true }}</div>
+                <div>{{ item.plays }} {{ 'plays' | translate | lowercase }}</div>
+            </div>
+        </div>
+    </div>
+</ng-template>

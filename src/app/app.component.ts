@@ -19,6 +19,7 @@ import { EventListenerServiceBase } from './services/event-listener/event-listen
 import { AddToPlaylistMenu } from './ui/components/add-to-playlist-menu';
 import { DesktopBase } from './common/io/desktop.base';
 import { LifetimeService } from './services/lifetime/lifetime.service';
+import { ListeningTrackerService } from './services/statistics/listening-tracker.service';
 import { AudioVisualizer } from './services/playback/audio-visualizer';
 import { DiscordService } from './services/discord/discord.service';
 import { DockService } from './services/dock/dock.service';
@@ -48,6 +49,7 @@ export class AppComponent implements OnInit {
         private mediaSessionService: MediaSessionService,
         private eventListenerService: EventListenerServiceBase,
         public lifetimeService: LifetimeService,
+        private listeningTrackerService: ListeningTrackerService,
         private addToPlaylistMenu: AddToPlaylistMenu,
         private desktop: DesktopBase,
         private logger: Logger,
@@ -124,6 +126,8 @@ export class AppComponent implements OnInit {
         this.dockService.initialize();
         this.scrobblingService.initialize();
         this.eventListenerService.listenToEvents();
+        // Before the lifetime service: the running listening session must be saved before closing tasks complete.
+        this.listeningTrackerService.initialize();
         this.lifetimeService.initialize();
         await this.navigationService.navigateToLoadingAsync();
     }

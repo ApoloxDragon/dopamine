@@ -17,6 +17,7 @@ import { AddToPlaylistMenu } from './ui/components/add-to-playlist-menu';
 import { DesktopBase } from './common/io/desktop.base';
 import { AudioVisualizer } from './services/playback/audio-visualizer';
 import { LifetimeService } from './services/lifetime/lifetime.service';
+import { ListeningTrackerService } from './services/statistics/listening-tracker.service';
 import { DatabaseMigratorBase } from './data/database-migrator.base';
 import { RatingBackupService } from './services/rating-backup/rating-backup.service';
 import { TrackRepositoryBase } from './data/repositories/track-repository.base';
@@ -36,6 +37,7 @@ describe('AppComponent', () => {
     let mediaSessionServiceMock: IMock<MediaSessionService>;
     let eventListenerServiceMock: IMock<EventListenerServiceBase>;
     let lifetimeServiceMock: IMock<LifetimeService>;
+    let listeningTrackerServiceMock: IMock<ListeningTrackerService>;
     let audioVisualizerMock: IMock<AudioVisualizer>;
 
     let addToPlaylistMenuMock: IMock<AddToPlaylistMenu>;
@@ -69,6 +71,7 @@ describe('AppComponent', () => {
             mediaSessionServiceMock.object,
             eventListenerServiceMock.object,
             lifetimeServiceMock.object,
+            listeningTrackerServiceMock.object,
             addToPlaylistMenuMock.object,
             desktopMock.object,
             loggerMock.object,
@@ -93,6 +96,7 @@ describe('AppComponent', () => {
         mediaSessionServiceMock = Mock.ofType<MediaSessionService>();
         eventListenerServiceMock = Mock.ofType<EventListenerServiceBase>();
         lifetimeServiceMock = Mock.ofType<LifetimeService>();
+        listeningTrackerServiceMock = Mock.ofType<ListeningTrackerService>();
         addToPlaylistMenuMock = Mock.ofType<AddToPlaylistMenu>();
         desktopMock = Mock.ofType<DesktopBase>();
         loggerMock = Mock.ofType<Logger>();
@@ -278,6 +282,17 @@ describe('AppComponent', () => {
 
             // Assert
             scrobblingServiceMock.verify((x) => x.initialize(), Times.once());
+        });
+
+        it('should initialize ListeningTrackerService', async () => {
+            // Arrange
+            const app: AppComponent = createComponent();
+
+            // Act
+            await app.ngOnInit();
+
+            // Assert
+            listeningTrackerServiceMock.verify((x) => x.initialize(), Times.once());
         });
 
         it('should initialize LifetimeService', async () => {

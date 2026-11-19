@@ -15,6 +15,7 @@ import { IpcProxyBase } from '../../common/io/ipc-proxy.base';
 import { DiscordApiCommand } from './discord-api-command';
 import { DiscordApiCommandType } from './discord-api-command-type';
 import { SettingsMock } from '../../testing/settings-mock';
+import { DiscordAlbumArtResolver } from './discord-album-art-resolver';
 
 describe('DiscordService', () => {
     let playbackServiceMock: IMock<PlaybackService>;
@@ -24,6 +25,7 @@ describe('DiscordService', () => {
     let ipcProxyMock: IMock<IpcProxyBase>;
     let settingsMock: SettingsMock;
     let loggerMock: IMock<Logger>;
+    let albumArtResolverMock: IMock<DiscordAlbumArtResolver>;
 
     let playbackServicePlaybackStartedMock: Subject<PlaybackStarted>;
     let playbackServicePlaybackStoppedMock: Subject<void>;
@@ -41,6 +43,8 @@ describe('DiscordService', () => {
         ipcProxyMock = Mock.ofType<IpcProxyBase>();
         settingsMock = new SettingsMock();
         loggerMock = Mock.ofType<Logger>();
+        albumArtResolverMock = Mock.ofType<DiscordAlbumArtResolver>();
+        albumArtResolverMock.setup((x) => x.getCachedUrl(It.isAny())).returns(() => '');
 
         translatorServiceMock.setup((x) => x.get('playing')).returns(() => 'Playing');
         translatorServiceMock.setup((x) => x.get('paused')).returns(() => 'Paused');
@@ -93,6 +97,7 @@ describe('DiscordService', () => {
             ipcProxyMock.object,
             settingsMock,
             loggerMock.object,
+            albumArtResolverMock.object,
         );
     }
 
@@ -139,6 +144,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -171,6 +177,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -206,6 +213,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: false,
                 startTime: 0,
+                endTime: undefined,
                 type: 2,
             };
 
@@ -241,6 +249,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -276,6 +285,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -311,6 +321,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: false,
                 startTime: 0,
+                endTime: undefined,
                 type: 2,
             };
 
@@ -505,6 +516,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -536,6 +548,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -570,6 +583,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: false,
                 startTime: 0,
+                endTime: undefined,
                 type: 2,
             };
 
@@ -604,6 +618,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -638,6 +653,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: true,
                 startTime: 3000,
+                endTime: 123000,
                 type: 2,
             };
 
@@ -672,6 +688,7 @@ describe('DiscordService', () => {
                 largeImageText: 'Playing with Dopamine',
                 shouldSendTimestamps: false,
                 startTime: 0,
+                endTime: undefined,
                 type: 2,
             };
 
@@ -820,6 +837,116 @@ describe('DiscordService', () => {
 
             // Assert
             ipcProxyMock.verify((x) => x.sendToMainProcess('discord-api-command', It.isAny()), Times.never());
+        });
+    });
+
+    describe('Listening to presence (album and cover)', () => {
+        function sentArgs(): any[] {
+            const sent: any[] = [];
+            ipcProxyMock
+                .setup((x) => x.sendToMainProcess('discord-api-command', It.isAny()))
+                .callback((_: string, command: DiscordApiCommand) => sent.push(command.args));
+            return sent;
+        }
+
+        function setAlbum(title: string, albumArtists: string): void {
+            const track: Track = new Track('path');
+            track.trackTitle = 'title';
+            track.artists = ';artist1;';
+            track.albumTitle = title;
+            track.albumArtists = albumArtists;
+            trackModel = new TrackModel(track, dateTimeMock.object, translatorServiceMock.object, '');
+        }
+
+        it('should show the album title as the caption of the large image', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            setAlbum('Oracles', ';Fleshgod Apocalypse;');
+            setUpPlaybackServiceMock(true, true);
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            expect(sent[sent.length - 1].largeImageText).toEqual('Oracles');
+            expect(sent[sent.length - 1].largeImageKey).toEqual('icon');
+        });
+
+        it('should send an end time for the progress bar while playing', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            setUpPlaybackServiceMock(true, true);
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            // now (5000) + remaining (120 - 2 s)
+            expect(sent[sent.length - 1].endTime).toEqual(123000);
+        });
+
+        it('should take the playback speed into account for the end time', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            setUpPlaybackServiceMock(true, true);
+            playbackServiceMock.setup((x) => x.playbackSpeed).returns(() => 2);
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            expect(sent[sent.length - 1].endTime).toEqual(5000 + 59000);
+        });
+
+        it('should use a cached album cover URL as the large image', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            setAlbum('Oracles', ';Fleshgod Apocalypse;');
+            setUpPlaybackServiceMock(true, true);
+            albumArtResolverMock.reset();
+            albumArtResolverMock.setup((x) => x.getCachedUrl(It.isAny())).returns(() => 'https://img/cover.jpg');
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            expect(sent[sent.length - 1].largeImageKey).toEqual('https://img/cover.jpg');
+            albumArtResolverMock.verify((x) => x.resolveAsync(It.isAny()), Times.never());
+        });
+
+        it('should look the cover up when it is not cached yet', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            setAlbum('Oracles', ';Fleshgod Apocalypse;');
+            setUpPlaybackServiceMock(true, true);
+            albumArtResolverMock.reset();
+            albumArtResolverMock.setup((x) => x.getCachedUrl(It.isAny())).returns(() => undefined);
+            albumArtResolverMock.setup((x) => x.resolveAsync(It.isAny())).returns(() => Promise.resolve(''));
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            expect(sent[sent.length - 1].largeImageKey).toEqual('icon');
+            albumArtResolverMock.verify((x) => x.resolveAsync(It.isAny()), Times.once());
+        });
+
+        it('should not look covers up when the album cover setting is off', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            settingsMock.showAlbumCoverInDiscordRichPresence = false;
+            setAlbum('Oracles', ';Fleshgod Apocalypse;');
+            setUpPlaybackServiceMock(true, true);
+            albumArtResolverMock.reset();
+            albumArtResolverMock.setup((x) => x.getCachedUrl(It.isAny())).returns(() => undefined);
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            expect(sent[sent.length - 1].largeImageKey).toEqual('icon');
+            albumArtResolverMock.verify((x) => x.resolveAsync(It.isAny()), Times.never());
+            albumArtResolverMock.verify((x) => x.getCachedUrl(It.isAny()), Times.never());
         });
     });
 });

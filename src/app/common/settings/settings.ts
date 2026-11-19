@@ -499,6 +499,15 @@ export class Settings implements SettingsBase {
         this.set('enableDiscordRichPresence', v);
     }
 
+    // showAlbumCoverInDiscordRichPresence (looks the cover up on Last.fm)
+    public get showAlbumCoverInDiscordRichPresence(): boolean {
+        return this.get<boolean>('showAlbumCoverInDiscordRichPresence') ?? true;
+    }
+
+    public set showAlbumCoverInDiscordRichPresence(v: boolean) {
+        this.set('showAlbumCoverInDiscordRichPresence', v);
+    }
+
     // enableLastFmScrobbling
     public get enableLastFmScrobbling(): boolean {
         return this.get<boolean>('enableLastFmScrobbling');
@@ -596,6 +605,24 @@ export class Settings implements SettingsBase {
 
     public set showPlaylistsPage(v: boolean) {
         this.set('showPlaylistsPage', v);
+    }
+
+    // showStatisticsPage
+    public get showStatisticsPage(): boolean {
+        return this.get<boolean>('showStatisticsPage') ?? true;
+    }
+
+    public set showStatisticsPage(v: boolean) {
+        this.set('showStatisticsPage', v);
+    }
+
+    // statisticsSelectedPeriod
+    public get statisticsSelectedPeriod(): string {
+        return this.get<string>('statisticsSelectedPeriod') ?? 'all-time';
+    }
+
+    public set statisticsSelectedPeriod(v: string) {
+        this.set('statisticsSelectedPeriod', v);
     }
 
     // showFoldersPage

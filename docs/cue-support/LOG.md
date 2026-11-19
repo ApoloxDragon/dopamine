@@ -107,3 +107,32 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Changed` · Albums page is now visible by default (main/common/settings/default-settings.ts: showAlbumsPage true)
     - Applies to new installs and to installs where the Albums toggle was never changed; a stored choice is kept
+
+- **2026-11-19** · `Changed` · Discord Rich Presence looks like Spotify's 'Listening to'
+    - Song title, artist, album name (cover caption), album cover, progress bar (start and end time, adjusted for playback speed)
+    - New DiscordAlbumArtResolver looks covers up on Last.fm and caches them; the Dopamine icon is shown until a cover is found or when there is none
+    - New setting showAlbumCoverInDiscordRichPresence (default on) with a toggle under Settings > Online > Discord; 2 new text keys in all 25 languages (English placeholder)
+    - Texts are trimmed to Discord's 2-128 character limits so long titles no longer make Discord reject the presence
+    - Kept discord-rpc 4.0.1: npm audit reports no advisories for it, ws 7.5.13 or node-fetch 2.6.11
+    - See DRAFTS D9 for the privacy default
+
+- **2026-11-19** · `Note` · npm audit reports 110 vulnerable packages elsewhere in the dependency tree (not Discord related); not changed, worth a separate review
+
+- **2026-11-19** · `Added` · Statistics page with an offline listening tracker
+    - Migration16 adds a ListeningSession table (one row per time a song plays: path, snapshot of title/artists/album, start time, listened ms, counted-as-play). Additive only.
+    - ListeningTrackerService records actual playing time (pauses excluded), saves every 15 s and when the app closes, drops sessions under 1 s, counts a play after half the song or 4 minutes
+    - New Statistics tab (page 6): rolling periods (7/30/365 days, all time), listening time, plays, songs, albums, days with music, top 10 songs/albums/artists, listening history with 'Load more'
+    - New settings showStatisticsPage (default on, toggle under Appearance > Pages) and statisticsSelectedPeriod; 14 new text keys in all 25 languages (English placeholder)
+    - Everything stays in the local database. Open points in DRAFTS D10 (clearing history) and D11 (two kinds of play counts)
+
+- **2026-11-19** · `Tooling` · check.sh --db runs repository specs against SQLite (src/app/data/repositories)
+
+- **2026-11-19** · `Added` · Clear listening history button on the Statistics page, with a confirmation dialog (DRAFTS D10)
+    - Deletes all ListeningSession rows only; the playing song keeps being recorded from that moment
+    - 2 new text keys in all 25 languages (English placeholder)
+
+- **2026-11-19** · `Note` · Dependency audit written to docs/dependency-audit.md: 110 vulnerable packages, 47 of them shipped in the app; nothing changed yet
+
+- **2026-11-19** · `Changed` · Security updates: fast-xml-parser 4.3.2 -> 4.5.7 (removes the only critical issue in the app) and moment 2.29.4 -> 2.31.0
+    - jimp 1.6.1 was tried and reverted: it does not fix its advisories (zod 3) and broke the artwork tests (ESM-only file-type 21). Details in docs/dependency-audit.md
+    - Full test run: everything passes except the pre-existing contact-information.spec.ts failure
