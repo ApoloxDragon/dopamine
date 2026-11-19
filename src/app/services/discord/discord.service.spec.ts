@@ -146,6 +146,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -179,6 +180,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -215,6 +217,7 @@ describe('DiscordService', () => {
                 startTime: 0,
                 endTime: undefined,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -251,6 +254,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -287,6 +291,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -323,6 +328,7 @@ describe('DiscordService', () => {
                 startTime: 0,
                 endTime: undefined,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -518,6 +524,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -550,6 +557,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -585,6 +593,7 @@ describe('DiscordService', () => {
                 startTime: 0,
                 endTime: undefined,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -620,6 +629,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -655,6 +665,7 @@ describe('DiscordService', () => {
                 startTime: 3000,
                 endTime: 123000,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -690,6 +701,7 @@ describe('DiscordService', () => {
                 startTime: 0,
                 endTime: undefined,
                 type: 2,
+                statusDisplayType: 1,
             };
 
             jest.useFakeTimers();
@@ -841,6 +853,20 @@ describe('DiscordService', () => {
     });
 
     describe('Listening to presence (album and cover)', () => {
+        it('should make the status read "Listening to <artist>"', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            setUpPlaybackServiceMock(true, true);
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            expect(sent[sent.length - 1].type).toEqual(2);
+            expect(sent[sent.length - 1].statusDisplayType).toEqual(1);
+            expect(sent[sent.length - 1].artists).toEqual('artist1, artist2');
+        });
+
         function sentArgs(): any[] {
             const sent: any[] = [];
             ipcProxyMock

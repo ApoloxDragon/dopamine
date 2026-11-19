@@ -15,6 +15,11 @@ import { StringUtils } from '../../common/utils/string-utils';
 
 @Injectable({ providedIn: 'root' })
 export class DiscordService {
+    /** Discord activity type: "Listening to". */
+    public static readonly listeningActivityType: number = 2;
+    /** Discord status display type: show the activity's state (the artist) in the status. */
+    public static readonly showStateInStatus: number = 1;
+
     private _subscription: Subscription | undefined;
     private _updatePresenceTimeout: ReturnType<typeof setTimeout>;
     private _updatePresenceTimeoutMillis: number = 1000;
@@ -146,7 +151,9 @@ export class DiscordService {
                 shouldSendTimestamps: shouldSendTimestamps,
                 startTime: startTime,
                 endTime: endTime,
-                type: 2,
+                type: DiscordService.listeningActivityType,
+                // The status reads "Listening to <artist>" instead of "Listening to Dopamine".
+                statusDisplayType: DiscordService.showStateInStatus,
             };
 
             this.ipcProxy.sendToMainProcess('discord-api-command', new DiscordApiCommand(DiscordApiCommandType.SetPresence, args));

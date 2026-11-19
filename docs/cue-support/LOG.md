@@ -150,3 +150,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Fixed` · appimagetool-x86_64.AppImage (15 MB build tool) was committed by accident in 114d3e7 and removed again; now in .gitignore, and save.sh refuses files over 5 MB
     - The binary is still in the branch history unless that commit is rewritten (your decision)
+
+- **2026-11-19** · `Changed` · Discord status now reads 'Listening to <artist>' instead of 'Listening to Dopamine' (status_display_type = 1)
+    - patch-discord-rpc.js now also passes status_display_type; each field is patched on its own so existing installs pick it up on the next npm install
+    - Field values checked against discord-api-types (StatusDisplayType: Name 0, State 1, Details 2); discord.com itself is not reachable from the build container
