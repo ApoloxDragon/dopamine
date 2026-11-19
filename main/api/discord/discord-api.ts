@@ -76,11 +76,12 @@ export class DiscordApi {
         };
 
         if (args.shouldSendTimestamps && args.startTime) {
-            presence.startTimestamp = Math.floor(args.startTime / 1000);
+            // Discord activity timestamps are Unix time in milliseconds (seconds made the progress bar end in 1970).
+            presence.startTimestamp = Math.floor(args.startTime);
 
             // With an end time Discord shows a progress bar, like Spotify does.
             if (args.endTime !== undefined && args.endTime > args.startTime) {
-                presence.endTimestamp = Math.floor(args.endTime / 1000);
+                presence.endTimestamp = Math.floor(args.endTime);
             }
         }
 

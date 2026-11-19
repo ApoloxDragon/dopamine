@@ -209,3 +209,53 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - About page: 'About this version' section with this version's repository, its downloads, and the original Dopamine repository (the original author's contact links stay)
     - README: note at the top with the same links and a short list of what this version adds
     - 5 new text keys in all 25 languages (English placeholder)
+
+- **2026-11-19** · `Tooling` · Security tooling
+    - scripts/dev/vuln-report.js: compact npm audit report per vulnerable package (app or dev, fix within the compatible range or major, which direct dependencies pull it in); --write-baseline / --check for new critical/high advisories
+    - scripts/dev/audit-baseline.json: the 139 known critical/high advisories as of today
+    - scripts/dev/try-fix.sh: after a dependency change, runs install, unit tests, database tests, production build and the advisory check, printing PASS/FAIL per step
+
+- **2026-11-19** · `Changed` · CI workflows (nightly, merge, release): faster and safer
+    - actions/checkout v2 -> v4 and actions/setup-node @master (unpinned branch) -> v4
+    - Removed the third-party notiz-dev/github-action-json-property steps (12): their output was never used
+    - npm install -> npm ci (exact lockfile install) with the npm download cache; Electron and electron-builder downloads cached per lockfile
+
+- **2026-11-19** · `Fixed` · Security: 40 critical/high advisories fixed with npm overrides kept within compatible versions
+    - piscina ^4.9.4 (critical), follow-redirects ^1.16.2 (in the app), joi, js-yaml, node-forge, picomatch, postcss, minimatch 3.x, tmp 0.2.x
+    - npm audit: critical 2 -> 1, high 64 -> 57; all gates pass (unit and database tests, production build); baseline updated
+
+- **2026-11-19** · `Fixed` · Security: last critical advisory fixed (tar 6 -> 7 for Angular CLI's pacote/cacache/node-gyp)
+    - npm did not re-resolve the locked nested tar 6 copies after adding the override; their lockfile entries were removed so npm resolved them again (a known npm limitation)
+    - Checked: Angular CLI's pacote downloads and extracts a real package with tar 7; npm ci accepts the lockfile; all gates pass
+    - npm audit: critical 0 (was 2), high 50 (was 64)
+
+- **2026-11-19** · `Fixed` · Security: more advisories fixed (critical 0, high 64 -> 41 packages; 164 -> 77 advisories in total, none new)
+    - Overrides (nested where npm needs it): serialize-javascript 7, webpack-dev-middleware 7 (also under webpack-dev-server), vite 6, pacote 21 + sigstore 4 (Angular CLI), tmp 0.2 (external-editor), @babel/runtime, ajv
+    - Checked at the tools that use them: production build, ng serve, ng update, external-editor temp files; nx 22 tried and reverted (breaks the ESLint builder)
+
+- **2026-11-19** · `Fixed` · AppImage folders were owner-only (0700) after the fuse3 repackaging; other users could get 'Permission denied' (also in CI release builds)
+    - scripts/repackage-appimage-fuse3.sh now runs chmod -R a+rX before repackaging, as appimagetool recommends; verified: 0 warnings, all folders 0755
+
+- **2026-11-19** · `Fixed` · Discord progress bar missing: start/end times are now sent in milliseconds (Discord's unit), and the end time falls back to the track length when the player does not know it yet
+
+- **2026-11-19** · `Changed` · Faster builds and checks
+    - Unit tests use the available cores (51 s -> 20 s locally, stable over repeated runs)
+    - Angular build cache enabled on CI for nightly and merge builds (66 s -> 21 s when warm); release builds always build from scratch
+    - New workflow pull-request.yml: unit tests and the advisory check on every pull request and push to apolox-master, advisory check weekly
+    - Release workflow can rerun: it updates an existing draft release (replaces installers and notes) and refuses to change a published one
+
+- **2026-11-19** · `Tooling` · apply-overrides.js (applies and verifies npm overrides), build-linux.sh (fast local Linux build), lint gate in try-fix.sh (baseline 114 pre-existing errors)
+
+- **2026-11-19** · `Changed` · Version 3.2.0-apolox (security fixes, AppImage and Discord fixes); update check accepts capitalized tags (V3.1.0-Apolox)
+
+- **2026-11-19** · `Tooling` · Release installers: copy workflow and AppImage permission check
+    - New workflow release-copy-installers.yml (run by hand): copies Dopamine-* installers from one release (a draft is fine) to another, repackages AppImages with the permission fix, rewrites SHA256SUMS.txt; title and notes of the target are kept
+    - scripts/check-appimage-permissions.sh: fails when anything inside an AppImage is not usable by other users; runs at the end of repackage-appimage-fuse3.sh, so every CI build checks it (squashfs-tools added to the Linux jobs)
+
+- **2026-11-19** · `Fixed` · CUE: loose FILE name match and trimmed titles, from a user's real sheets
+    - '13. Molested,Digested.flac' finds '13. Molested, Digested.flac' (letters and digits compared, only when exactly one file matches); exact matches still win
+    - Quoted titles keep no leading/trailing spaces (EAC sheet with TITLE " High Wood..."); new cue-sheet-reader.spec.js with three real sheets in test-data/cue
+
+- **2026-11-19** · `Note` · User report: a CUE track of a FLAC album fails to load in the installed 3.1.0 (media element error after 15 ms)
+    - Not reproduced: plain, 24-bit/96 kHz, ID3-prefixed, embedded-cuesheet, large-picture and Ogg FLAC all load in Electron 38 through the same file:// URL; the user's three sheets parse correctly
+    - The error log now includes the media error code and message; waiting for the file's details from the user

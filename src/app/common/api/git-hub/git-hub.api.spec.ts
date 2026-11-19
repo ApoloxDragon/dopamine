@@ -75,6 +75,20 @@ describe('GitHubApi', () => {
             httpClientMock.verify((x) => x.get<any[]>(url), Times.once());
         });
 
+        it('should remove a capitalized V prefix from the tag', async () => {
+            // Arrange
+            const gitHubApi = createGitHubApi();
+            const url = 'https://api.github.com/repos/foo/bar/releases';
+
+            httpClientMock.setup((x) => x.get<any[]>(url)).returns(() => of([{ prerelease: false, tag_name: 'V3.1.0-Apolox' }]));
+
+            // Act
+            const result = await gitHubApi.getLatestReleaseAsync('foo', 'bar', false);
+
+            // Assert
+            expect(result).toBe('3.1.0-Apolox');
+        });
+
         it('should return empty string when tag_name is missing', async () => {
             // Arrange
             const gitHubApi = createGitHubApi();

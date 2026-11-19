@@ -24,7 +24,7 @@ status=0
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 
-npx jest -w 1 --silent --noStackTrace "${config[@]}" "${patterns[@]}" >"$out" 2>&1 || status=$?
+npx jest --silent --noStackTrace "${config[@]}" "${patterns[@]}" >"$out" 2>&1 || status=$?
 
 # Failures with their messages, then the summary lines.
 grep -E "^(FAIL|  ●|    (expect|Expected|Received|TypeError|ReferenceError|Error))" "$out" | head -60

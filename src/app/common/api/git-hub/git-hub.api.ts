@@ -37,6 +37,7 @@ export class GitHubApi {
             return '';
         }
 
-        return tag.startsWith(this._tagPrefix) ? tag.substring(this._tagPrefix.length) : tag;
+        // Tags made by hand can be capitalized (V3.1.0-Apolox).
+        return tag.toLowerCase().startsWith(this._tagPrefix) ? tag.substring(this._tagPrefix.length) : tag;
     }
 }

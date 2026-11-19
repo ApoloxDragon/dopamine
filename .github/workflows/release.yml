@@ -24,16 +24,28 @@ jobs:
     release_build_on_linux:
         runs-on: ubuntu-22.04
         steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
               with:
-                  node-version: '22.x'
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
             - name: update package directory
               run: sudo apt update
-            - name: install rpm and libarchive
-              run: sudo apt install rpm libarchive-tools
+            - name: install rpm, libarchive and squashfs-tools
+              run: sudo apt install rpm libarchive-tools squashfs-tools
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build
@@ -49,12 +61,6 @@ jobs:
                   done
             - name: repackage AppImage with fuse3 runtime
               run: bash scripts/repackage-appimage-fuse3.sh release x86_64
-            - name: fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: 'package.json'
-                  prop_path: 'version'
             - name: uploading rpm artifact
               uses: actions/upload-artifact@v4
               with:
@@ -81,10 +87,22 @@ jobs:
         container:
             image: archlinux:latest
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
+                  cache: 'npm'
             - name: verify Node runtime
               run: |
                   node -v
@@ -94,7 +112,7 @@ jobs:
                   pacman -Syu --noconfirm
                   pacman -S --noconfirm git python base-devel libarchive libxcrypt-compat
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build pacman package
@@ -118,12 +136,24 @@ jobs:
     release_build_on_mac_arm:
         runs-on: macos-15
         steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
               with:
-                  node-version: '22.x'
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build
@@ -138,12 +168,6 @@ jobs:
                     exit 1
                   fi
                   mv -- "${files[0]}" "${files[0]%.dmg}-arm.dmg"
-            - name: fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: 'package.json'
-                  prop_path: 'version'
             - name: upload build artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -153,12 +177,24 @@ jobs:
     release_build_on_mac_intel:
         runs-on: macos-15-intel
         steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
               with:
-                  node-version: '22.x'
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build
@@ -173,12 +209,6 @@ jobs:
                     exit 1
                   fi
                   mv -- "${files[0]}" "${files[0]%.dmg}-intel.dmg"
-            - name: fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: 'package.json'
-                  prop_path: 'version'
             - name: upload build artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -190,11 +220,23 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
+                  cache: 'npm'
             - name: Install dependencies
-              run: npm install
+              run: npm ci
             - name: Run unit tests
               run: npm run test
             - name: Build
@@ -205,12 +247,6 @@ jobs:
                   name: dopamine-release-windows-installer
                   path: release/Dopamine-*.exe
                   if-no-files-found: error
-            - name: Fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: package.json
-                  prop_path: version
             # Use built-in 7zip (already installed on the runner)
             - name: Create 7z Archive
               shell: powershell
@@ -271,4 +307,14 @@ jobs:
                   if [ "$PUBLISH" = "true" ]; then
                     draft=""
                   fi
-                  gh release create "$tag" assets/* --title "Dopamine $version" --notes-file notes.md --target "$GITHUB_SHA" $draft
+                  if gh release view "$tag" --json isDraft --jq .isDraft > is_draft.txt 2>/dev/null; then
+                    # A rerun: only a draft may be updated (installers replaced, notes refreshed); never a published release.
+                    if [ "$(cat is_draft.txt)" != "true" ]; then
+                      echo "Release $tag is already published; refusing to change it. Bump the version for a new release." >&2
+                      exit 1
+                    fi
+                    gh release upload "$tag" assets/* --clobber
+                    gh release edit "$tag" --title "Dopamine $version" --notes-file notes.md --target "$GITHUB_SHA" $draft
+                  else
+                    gh release create "$tag" assets/* --title "Dopamine $version" --notes-file notes.md --target "$GITHUB_SHA" $draft
+                  fi

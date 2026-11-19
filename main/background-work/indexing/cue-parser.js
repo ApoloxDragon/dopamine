@@ -193,7 +193,8 @@ class CueParser {
 
         if (trimmed.startsWith('"')) {
             const end = trimmed.lastIndexOf('"');
-            return end > 0 ? trimmed.substring(1, end) : trimmed.substring(1);
+            // Rippers sometimes leave spaces inside the quotes (TITLE " High Wood"); they are not part of the text.
+            return (end > 0 ? trimmed.substring(1, end) : trimmed.substring(1)).trim();
         }
 
         return trimmed;

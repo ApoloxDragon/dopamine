@@ -22,14 +22,18 @@
                         "main": "src/main.ts",
                         "tsConfig": "tsconfig.app.json",
                         "polyfills": "src/polyfills.ts",
-                        "assets": ["src/assets"],
+                        "assets": [
+                            "src/assets"
+                        ],
                         "styles": [
                             "src/styles.scss",
                             "./node_modules/line-awesome/dist/line-awesome/css/line-awesome.css",
                             "./node_modules/@fortawesome/fontawesome-free/css/all.css"
                         ],
                         "stylePreprocessorOptions": {
-                            "includePaths": ["src/css"]
+                            "includePaths": [
+                                "src/css"
+                            ]
                         }
                     },
                     "configurations": {
@@ -91,7 +95,10 @@
                 "lint": {
                     "builder": "@angular-eslint/builder:lint",
                     "options": {
-                        "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+                        "lintFilePatterns": [
+                            "src/**/*.ts",
+                            "src/**/*.html"
+                        ]
                     }
                 }
             }
@@ -108,6 +115,12 @@
     },
     "cli": {
         "analytics": false,
-        "schematicCollections": ["@angular-eslint/schematics"]
+        "schematicCollections": [
+            "@angular-eslint/schematics"
+        ],
+        "cache": {
+            "enabled": true,
+            "environment": "all"
+        }
     }
 }

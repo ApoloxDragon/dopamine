@@ -10,16 +10,34 @@ jobs:
         runs-on: ubuntu-22.04
         if: github.event.pull_request.merged == true
         steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
               with:
-                  node-version: '22.x'
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
             - name: update package directory
               run: sudo apt update
-            - name: install rpm and libarchive
-              run: sudo apt install rpm libarchive-tools
+            - name: install rpm, libarchive and squashfs-tools
+              run: sudo apt install rpm libarchive-tools squashfs-tools
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build
@@ -35,12 +53,6 @@ jobs:
                   done
             - name: repackage AppImage with fuse3 runtime
               run: bash scripts/repackage-appimage-fuse3.sh release x86_64
-            - name: fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: 'package.json'
-                  prop_path: 'version'
             - name: uploading rpm artifact
               uses: actions/upload-artifact@v4
               with:
@@ -68,10 +80,28 @@ jobs:
         container:
             image: archlinux:latest
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
+                  cache: 'npm'
             - name: verify Node runtime
               run: |
                   node -v
@@ -81,7 +111,7 @@ jobs:
                   pacman -Syu --noconfirm
                   pacman -S --noconfirm git python base-devel libarchive libxcrypt-compat
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build pacman package
@@ -106,12 +136,30 @@ jobs:
         runs-on: macos-15
         if: github.event.pull_request.merged == true
         steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
               with:
-                  node-version: '22.x'
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build
@@ -126,12 +174,6 @@ jobs:
                     exit 1
                   fi
                   mv -- "${files[0]}" "${files[0]%.dmg}-arm.dmg"
-            - name: fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: 'package.json'
-                  prop_path: 'version'
             - name: upload build artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -142,12 +184,30 @@ jobs:
         runs-on: macos-15-intel
         if: github.event.pull_request.merged == true
         steps:
-            - uses: actions/checkout@v2
-            - uses: actions/setup-node@master
+            - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
               with:
-                  node-version: '22.x'
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
             - name: install dependencies
-              run: npm install
+              run: npm ci
             - name: run unit tests
               run: npm run test
             - name: build
@@ -162,12 +222,6 @@ jobs:
                     exit 1
                   fi
                   mv -- "${files[0]}" "${files[0]%.dmg}-intel.dmg"
-            - name: fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: 'package.json'
-                  prop_path: 'version'
             - name: upload build artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -179,11 +233,29 @@ jobs:
         if: github.event.pull_request.merged == true
         steps:
             - uses: actions/checkout@v4
+            - name: cache Electron downloads
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/electron
+                      ~/.cache/electron-builder
+                      ~/Library/Caches/electron
+                      ~/Library/Caches/electron-builder
+                      ~/AppData/Local/electron/Cache
+                      ~/AppData/Local/electron-builder/Cache
+                  key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+            - name: cache Angular build
+              uses: actions/cache@v4
+              with:
+                  path: .angular/cache
+                  key: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+                  restore-keys: angular-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
             - uses: actions/setup-node@v4
               with:
                   node-version: '22'
+                  cache: 'npm'
             - name: Install dependencies
-              run: npm install
+              run: npm ci
             - name: Run unit tests
               run: npm run test
             - name: Build
@@ -194,12 +266,6 @@ jobs:
                   name: dopamine-merge-windows-installer
                   path: release/Dopamine-*.exe
                   if-no-files-found: error
-            - name: Fetch current version
-              id: ver_name
-              uses: notiz-dev/github-action-json-property@release
-              with:
-                  path: package.json
-                  prop_path: version
             # Use built-in 7zip (already installed on the runner)
             - name: Create 7z Archive
               shell: powershell

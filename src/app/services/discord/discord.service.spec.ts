@@ -911,6 +911,22 @@ describe('DiscordService', () => {
             expect(sent[sent.length - 1].endTime).toEqual(123000);
         });
 
+        it('should use the track length for the end time when the player does not know it yet', () => {
+            settingsMock.enableDiscordRichPresence = true;
+            setUpPlaybackServiceMock(true, true);
+            playbackServiceMock.reset();
+            setUpPlaybackServiceMock(true, true);
+            playbackServiceMock.setup((x) => x.progress).returns(() => new PlaybackProgress(2, 0));
+            const sent = sentArgs();
+            jest.useFakeTimers();
+
+            createDiscordService().initialize();
+            jest.runAllTimers();
+
+            // now (5000) + track length (200 s, from the collection) - progress (2 s)
+            expect(sent[sent.length - 1].endTime).toEqual(5000 + 198000);
+        });
+
         it('should take the playback speed into account for the end time', () => {
             settingsMock.enableDiscordRichPresence = true;
             setUpPlaybackServiceMock(true, true);

@@ -1,0 +1,68 @@
+name: Copy release installers
+# Copies the installers of one release to another, for example from the draft that "Release builds" made to a release
+# that was created by hand on GitHub. Run it by hand: Actions > Copy release installers > Run workflow.
+#
+# - The source can be a draft. Only files named Dopamine-* are copied; files of the target with the same name are
+#   replaced, other files of the target are kept.
+# - AppImages are repackaged with scripts/repackage-appimage-fuse3.sh, which also fixes folders that are owner-only
+#   (the AppImage of 3.1.0-apolox had them), and then checked with scripts/check-appimage-permissions.sh.
+# - SHA256SUMS.txt is written again for the copied files. The title and notes of the target are not changed.
+env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+on:
+    workflow_dispatch:
+        inputs:
+            from:
+                description: 'Tag of the release to copy from (a draft is fine), for example v3.1.0-apolox'
+                required: true
+                type: string
+            to:
+                description: 'Tag of the release to copy to, for example V3.1.0-Apolox'
+                required: true
+                type: string
+
+jobs:
+    copy:
+        runs-on: ubuntu-22.04
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v4
+            - name: install squashfs-tools
+              run: sudo apt update && sudo apt install squashfs-tools
+            - name: download the installers of the source release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  FROM: ${{ inputs.from }}
+                  TO: ${{ inputs.to }}
+              run: |
+                  # Both releases must exist before anything is changed.
+                  gh release view "$FROM" --json tagName > /dev/null
+                  gh release view "$TO" --json tagName > /dev/null
+                  mkdir assets
+                  gh release download "$FROM" --dir assets --pattern 'Dopamine-*'
+                  ls -la assets
+            - name: fix and check the AppImage
+              run: |
+                  shopt -s nullglob
+                  appimages=(assets/Dopamine-*.AppImage)
+                  for appimage in "${appimages[@]}"; do
+                    chmod +x "$appimage"
+                    # The script repackages the first AppImage of a folder, so give each one its own folder.
+                    dir="$(mktemp -d)"
+                    mv "$appimage" "$dir/"
+                    bash scripts/repackage-appimage-fuse3.sh "$dir" x86_64
+                    mv "$dir"/Dopamine-*.AppImage assets/
+                  done
+            - name: write checksums
+              run: |
+                  cd assets
+                  sha256sum Dopamine-* > SHA256SUMS.txt
+                  cat SHA256SUMS.txt
+            - name: upload to the target release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TO: ${{ inputs.to }}
+              run: |
+                  gh release upload "$TO" assets/* --clobber
+                  gh release view "$TO" --json assets --jq '.assets[].name'
