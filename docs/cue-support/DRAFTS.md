@@ -157,3 +157,10 @@ open the database (a no-op once the file is in WAL mode; retried by the next con
 `scripts/dev/db-lock-check.js` compares both modes with a continuous writer like the indexer: before, the window got
 1 write through in 4 s and was blocked for 4 s; with WAL, 58 writes, none failed, longest 28 ms (and the indexer wrote
 about 6 times faster). Database and unit tests pass.
+
+## D15. Android version: `draft`, on hold
+
+Written up in [docs/android-plan.md](../android-plan.md). Electron and Node parts (database, library scan, tags,
+playback) have no Android equivalent; background playback needs a native Media3 service. Routes: Capacitor (most
+reuse), native Kotlin, or forking an existing FOSS Android player (the owner's preference for now). Dopamine stays
+desktop-only until decided.
