@@ -15,6 +15,16 @@ if git status --porcelain | grep -Eiq '(\.env|credentials|secret|\.pem|id_rsa)';
 fi
 
 git add -A
+
+# Refuse large files (build tools, packages, audio) that end up in the working tree by accident.
+large="$(git diff --cached --name-only --diff-filter=AM -z | xargs -0 -r -I{} sh -c 'f="{}"; [ -f "$f" ] && [ "$(stat -c %s "$f")" -gt 5000000 ] && echo "$f"' || true)"
+if [ -n "$large" ]; then
+    git reset -q
+    echo "Refusing to commit files larger than 5 MB (add them to .gitignore or commit them by hand):" >&2
+    echo "$large" >&2
+    exit 1
+fi
+
 if git diff --cached --quiet; then
     echo "Nothing to commit."
     exit 0

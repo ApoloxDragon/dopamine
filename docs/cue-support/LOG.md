@@ -147,3 +147,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Same steps as the CI Linux job, but rpm/pacman/snap skipped (tools not available) and electron-builder's native rebuild turned off (-c.npmRebuild=false)
     - Reason: the network here blocks www.electronjs.org (Electron headers), needed only to compile register-scheme, an optional discord-rpc module that is never loaded under Electron. better-sqlite3 was rebuilt for Electron 38.8.6 and verified
     - Smoke test: AppImage starts on a virtual display, shows the welcome screen, creates a database at version 16 with the CUE columns and ListeningSession table
+
+- **2026-11-19** · `Fixed` · appimagetool-x86_64.AppImage (15 MB build tool) was committed by accident in 114d3e7 and removed again; now in .gitignore, and save.sh refuses files over 5 MB
+    - The binary is still in the branch history unless that commit is rewritten (your decision)

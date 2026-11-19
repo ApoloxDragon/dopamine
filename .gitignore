@@ -14,3 +14,6 @@ main/common/application/*.js
 main/common/application/*.js.map
 main/common/settings/*.js
 main/common/settings/*.js.map
+# Downloaded by scripts/repackage-appimage-fuse3.sh during Linux builds
+appimagetool-*.AppImage
+squashfs-root/
