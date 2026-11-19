@@ -267,3 +267,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - First version recorded with a ScriptProcessorNode, which dropped 128-frame blocks whenever the page was busy; the AudioWorklet recorder has none
 
 - **2026-11-19** · `Note` · A real 1896 FLAC (96 kHz, 16-bit, from the user) plays in Electron 38 and indexes normally; its embedded title tag is from another song (file's own tags)
+
+- **2026-11-19** · `Tooling` · Effort and usage guard: CLAUDE.md rules and a UserPromptSubmit hook (scripts/dev/effort-check.js) that flags high-effort prompts
+    - Skip per prompt with #high or #medium; edit the pattern list at the top of the script
