@@ -5,6 +5,8 @@ const { CueSheetReader } = require('./cue-sheet-reader');
 
 // Real sheets of single-file FLAC albums (EAC and another ripper), as found in a user's collection.
 const testData = path.join(__dirname, 'test-data', 'cue');
+// The reader joins paths with the platform's separator (backslashes on Windows).
+const n = (p) => path.normalize(p);
 
 function createFileSystem(files) {
     // files: { '/music/album/name.ext': contents }
@@ -46,7 +48,7 @@ describe('CueSheetReader', () => {
             const result = reader.read(cuePath);
 
             expect(result.length).toBe(1);
-            expect(result[0].audioPath).toBe(`/music/1914/${audioName}`);
+            expect(result[0].audioPath).toBe(n(`/music/1914/${audioName}`));
             expect(result[0].sheet.performer).toBe('1914');
             expect(result[0].sheet.title).toBe(albumTitle);
             expect(result[0].tracks.length).toBe(trackCount);
@@ -68,7 +70,7 @@ describe('CueSheetReader', () => {
 
             const result = reader.read(cuePath);
 
-            expect(result.map((x) => x.audioPath)).toEqual(['/music/1914/2021 - Where Fear and Weapons Meet.flac']);
+            expect(result.map((x) => x.audioPath)).toEqual([n('/music/1914/2021 - Where Fear and Weapons Meet.flac')]);
         });
 
         it('should trim spaces inside quoted titles', () => {
@@ -104,7 +106,7 @@ FILE "13. Molested,Digested.flac" WAVE
 
             const result = reader.read('/music/homovore/Homovore.cue');
 
-            expect(result.map((x) => x.audioPath)).toEqual(['/music/homovore/12. Bodily Abuse.flac', '/music/homovore/13. Molested, Digested.flac']);
+            expect(result.map((x) => x.audioPath)).toEqual([n('/music/homovore/12. Bodily Abuse.flac'), n('/music/homovore/13. Molested, Digested.flac')]);
             expect(logger.warn).not.toHaveBeenCalled();
         });
 
@@ -118,7 +120,7 @@ FILE "13. Molested,Digested.flac" WAVE
 
             const result = reader.read('/music/homovore/Homovore.cue');
 
-            expect(result.map((x) => x.audioPath)).toEqual(['/music/homovore/12. Bodily Abuse.flac']);
+            expect(result.map((x) => x.audioPath)).toEqual([n('/music/homovore/12. Bodily Abuse.flac')]);
             expect(logger.warn).toHaveBeenCalledTimes(1);
         });
 
@@ -132,7 +134,7 @@ FILE "13. Molested,Digested.flac" WAVE
 
             const result = reader.read('/music/homovore/Homovore.cue');
 
-            expect(result[1].audioPath).toBe('/music/homovore/13. Molested,Digested.flac');
+            expect(result[1].audioPath).toBe(n('/music/homovore/13. Molested,Digested.flac'));
         });
     });
 });
