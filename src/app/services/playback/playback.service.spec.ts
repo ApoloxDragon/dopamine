@@ -248,10 +248,12 @@ describe('PlaybackService', () => {
             const service = createService();
             await service.enqueueAndPlayTracksAsync([trackModel1]);
             service.pause();
-            audioPlayerMock.setup((x) => x.skipToSecondsAsync(120)).returns(() => {
-                position = 120;
-                return Promise.resolve();
-            });
+            audioPlayerMock
+                .setup((x) => x.skipToSecondsAsync(120))
+                .returns(() => {
+                    position = 120;
+                    return Promise.resolve();
+                });
 
             await service.skipByFractionOfTotalSecondsAsync(0.5);
             mediaSessionServiceMock.verify((x) => x.updatePlaybackState(240, 120, 1, false), Times.once());
@@ -1459,6 +1461,125 @@ describe('PlaybackService', () => {
             await flush();
 
             audioPlayerMock.verify((x) => x.stop(), Times.once());
+        });
+
+        // Trying to break it: a tester mashing the play/pause key, a broken audio device, absurd settings.
+
+        it('should end paused after mashing pause and resume 51 times, whatever order the fades finish in', async () => {
+            const service = await playWithFade();
+            const fades: (() => void)[] = [];
+            audioPlayerMock.reset();
+            audioPlayerMock
+                .setup((x) => x.fadeAsync(It.isAny(), It.isAny()))
+                .returns(() => new Promise<void>((resolve) => fades.push(resolve)));
+
+            for (let i = 0; i < 25; i++) {
+                service.pause();
+                await service.resumeAsync();
+            }
+            service.pause();
+            [...fades].reverse().forEach((done) => done());
+            await flush();
+
+            expect(service.canResume).toBeTruthy();
+            audioPlayerMock.verify((x) => x.pause(), Times.once());
+        });
+
+        it('should end playing after mashing pause and resume, ending on resume', async () => {
+            const service = await playWithFade();
+            const fades: (() => void)[] = [];
+            audioPlayerMock.reset();
+            audioPlayerMock
+                .setup((x) => x.fadeAsync(It.isAny(), It.isAny()))
+                .returns(() => new Promise<void>((resolve) => fades.push(resolve)));
+
+            for (let i = 0; i < 25; i++) {
+                service.pause();
+                await service.resumeAsync();
+            }
+            fades.forEach((done) => done());
+            await flush();
+
+            expect(service.canPause).toBeTruthy();
+            audioPlayerMock.verify((x) => x.pause(), Times.never());
+        });
+
+        it('should still pause when the fade fails (audio device gone)', async () => {
+            const service = await playWithFade();
+            audioPlayerMock.reset();
+            audioPlayerMock
+                .setup((x) => x.fadeAsync(It.isAny(), It.isAny()))
+                .returns(() => Promise.reject(new Error('AudioContext closed')));
+
+            service.pause();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.pause(), Times.once());
+        });
+
+        it('should still stop when the fade throws', async () => {
+            const service = await playWithFade();
+            audioPlayerMock.reset();
+            audioPlayerMock.setup((x) => x.fadeAsync(It.isAny(), It.isAny())).throws(new Error('not initialized'));
+
+            expect(() => service.stopPlayback()).not.toThrow();
+            await flush();
+
+            expect(service.isPlaying).toBeFalsy();
+            audioPlayerMock.verify((x) => x.stop(), Times.once());
+        });
+
+        it('should still resume (at full volume) when the fade in fails', async () => {
+            const service = await playWithFade();
+            service.pause();
+            resolveFade();
+            await flush();
+            audioPlayerMock.reset();
+            audioPlayerMock
+                .setup((x) => x.fadeAsync(It.isAny(), It.isAny()))
+                .returns(() => Promise.reject(new Error('AudioContext closed')));
+
+            await service.resumeAsync();
+            await flush();
+
+            expect(service.canPause).toBeTruthy();
+            audioPlayerMock.verify((x) => x.resumeAsync(), Times.once());
+            audioPlayerMock.verify((x) => x.setFadeLevel(1), Times.once());
+        });
+
+        it.each([
+            [NaN, 0],
+            [-5, 1],
+            [0, 1],
+            [0.4, 1],
+            [Infinity, 0],
+            [1e308, 60000],
+            [null, 0],
+            [undefined, 0],
+            ['qwertyuiop', 0],
+            ['500', 0],
+        ])('should treat a fade duration of %p as %p ms', async (duration, expected) => {
+            const service = await playWithFade(duration as any);
+            audioPlayerMock.reset();
+            audioPlayerMock.setup((x) => x.fadeAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve());
+
+            service.pause();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.fadeAsync(0, expected), expected > 0 ? Times.once() : Times.never());
+            audioPlayerMock.verify((x) => x.pause(), Times.once());
+        });
+
+        it('should not fade or stop twice when stop is pressed twice', async () => {
+            const service = await playWithFade();
+            audioPlayerMock.reset();
+            audioPlayerMock.setup((x) => x.fadeAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve());
+
+            service.stopPlayback();
+            service.stopPlayback();
+            await flush();
+
+            audioPlayerMock.verify((x) => x.fadeAsync(It.isAny(), It.isAny()), Times.once());
         });
     });
 

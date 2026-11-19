@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fade out on pause and stop cut the sound almost at once after a fade in had happened (fade in worked)
+- A pause or stop is no longer lost (music playing on while shown as paused) when the fade fails, for example when the audio device disappears
+- CUE sheets with repeated, negative or nonsense track numbers no longer give two tracks the same identity; tracks that start where the next one starts are left out; a track can no longer end after the end of its file
+- Very large files named .cue (over 10 MB) are skipped instead of read into memory
+- Discord: empty, one-letter, very long or emoji-cut titles and broken timestamps no longer make Discord drop the whole status
 
 ## [3.2.2-apolox] - 2026-11-19
 

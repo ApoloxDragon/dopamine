@@ -301,3 +301,11 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Added` · Discord cover for split-disc albums
     - DiscordAlbumArtResolver keys the cache on the title without the disc part and falls back to it on Last.fm when the exact title has no cover. Regexes are bounded (a break-it test caught quadratic backtracking).
+
+- **2026-11-19** · `Tooling` · Torture specs ("a tester walks into a bar") for CUE, the audio protocol, fades, equalizer imports and Discord
+    - cue.torture.spec.js, audio-protocol.torture.spec.js, equalizer.torture.spec.ts, discord-api.torture.spec.ts (in src/ because main/api/discord/*.js is generated and ignored), plus fade torture cases in playback.service.spec.ts. Each also checks the ordinary case still works.
+
+- **2026-11-19** · `Fixed` · What the torture specs found
+    - CUE: duplicate/negative/1e5/30-digit track numbers (now unique, next free number), UTF-16 BE with an odd byte threw, ranges for unknown durations were NaN, ranges past the file end, zero-length tracks, quadratic numbering, 2 GB .cue read whole (now 10 MB limit), CueTrackPath.parse threw on non-strings and accepted unsafe integers.
+    - Fades: a failed or throwing fadeAsync lost the pause/stop and left the volume at 0 on resume. Discord: non-string/blank text, surrogate pairs cut at 128, Infinity/string timestamps, non-https cover keys, setActivity throwing.
+    - Audio protocol and equalizer imports: no failures (43 + 35 cases).
