@@ -1,17 +1,11 @@
-import { IMock, It, Mock, Times } from 'typemoq';
+import { Mock } from 'typemoq';
 import { ParametricEqualizerPanelComponent } from './parametric-equalizer-panel.component';
 import { EqualizerService } from '../../../../../services/equalizer/equalizer.service';
-import { DesktopBase } from '../../../../../common/io/desktop.base';
-import { FileAccessBase } from '../../../../../common/io/file-access.base';
-import { TranslatorServiceBase } from '../../../../../services/translator/translator.service.base';
 import { Logger } from '../../../../../common/logger';
 import { SettingsMock } from '../../../../../testing/settings-mock';
 
 describe('ParametricEqualizerPanelComponent', () => {
     let service: EqualizerService;
-    let desktopMock: IMock<DesktopBase>;
-    let fileAccessMock: IMock<FileAccessBase>;
-    let translatorMock: IMock<TranslatorServiceBase>;
     let component: ParametricEqualizerPanelComponent;
 
     beforeEach(() => {
@@ -19,18 +13,7 @@ describe('ParametricEqualizerPanelComponent', () => {
         settings.audioEqualizerGains = '0;0;0;0;0;0;0;0;0;0';
         settings.audioEqualizerParametricProfile = '';
         service = new EqualizerService(settings, Mock.ofType<Logger>().object);
-        desktopMock = Mock.ofType<DesktopBase>();
-        fileAccessMock = Mock.ofType<FileAccessBase>();
-        translatorMock = Mock.ofType<TranslatorServiceBase>();
-        translatorMock.setup((x) => x.get(It.isAny(), It.isAny())).returns((key: string) => key);
-        translatorMock.setup((x) => x.get(It.isAny())).returns((key: string) => key);
-        component = new ParametricEqualizerPanelComponent(
-            service,
-            desktopMock.object,
-            fileAccessMock.object,
-            translatorMock.object,
-            Mock.ofType<Logger>().object,
-        );
+        component = new ParametricEqualizerPanelComponent(service);
         component.update();
     });
 
@@ -78,45 +61,5 @@ describe('ParametricEqualizerPanelComponent', () => {
 
         expect(service.parametricProfile.bands[1].gain).toEqual(0);
         expect(service.parametricProfile.bands[1].frequency).toEqual(441);
-    });
-
-    it('should import a file chosen by the user', async () => {
-        desktopMock.setup((x) => x.showSelectFileDialogAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve('/eq/ParametricEQ.txt'));
-        fileAccessMock
-            .setup((x) => x.getFileContentAsString('/eq/ParametricEQ.txt'))
-            .returns(() => 'Preamp: -3 dB\nFilter 1: ON PK Fc 21 Hz Gain 7.4 dB Q 0.47\n');
-
-        await component.importAsync();
-
-        expect(service.parametricProfile.bands.length).toEqual(1);
-        expect(component.message).toEqual('equalizer-import-result');
-        expect(component.markers.length).toEqual(1);
-    });
-
-    it('should do nothing when the file dialog is cancelled', async () => {
-        desktopMock.setup((x) => x.showSelectFileDialogAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve(''));
-
-        await component.importAsync();
-
-        expect(service.parametricProfile.bands.length).toEqual(5);
-        fileAccessMock.verify((x) => x.getFileContentAsString(It.isAny()), Times.never());
-    });
-
-    it('should tell the user when a file has no filters', async () => {
-        desktopMock.setup((x) => x.showSelectFileDialogAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve('/eq/notes.txt'));
-        fileAccessMock.setup((x) => x.getFileContentAsString(It.isAny())).returns(() => 'just some notes');
-
-        await component.importAsync();
-
-        expect(component.message).toEqual('equalizer-import-nothing-found');
-        expect(service.parametricProfile.bands.length).toEqual(5);
-    });
-
-    it('should export the profile as a text file', async () => {
-        desktopMock.setup((x) => x.showSaveFileDialogAsync(It.isAny(), 'ParametricEQ.txt', It.isAny())).returns(() => Promise.resolve('/eq/out.txt'));
-
-        await component.exportAsync();
-
-        fileAccessMock.verify((x) => x.writeToFile('/eq/out.txt', It.is((t: string) => t.startsWith('Preamp: 0.0 dB'))), Times.once());
     });
 });

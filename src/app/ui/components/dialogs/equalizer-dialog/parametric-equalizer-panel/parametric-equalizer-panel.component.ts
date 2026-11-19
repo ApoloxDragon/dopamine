@@ -1,10 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, ViewChild } from '@angular/core';
 import { EqualizerServiceBase } from '../../../../../services/equalizer/equalizer.service.base';
 import { EqualizerFilter, ParametricBand, ParametricEqualizer, ParametricFilterType, ParametricProfile } from '../../../../../services/equalizer/parametric-equalizer';
-import { DesktopBase } from '../../../../../common/io/desktop.base';
-import { FileAccessBase } from '../../../../../common/io/file-access.base';
-import { TranslatorServiceBase } from '../../../../../services/translator/translator.service.base';
-import { Logger } from '../../../../../common/logger';
 
 interface Marker {
     index: number;
@@ -14,7 +10,7 @@ interface Marker {
 
 /**
  * Editor for the parametric equalizer: a response curve with draggable band handles (drag: frequency and gain,
- * mouse wheel: Q), a table with every band, preamp, clipping protection, and AutoEQ / Equalizer APO import and export.
+ * mouse wheel: Q), a table with every band, preamp and clipping protection. Import and export are in the dialog.
  */
 @Component({
     selector: 'app-parametric-equalizer-panel',
@@ -23,7 +19,6 @@ interface Marker {
 })
 export class ParametricEqualizerPanelComponent implements AfterViewInit, OnDestroy {
     private static readonly curvePoints: number = 240;
-    private static readonly textFileFilters: { name: string; extensions: string[] }[] = [{ name: 'Equalizer APO / AutoEQ', extensions: ['txt'] }];
 
     @Input() public isEnabled: boolean = true;
     @ViewChild('chart') private chart!: ElementRef<HTMLElement>;
@@ -40,18 +35,11 @@ export class ParametricEqualizerPanelComponent implements AfterViewInit, OnDestr
     public markers: Marker[] = [];
     public selectedIndex: number = -1;
     public peakDb: number = 0;
-    public message: string = '';
 
     private dragIndex: number = -1;
     private resizeObserver?: ResizeObserver;
 
-    public constructor(
-        public equalizerService: EqualizerServiceBase,
-        private desktop: DesktopBase,
-        private fileAccess: FileAccessBase,
-        private translatorService: TranslatorServiceBase,
-        private logger: Logger,
-    ) {}
+    public constructor(public equalizerService: EqualizerServiceBase) {}
 
     public get profile(): ParametricProfile {
         return this.equalizerService.parametricProfile;
@@ -158,7 +146,6 @@ export class ParametricEqualizerPanelComponent implements AfterViewInit, OnDestr
     public reset(): void {
         this.equalizerService.resetParametric();
         this.selectedIndex = -1;
-        this.message = '';
         this.update();
     }
 
@@ -215,57 +202,6 @@ export class ParametricEqualizerPanelComponent implements AfterViewInit, OnDestr
         }
 
         event.preventDefault();
-    }
-
-    // ---- Import / export ----
-
-    public async importAsync(): Promise<void> {
-        const path: string = await this.desktop.showSelectFileDialogAsync(
-            this.translatorService.get('equalizer-import'),
-            ParametricEqualizerPanelComponent.textFileFilters,
-        );
-
-        if (path === '') {
-            return;
-        }
-
-        try {
-            const result = this.equalizerService.importParametricText(this.fileAccess.getFileContentAsString(path));
-
-            if (result === undefined) {
-                this.message = this.translatorService.get('equalizer-import-nothing-found');
-            } else {
-                this.message = this.translatorService.get('equalizer-import-result', {
-                    bands: result.bands,
-                    skipped: result.skippedLines,
-                });
-            }
-        } catch (e: unknown) {
-            this.logger.error(e, `Could not import equalizer file '${path}'`, 'ParametricEqualizerPanelComponent', 'importAsync');
-            this.message = this.translatorService.get('equalizer-import-nothing-found');
-        }
-
-        this.selectedIndex = -1;
-        this.update();
-    }
-
-    public async exportAsync(): Promise<void> {
-        const path: string = await this.desktop.showSaveFileDialogAsync(
-            this.translatorService.get('equalizer-export'),
-            'ParametricEQ.txt',
-            ParametricEqualizerPanelComponent.textFileFilters,
-        );
-
-        if (path === '') {
-            return;
-        }
-
-        try {
-            this.fileAccess.writeToFile(path, this.equalizerService.exportParametricText());
-            this.message = this.translatorService.get('equalizer-export-done');
-        } catch (e: unknown) {
-            this.logger.error(e, `Could not export equalizer file '${path}'`, 'ParametricEqualizerPanelComponent', 'exportAsync');
-        }
     }
 
     // ---- Formatting and scales ----

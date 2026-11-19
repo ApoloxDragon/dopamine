@@ -1,14 +1,26 @@
 <app-dialog-header icon="las la-sliders-h" title="{{ 'equalizer' | translate }}"></app-dialog-header>
 <mat-dialog-content>
     <div class="equalizer">
-        <div class="equalizer__modes">
-            <div class="equalizer__mode" [class.equalizer__mode--selected]="this.mode === 'graphic'" (click)="this.setMode('graphic')">
-                {{ 'equalizer-mode-graphic' | translate }}
+        <div class="equalizer__top">
+            <div class="equalizer__modes">
+                <div class="equalizer__mode" [class.equalizer__mode--selected]="this.mode === 'graphic'" (click)="this.setMode('graphic')">
+                    {{ 'equalizer-mode-graphic' | translate }}
+                </div>
+                <div class="equalizer__mode" [class.equalizer__mode--selected]="this.mode === 'parametric'" (click)="this.setMode('parametric')">
+                    {{ 'equalizer-mode-parametric' | translate }}
+                </div>
             </div>
-            <div class="equalizer__mode" [class.equalizer__mode--selected]="this.mode === 'parametric'" (click)="this.setMode('parametric')">
-                {{ 'equalizer-mode-parametric' | translate }}
+            <div class="equalizer__files">
+                <app-icon-text-button
+                    icon="las la-file-import"
+                    [matTooltip]="'equalizer-import-tooltip' | translate"
+                    (click)="this.importAsync()"
+                    >{{ 'equalizer-import' | translate }}</app-icon-text-button
+                >
+                <app-icon-text-button icon="las la-file-export" (click)="this.exportAsync()">{{ 'equalizer-export' | translate }}</app-icon-text-button>
             </div>
         </div>
+        <div *ngIf="this.message" class="equalizer__message secondary-text">{{ this.message }}</div>
         <div class="equalizer__header">
             <app-toggle-switch [(isChecked)]="this.isEnabled">{{ 'enable-equalizer' | translate }}</app-toggle-switch>
             <mat-form-field

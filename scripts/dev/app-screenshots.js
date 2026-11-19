@@ -75,6 +75,17 @@ async function main() {
     await page.click('.equalizer__mode >> nth=0');
     await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(out, '4-equalizer-graphic.png') });
+    // Import the AutoEQ GraphicEQ test file. The native file dialog is replaced in the main process (the renderer
+    // reaches it through @electron/remote), everything after that is the real import.
+    const graphicEqFile = path.join(root, 'src/app/services/equalizer/test-data/QCY H3 Pro GraphicEQ.txt');
+    await app.evaluate(({ dialog }, file) => {
+        dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] });
+    }, graphicEqFile);
+    await page.locator('app-icon-text-button', { hasText: /import/i }).first().click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: path.join(out, '4b-equalizer-graphiceq-imported.png') });
+    const importMessage = await page.locator('.equalizer__message').textContent().catch(() => '');
+
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
 
@@ -91,6 +102,8 @@ async function main() {
 
     console.log(`Screenshots in ${out}`);
     console.log('Band 3 after drag:', JSON.parse(config.audioEqualizerParametricProfile).bands[2]);
+    console.log('GraphicEQ import message:', (importMessage ?? '').trim());
+    console.log('Graphic gains after import:', config.audioEqualizerGains, 'mode:', config.audioEqualizerMode);
     console.log(errors.length === 0 ? 'No page errors' : `Page errors:\n  ${errors.slice(0, 10).join('\n  ')}`);
 }
 

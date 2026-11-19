@@ -171,3 +171,10 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Checked in the real app (Electron, Playwright): both modes render, dragging a handle updates the band and the saved settings
 
 - **2026-11-19** · `Tooling` · scripts/dev/app-screenshots.js launches the built app with a fresh profile and screenshots the equalizer (both modes) and the Statistics page
+
+- **2026-11-19** · `Added` · Import of AutoEQ GraphicEQ files (fitted to the 10-band graphic equalizer)
+    - graphic-eq.ts: parses 'GraphicEQ: f g; ...', least-squares fit of the 10 graphic gains taking band overlap into account, reports average (RMS) and largest deviation
+    - One Import button in the dialog (both modes) detects the format: parametric filters -> parametric mode, GraphicEQ -> graphic mode; a successful import also turns the equalizer on
+    - Export writes the current mode: GraphicEQ.txt (the graphic equalizer's real response at 127 AutoEQ-style frequencies) or ParametricEQ.txt
+    - Checked with the real QCY H3 Pro AutoEQ files (kept as test data): ParametricEQ imports exactly; GraphicEQ fits within 1.4 dB on average, 4.9 dB at most (narrow 3.9 kHz peak)
+    - Verified in the running app (Playwright, native file dialog stubbed in the main process)

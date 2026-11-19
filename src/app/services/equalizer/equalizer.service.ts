@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { EqualizerMode, EqualizerServiceBase } from './equalizer.service.base';
+import { EqualizerImportResult, EqualizerMode, EqualizerServiceBase } from './equalizer.service.base';
+import { CurvePoint, GraphicEq, GraphicFit } from './graphic-eq';
 import { EqualizerFilter, ParametricBand, ParametricEqualizer, ParametricProfile } from './parametric-equalizer';
 import { EqualizerPresets } from './equalizer-presets';
 import { AudioEqualizer } from '../playback/audio-player/audio-equalizer';
@@ -147,6 +148,43 @@ export class EqualizerService implements EqualizerServiceBase {
     public exportParametricText(): string {
         this.ensureInitialized();
         return ParametricEqualizer.toApoText(this._parametric);
+    }
+
+    public importText(text: string): EqualizerImportResult | undefined {
+        this.ensureInitialized();
+        const curve: CurvePoint[] | undefined = GraphicEq.parse(text);
+
+        if (curve !== undefined) {
+            const fit: GraphicFit = GraphicEq.fitToGraphic(curve, EqualizerService.minimumGain, EqualizerService.maximumGain);
+            this._gains = [...fit.gains];
+            this._selectedPreset = EqualizerPresets.manual;
+            this.persistGains();
+            this.settings.audioEqualizerPreset = this._selectedPreset;
+            this.mode = 'graphic';
+
+            return {
+                kind: 'graphic',
+                points: curve.length,
+                rmsErrorDb: fit.rmsErrorDb,
+                maxErrorDb: fit.maxErrorDb,
+                maxErrorFrequency: fit.maxErrorFrequency,
+            };
+        }
+
+        const parametric = this.importParametricText(text);
+
+        if (parametric === undefined) {
+            return undefined;
+        }
+
+        this.mode = 'parametric';
+
+        return { kind: 'parametric', bands: parametric.bands, skippedLines: parametric.skippedLines };
+    }
+
+    public exportText(): string {
+        this.ensureInitialized();
+        return this._mode === 'graphic' ? GraphicEq.fromGraphicGains(this._gains) : this.exportParametricText();
     }
 
     public resetParametric(): void {

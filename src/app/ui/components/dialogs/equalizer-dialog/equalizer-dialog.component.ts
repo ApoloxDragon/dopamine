@@ -1,6 +1,10 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { EqualizerMode, EqualizerServiceBase } from '../../../../services/equalizer/equalizer.service.base';
+import { EqualizerImportResult, EqualizerMode, EqualizerServiceBase } from '../../../../services/equalizer/equalizer.service.base';
+import { DesktopBase } from '../../../../common/io/desktop.base';
+import { FileAccessBase } from '../../../../common/io/file-access.base';
+import { TranslatorServiceBase } from '../../../../services/translator/translator.service.base';
+import { Logger } from '../../../../common/logger';
 import { EqualizerService } from '../../../../services/equalizer/equalizer.service';
 
 @Component({
@@ -30,10 +34,86 @@ export class EqualizerDialogComponent implements AfterViewInit, OnDestroy {
     public static readonly graphicWidth: string = '520px';
     public static readonly parametricWidth: string = '760px';
 
+    private static readonly textFileFilters: { name: string; extensions: string[] }[] = [{ name: 'AutoEQ / Equalizer APO', extensions: ['txt'] }];
+
+    /** Result of the last import or export, shown under the mode switch. */
+    public message: string = '';
+
     public constructor(
         public equalizerService: EqualizerServiceBase,
         private dialogRef: MatDialogRef<EqualizerDialogComponent>,
+        private desktop: DesktopBase,
+        private fileAccess: FileAccessBase,
+        private translatorService: TranslatorServiceBase,
+        private logger: Logger,
     ) {}
+
+    /**
+     * Imports an AutoEQ / Equalizer APO file: parametric filters (ParametricEQ.txt) go to the parametric equalizer,
+     * a GraphicEQ curve (GraphicEQ.txt) is fitted to the 10-band graphic equalizer. The matching mode is selected.
+     */
+    public async importAsync(): Promise<void> {
+        const path: string = await this.desktop.showSelectFileDialogAsync(
+            this.translatorService.get('equalizer-import'),
+            EqualizerDialogComponent.textFileFilters,
+        );
+
+        if (path === '') {
+            return;
+        }
+
+        let result: EqualizerImportResult | undefined;
+
+        try {
+            result = this.equalizerService.importText(this.fileAccess.getFileContentAsString(path));
+        } catch (e: unknown) {
+            this.logger.error(e, `Could not import equalizer file '${path}'`, 'EqualizerDialogComponent', 'importAsync');
+        }
+
+        if (result === undefined) {
+            this.message = this.translatorService.get('equalizer-import-nothing-found');
+        } else if (result.kind === 'graphic') {
+            this.message = this.translatorService.get('equalizer-import-graphic-result', {
+                points: result.points,
+                rms: result.rmsErrorDb.toFixed(1),
+                max: result.maxErrorDb.toFixed(1),
+                frequency: this.formatHertz(result.maxErrorFrequency),
+            });
+        } else {
+            this.message = this.translatorService.get('equalizer-import-result', { bands: result.bands, skipped: result.skippedLines });
+        }
+
+        if (result !== undefined) {
+            this.equalizerService.isEnabled = true;
+        }
+
+        this.applyDialogWidth();
+        setTimeout(() => this.updateCurve());
+    }
+
+    /** Exports the current mode: a GraphicEQ curve (graphic) or Equalizer APO filters (parametric). */
+    public async exportAsync(): Promise<void> {
+        const path: string = await this.desktop.showSaveFileDialogAsync(
+            this.translatorService.get('equalizer-export'),
+            this.mode === 'graphic' ? 'GraphicEQ.txt' : 'ParametricEQ.txt',
+            EqualizerDialogComponent.textFileFilters,
+        );
+
+        if (path === '') {
+            return;
+        }
+
+        try {
+            this.fileAccess.writeToFile(path, this.equalizerService.exportText());
+            this.message = this.translatorService.get('equalizer-export-done');
+        } catch (e: unknown) {
+            this.logger.error(e, `Could not export equalizer file '${path}'`, 'EqualizerDialogComponent', 'exportAsync');
+        }
+    }
+
+    private formatHertz(frequency: number): string {
+        return frequency >= 1000 ? `${(frequency / 1000).toFixed(1)} kHz` : `${Math.round(frequency)} Hz`;
+    }
 
     public get mode(): EqualizerMode {
         return this.equalizerService.mode;

@@ -128,13 +128,8 @@
             (click)="isEnabled && addBand()"
             >{{ 'equalizer-add-band' | translate }}</app-icon-text-button
         >
-        <app-icon-text-button icon="las la-file-import" [class.peq__action--disabled]="!isEnabled" (click)="isEnabled && importAsync()">{{
-            'equalizer-import' | translate
-        }}</app-icon-text-button>
-        <app-icon-text-button icon="las la-file-export" (click)="exportAsync()">{{ 'equalizer-export' | translate }}</app-icon-text-button>
         <app-icon-text-button icon="las la-undo" [class.peq__action--disabled]="!isEnabled" (click)="isEnabled && reset()">{{
             'reset' | translate
         }}</app-icon-text-button>
     </div>
-    <div *ngIf="message" class="peq__message secondary-text">{{ message }}</div>
 </div>

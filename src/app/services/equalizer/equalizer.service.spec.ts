@@ -2,6 +2,7 @@ import { Mock } from 'typemoq';
 import { EqualizerService } from './equalizer.service';
 import { AudioEqualizer } from '../playback/audio-player/audio-equalizer';
 import { EqualizerFilter, ParametricEqualizer } from './parametric-equalizer';
+import { GraphicEq } from './graphic-eq';
 import { SettingsMock } from '../../testing/settings-mock';
 import { Logger } from '../../common/logger';
 
@@ -193,6 +194,50 @@ describe('EqualizerService', () => {
             service.resetParametric();
 
             expect(service.parametricProfile).toEqual(ParametricEqualizer.createDefaultProfile());
+        });
+    });
+
+    describe('importText and exportText', () => {
+        it('should fit a GraphicEQ curve to the graphic equalizer and switch to graphic mode', () => {
+            settings.audioEqualizerMode = 'parametric';
+            const service = create();
+            const curve = GraphicEq.fromGraphicGains([6, 4, 2, 0, -2, -3, 0, 3, 5, 6]);
+
+            const result = service.importText(curve);
+
+            expect(result?.kind).toEqual('graphic');
+            expect(service.mode).toEqual('graphic');
+            expect(service.selectedPreset).toEqual('manual');
+            service.gains.forEach((g, i) => expect(g).toBeCloseTo([6, 4, 2, 0, -2, -3, 0, 3, 5, 6][i], 0));
+            expect(equalizer.filters).toEqual(AudioEqualizer.graphicFilters(service.gains));
+            expect(settings.audioEqualizerGains).toEqual(service.gains.join(';'));
+        });
+
+        it('should load parametric filters and switch to parametric mode', () => {
+            const service = create();
+
+            const result = service.importText('Preamp: -3.1 dB\nFilter 1: ON PK Fc 62 Hz Gain -4.2 dB Q 0.900\n');
+
+            expect(result).toEqual({ kind: 'parametric', bands: 1, skippedLines: 0 });
+            expect(service.mode).toEqual('parametric');
+            expect(equalizer.filters).toEqual([{ type: 'peaking', frequency: 62, gain: -4.2, q: 0.9 }]);
+        });
+
+        it('should change nothing for text in neither format', () => {
+            const service = create();
+
+            expect(service.importText('hello')).toBeUndefined();
+            expect(service.mode).toEqual('graphic');
+        });
+
+        it('should export the format of the current mode', () => {
+            const service = create();
+
+            expect(service.exportText().startsWith('GraphicEQ: ')).toBeTruthy();
+
+            service.mode = 'parametric';
+
+            expect(service.exportText().startsWith('Preamp: ')).toBeTruthy();
         });
     });
 });

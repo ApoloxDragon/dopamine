@@ -460,6 +460,8 @@ describe('validate i18n', () => {
         "equalizer-import",
         "equalizer-export",
         "equalizer-import-result",
+        "equalizer-import-graphic-result",
+        "equalizer-import-tooltip",
         "equalizer-import-nothing-found",
         "equalizer-export-done",
         "equalizer-prevent-clipping",
