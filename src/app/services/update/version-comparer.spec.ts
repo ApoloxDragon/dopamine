@@ -245,6 +245,12 @@ describe('VersionComparer', () => {
             expect(VersionComparer.isNewerVersion('3.1.0-apolox', '3.1.0-apolox')).toBeFalsy();
         });
 
+        it('should ignore the case of the suffix (a hand-made 3.1.0-Apolox tag)', () => {
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox', '3.1.0-Apolox')).toBeFalsy();
+            expect(VersionComparer.isNewerVersion('3.1.0-apolox', '3.2.0-Apolox')).toBeTruthy();
+            expect(VersionComparer.isNewerVersion('3.2.0-apolox', '3.1.0-Apolox')).toBeFalsy();
+        });
+
         it('should compare against an official version by version number only', () => {
             expect(VersionComparer.isNewerVersion('3.1.0-apolox.1', '3.1.1')).toBeTruthy();
             expect(VersionComparer.isNewerVersion('3.1.0-apolox.1', '3.0.12')).toBeFalsy();

@@ -3,6 +3,27 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0-apolox] - 2026-11-19
+
+Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+
+### Security
+
+- No critical vulnerabilities left in the dependencies (there were 2), and far fewer high ones. 164 known advisories went down to 77, and none were added
+- Every change is now checked for new critical or high vulnerabilities before it can be released
+
+### Fixed
+
+- The AppImage could fail with "Permission denied" when started by another user than the one who built it (its folders were owner-only)
+- The progress bar was missing from the Discord Rich Presence
+- Update check with release tags written in capitals (for example V3.1.0-Apolox)
+- CUE sheets: a FILE name that differs only in spaces or punctuation from the file on disk is found (when only one file matches), and spaces inside quoted titles are removed
+- CUE tracks that cannot be played now log why (the media error), to find the cause
+
+### Changed
+
+- Faster and more reliable builds: exact dependency installs, cached downloads and parallel tests
+
 ## [3.1.0-apolox] - 2026-11-19
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.

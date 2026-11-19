@@ -361,7 +361,10 @@ export class LegacyAudioPlayer implements IAudioPlayer {
             };
             const onError = (): void => {
                 cleanup();
-                reject(new Error(`Could not load audio metadata for ${audio.src}`));
+                // The media error says why (for example code 4 "format error" for a file that cannot be opened or decoded).
+                const error: MediaError | null = audio.error;
+                const reason: string = error != undefined ? ` (media error ${error.code}: ${error.message !== '' ? error.message : 'no message'})` : '';
+                reject(new Error(`Could not load audio metadata for ${audio.src}${reason}`));
             };
 
             audio.addEventListener('loadedmetadata', onLoaded);

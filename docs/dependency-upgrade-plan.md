@@ -143,6 +143,10 @@ Steps, each its own pull request:
 - `scripts/dev/try-fix.sh`: all gates after a dependency change (install, unit and database tests, production build, lint against
   `scripts/dev/lint-baseline.txt`, advisory check), one line per gate.
 - `scripts/dev/build-linux.sh`: fast local Linux build to try changes (AppImage by default).
+- `scripts/check-appimage-permissions.sh`: fails when files or folders inside an AppImage are not usable by other users (runs after
+  every AppImage repackaging, also on CI).
+- `.github/workflows/release-copy-installers.yml` (run by hand): copies the installers of one release to another, fixing AppImage
+  permissions and writing SHA256SUMS.txt again.
 
 ## Tracking
 

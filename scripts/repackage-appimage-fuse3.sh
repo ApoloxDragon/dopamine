@@ -45,4 +45,7 @@ ARCH="$ARCH" APPIMAGE_EXTRACT_AND_RUN=1 "$APPIMAGETOOL" squashfs-root "$APPIMAGE
 # Clean up
 rm -rf squashfs-root
 
+# Fail the build if anything inside is still not usable by other users.
+bash "$(dirname "$0")/check-appimage-permissions.sh" "$APPIMAGE"
+
 echo "Done. AppImage repackaged with fuse3 runtime: $APPIMAGE"

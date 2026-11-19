@@ -63,8 +63,9 @@ export class VersionComparer {
      * their own rules (isNewerVersionTag).
      */
     private static isSameTagLine(oldVersionTag: string, newVersionTag: string): boolean {
-        const oldName: string = oldVersionTag.split('.')[0];
-        const newName: string = newVersionTag.split('.')[0];
+        // Case-insensitive: a tag made by hand can be capitalized (3.1.0-Apolox).
+        const oldName: string = oldVersionTag.split('.')[0].toLowerCase();
+        const newName: string = newVersionTag.split('.')[0].toLowerCase();
         const officialTags: string[] = [Constants.previewApplicationTag, Constants.releaseCandidateApplicationTag];
 
         return oldName === newName && oldName.length > 0 && !officialTags.some((t) => oldName.includes(t));

@@ -245,3 +245,17 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Release workflow can rerun: it updates an existing draft release (replaces installers and notes) and refuses to change a published one
 
 - **2026-11-19** · `Tooling` · apply-overrides.js (applies and verifies npm overrides), build-linux.sh (fast local Linux build), lint gate in try-fix.sh (baseline 114 pre-existing errors)
+
+- **2026-11-19** · `Changed` · Version 3.2.0-apolox (security fixes, AppImage and Discord fixes); update check accepts capitalized tags (V3.1.0-Apolox)
+
+- **2026-11-19** · `Tooling` · Release installers: copy workflow and AppImage permission check
+    - New workflow release-copy-installers.yml (run by hand): copies Dopamine-* installers from one release (a draft is fine) to another, repackages AppImages with the permission fix, rewrites SHA256SUMS.txt; title and notes of the target are kept
+    - scripts/check-appimage-permissions.sh: fails when anything inside an AppImage is not usable by other users; runs at the end of repackage-appimage-fuse3.sh, so every CI build checks it (squashfs-tools added to the Linux jobs)
+
+- **2026-11-19** · `Fixed` · CUE: loose FILE name match and trimmed titles, from a user's real sheets
+    - '13. Molested,Digested.flac' finds '13. Molested, Digested.flac' (letters and digits compared, only when exactly one file matches); exact matches still win
+    - Quoted titles keep no leading/trailing spaces (EAC sheet with TITLE " High Wood..."); new cue-sheet-reader.spec.js with three real sheets in test-data/cue
+
+- **2026-11-19** · `Note` · User report: a CUE track of a FLAC album fails to load in the installed 3.1.0 (media element error after 15 ms)
+    - Not reproduced: plain, 24-bit/96 kHz, ID3-prefixed, embedded-cuesheet, large-picture and Ogg FLAC all load in Electron 38 through the same file:// URL; the user's three sheets parse correctly
+    - The error log now includes the media error code and message; waiting for the file's details from the user

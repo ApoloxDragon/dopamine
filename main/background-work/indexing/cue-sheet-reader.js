@@ -10,6 +10,7 @@ const { FileFormats } = require('../common/application/file-formats');
  *   1. the exact name next to the .cue file
  *   2. the same name with a different case
  *   3. the same base name with another supported audio extension (e.g. sheet says .wav, disk has .flac)
+ *   3b. the same letters and digits, ignoring spaces and punctuation, when exactly one file matches
  *   4. for single-FILE sheets: the audio file named like the sheet ("Album.flac.cue" -> "Album.flac", "Album.cue" -> "Album.*")
  *   5. for single-FILE sheets: the only supported audio file in the folder
  * Entries that cannot be resolved are skipped (and logged), so a bad sheet never hides existing files.
@@ -137,6 +138,14 @@ class CueSheetReader {
             return otherExtension;
         }
 
+        // Small spelling differences ("13. Molested,Digested.flac" for "13. Molested, Digested.flac"): compare letters and
+        // digits only, and only accept a single match so a sheet never picks a file by guessing.
+        const looseName = this.#looseName(baseName);
+        const looseMatches = audioEntries.filter((x) => this.#looseName(this.#stripExtension(x.toLowerCase())) === looseName);
+        if (looseName.length > 0 && looseMatches.length === 1) {
+            return looseMatches[0];
+        }
+
         if (!isSingleFileSheet) {
             return undefined;
         }
@@ -151,6 +160,10 @@ class CueSheetReader {
         }
 
         return audioEntries.length === 1 ? audioEntries[0] : undefined;
+    }
+
+    #looseName(name) {
+        return name.normalize('NFC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
     }
 
     #stripExtension(fileName) {

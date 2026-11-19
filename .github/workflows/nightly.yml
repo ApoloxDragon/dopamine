@@ -34,8 +34,8 @@ jobs:
                   cache: 'npm'
             - name: update package directory
               run: sudo apt update
-            - name: install rpm and libarchive
-              run: sudo apt install rpm libarchive-tools
+            - name: install rpm, libarchive and squashfs-tools
+              run: sudo apt install rpm libarchive-tools squashfs-tools
             - name: install dependencies
               run: npm ci
             - name: run unit tests
