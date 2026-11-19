@@ -280,3 +280,5 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - main/audio-protocol.js: dopamine-audio:// streams the file with PICTURE blocks hidden (type byte -> PADDING, same offsets, ranges); LegacyAudioPlayer falls back to it for CUE tracks on media error 4
     - Checked: audio-protocol.spec.js (24 tests), path-utils.spec.ts, electron-fallback.js in real Electron with the user's sample (plays, seeks; good files keep file://); unit tests 3367 pass
     - Follow-up D13: normal tracks with such covers fail in all three players (also upstream)
+
+- **2026-11-19** · `Changed` · Version 3.2.1-apolox (CUE fix for FLAC covers without a MIME type); 3.2.0 was not released on its own

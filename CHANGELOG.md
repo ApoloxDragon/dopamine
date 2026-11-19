@@ -3,6 +3,14 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1-apolox] - 2026-11-19
+
+Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo. Also contains everything listed under 3.2.0-apolox below, which was not released on its own.
+
+### Fixed
+
+- CUE albums whose FLAC file has a cover without a file type (MIME type) did not play ("open context failed"). They now play: such files are streamed through the app with the cover hidden from the player. The file itself is not changed
+
 ## [3.2.0-apolox] - 2026-11-19
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
@@ -19,7 +27,6 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 - Update check with release tags written in capitals (for example V3.1.0-Apolox)
 - CUE sheets: a FILE name that differs only in spaces or punctuation from the file on disk is found (when only one file matches), and spaces inside quoted titles are removed
 - CUE tracks that cannot be played now log why (the media error), to find the cause
-- CUE albums whose FLAC file has a cover without a file type (MIME type) did not play ("open context failed"). They now play: such files are streamed through the app with the cover hidden from the player. The file itself is not changed
 
 ### Changed
 
