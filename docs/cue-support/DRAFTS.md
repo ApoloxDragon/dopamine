@@ -108,3 +108,21 @@ The Statistics page counts plays from its own history: a song counts after half 
 The play count Dopamine already showed for songs (Track.PlayCount) has its own older rule and also includes plays from before this feature existed.
 So the two numbers can differ. The history starts empty when you install this version: earlier listening cannot be reconstructed
 (only per-song play counts and the last-played date were kept before).
+
+## D12. FLAC files whose cover has an empty MIME type do not play as CUE tracks: `draft`, needs your decision
+
+**Cause (confirmed on a sample of the real file):** the album FLAC has a PICTURE block with an empty MIME type (the JPEG
+data itself is fine). Chromium's FFmpeg refuses to open such a file in the `<audio>` element
+(`DEMUXER_ERROR_COULD_NOT_OPEN: FFmpegDemuxer: open context failed`). CUE tracks use that element (the streaming player);
+normal tracks are decoded differently, which is why other songs play. Adding an empty-MIME cover to a good FLAC
+reproduces it; removing the cover, or importing it again with `metaflac`, fixes it (audio identical).
+
+**Options:**
+1. Fix the files (no app change): export the cover, remove it, import it again; `metaflac` sets the MIME type. Lossless,
+   but it changes the user's files. A script could find and fix all such files in a folder (dry run first).
+2. Fix in the app: serve CUE album files to the `<audio>` element through a small custom protocol that reads the file
+   and changes one byte, the type of such a PICTURE block, to PADDING, so FFmpeg skips it. Byte offsets stay the same,
+   so seeking (HTTP ranges) maps 1:1. Needs care: the protocol must only serve audio files of the collection, and must
+   support ranges. Playback change, so a high-effort session.
+3. Fall back to a decoding player for such files: not suitable, it would decode the whole album into memory (about
+   1.3 GB per hour).
