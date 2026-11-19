@@ -1,0 +1,100 @@
+#!/usr/bin/env node
+// Launches the real app (Electron, built with `npm run build:prod`) with a fresh profile and takes screenshots of
+// the equalizer dialog (parametric and graphic) and the Statistics page.
+// Usage: xvfb-run -a -s "-screen 0 1400x900x24" node scripts/dev/app-screenshots.js <output-dir>
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const { _electron: electron } = require('playwright');
+
+const root = path.resolve(__dirname, '../..');
+const out = path.resolve(process.argv[2] ?? fs.mkdtempSync(path.join(os.tmpdir(), 'dopamine-shots-')));
+fs.mkdirSync(out, { recursive: true });
+
+async function main() {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dopamine-home-'));
+    const userData = path.join(home, '.config', 'Dopamine');
+    fs.mkdirSync(userData, { recursive: true });
+    fs.writeFileSync(
+        path.join(userData, 'config.json'),
+        JSON.stringify({
+            showWelcome: false,
+            audioEqualizerEnabled: true,
+            audioEqualizerMode: 'parametric',
+            audioEqualizerParametricProfile: JSON.stringify({
+                preamp: -6.2,
+                bands: [
+                    { enabled: true, type: 'lowshelf', frequency: 105, gain: 5.5, q: 0.7 },
+                    { enabled: true, type: 'peaking', frequency: 21, gain: 7.4, q: 0.47 },
+                    { enabled: true, type: 'peaking', frequency: 3456, gain: -4.2, q: 2.13 },
+                    { enabled: false, type: 'peaking', frequency: 6200, gain: 3, q: 4 },
+                    { enabled: true, type: 'highshelf', frequency: 10000, gain: -2.1, q: 0.7 },
+                    { enabled: true, type: 'highpass', frequency: 25, gain: 0, q: 0.71 },
+                ],
+            }),
+            audioEqualizerGains: '6;5;3;1;0;-1;0;2;4;5',
+        }),
+    );
+
+    const app = await electron.launch({
+        executablePath: path.join(root, 'node_modules/.bin/electron'),
+        args: [root, '--no-sandbox', '--disable-gpu'],
+        env: { ...process.env, HOME: home, XDG_CONFIG_HOME: path.join(home, '.config'), NODE_OPTIONS: '' },
+        timeout: 60000,
+    });
+
+    const page = await app.firstWindow();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+
+    await page.setViewportSize({ width: 1280, height: 820 }).catch(() => {});
+    await page.waitForSelector('.la-sliders-h', { timeout: 60000 });
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: path.join(out, '1-collection.png') });
+
+    // Equalizer, parametric
+    await page.click('.la-sliders-h');
+    await page.waitForSelector('app-parametric-equalizer-panel', { timeout: 15000 });
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: path.join(out, '2-equalizer-parametric.png') });
+
+    // Drag band 3 handle up a bit, to check the interaction
+    const marker = page.locator('.peq__marker', { hasText: '3' });
+    const box = await marker.boundingBox();
+    if (box) {
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width / 2 + 40, box.y - 30, { steps: 5 });
+        await page.mouse.up();
+        await page.waitForTimeout(300);
+    }
+    await page.screenshot({ path: path.join(out, '3-equalizer-parametric-dragged.png') });
+
+    // Equalizer, graphic
+    await page.click('.equalizer__mode >> nth=0');
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: path.join(out, '4-equalizer-graphic.png') });
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    // Statistics page
+    const stats = page.locator('app-sub-menu-item', { hasText: /statistics/i });
+    if ((await stats.count()) > 0) {
+        await stats.first().click();
+        await page.waitForTimeout(1200);
+        await page.screenshot({ path: path.join(out, '5-statistics.png') });
+    }
+
+    const config = JSON.parse(fs.readFileSync(path.join(userData, 'config.json'), 'utf8'));
+    await app.close();
+
+    console.log(`Screenshots in ${out}`);
+    console.log('Band 3 after drag:', JSON.parse(config.audioEqualizerParametricProfile).bands[2]);
+    console.log(errors.length === 0 ? 'No page errors' : `Page errors:\n  ${errors.slice(0, 10).join('\n  ')}`);
+}
+
+main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});

@@ -212,6 +212,11 @@ export class ParametricEqualizer {
 
     // ---- Frequency response ----
 
+    /** Enough curve points for a chart of the given width (about one per 2 pixels), at least the given minimum. */
+    public static curvePointsFor(widthInPixels: number, minimum: number): number {
+        return Math.max(minimum, Math.ceil(widthInPixels / 2));
+    }
+
     /** Log-spaced frequencies from 20 Hz to 20 kHz, for drawing the response curve. */
     public static responseFrequencies(points: number): number[] {
         const min: number = Math.log10(ParametricEqualizer.minimumFrequency);

@@ -69,10 +69,11 @@ export class Desktop implements DesktopBase, OnDestroy {
         return '';
     }
 
-    public async showSelectFileDialogAsync(dialogTitle: string): Promise<string> {
+    public async showSelectFileDialogAsync(dialogTitle: string, filters?: { name: string; extensions: string[] }[]): Promise<string> {
         const openDialogReturnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog({
             title: dialogTitle,
             properties: ['openFile'],
+            filters: filters,
         });
 
         if (
@@ -86,11 +87,15 @@ export class Desktop implements DesktopBase, OnDestroy {
         return '';
     }
 
-    public async showSaveFileDialogAsync(dialogTitle: string, defaultPath: string): Promise<string> {
+    public async showSaveFileDialogAsync(
+        dialogTitle: string,
+        defaultPath: string,
+        filters: { name: string; extensions: string[] }[] = [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg'] }],
+    ): Promise<string> {
         const saveDialogReturnValue: SaveDialogReturnValue = await remote.dialog.showSaveDialog({
             title: dialogTitle,
             defaultPath: defaultPath,
-            filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg'] }],
+            filters: filters,
         });
 
         return saveDialogReturnValue.filePath ? saveDialogReturnValue.filePath : '';

@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { EqualizerServiceBase } from '../../../../services/equalizer/equalizer.service.base';
+import { MatDialogRef } from '@angular/material/dialog';
+import { EqualizerMode, EqualizerServiceBase } from '../../../../services/equalizer/equalizer.service.base';
 import { EqualizerService } from '../../../../services/equalizer/equalizer.service';
 
 @Component({
@@ -26,9 +27,32 @@ export class EqualizerDialogComponent implements AfterViewInit, OnDestroy {
     @ViewChild('bandsContainer') private bandsContainer!: ElementRef<HTMLElement>;
     @ViewChildren('track') private tracks!: QueryList<ElementRef<HTMLElement>>;
 
-    public constructor(public equalizerService: EqualizerServiceBase) {}
+    public static readonly graphicWidth: string = '520px';
+    public static readonly parametricWidth: string = '760px';
+
+    public constructor(
+        public equalizerService: EqualizerServiceBase,
+        private dialogRef: MatDialogRef<EqualizerDialogComponent>,
+    ) {}
+
+    public get mode(): EqualizerMode {
+        return this.equalizerService.mode;
+    }
+
+    /** Switches between the graphic and the parametric equalizer. Each keeps its own settings. */
+    public setMode(mode: EqualizerMode): void {
+        this.equalizerService.mode = mode;
+        this.applyDialogWidth();
+        setTimeout(() => this.updateCurve());
+    }
+
+    private applyDialogWidth(): void {
+        this.dialogRef.updateSize(this.mode === 'parametric' ? EqualizerDialogComponent.parametricWidth : EqualizerDialogComponent.graphicWidth);
+    }
 
     public ngAfterViewInit(): void {
+        setTimeout(() => this.applyDialogWidth());
+
         // Re-measure whenever the container gets its real size so the viewBox (and dot scale) stays correct.
         this.resizeObserver = new ResizeObserver(() => this.updateCurve());
         this.resizeObserver.observe(this.bandsContainer.nativeElement);

@@ -10,6 +10,29 @@
     margin-bottom: 1rem;
 }
 
+.equalizer__modes {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 1rem;
+}
+
+.equalizer__mode {
+    padding: 4px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--theme-button-border);
+    cursor: pointer;
+    user-select: none;
+}
+
+.equalizer__mode:hover {
+    background: var(--theme-hovered-item-background);
+}
+
+.equalizer__mode--selected {
+    border-color: var(--theme-accent-color);
+    color: var(--theme-accent-color);
+}
+
 .equalizer__preset {
     width: 180px;
 }

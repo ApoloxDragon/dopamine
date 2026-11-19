@@ -162,3 +162,12 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - Low-pass/high-pass Q is converted to dB for Web Audio; shelves use Web Audio's fixed slope (about Q 0.71)
 
 - **2026-11-19** · `Tooling` · scripts/dev/eq-harness/run.js compares the drawn response curve with Chromium's real BiquadFilterNodes (exact match) and checks the audio level through the filters
+
+- **2026-11-19** · `Added` · Parametric equalizer UI (Settings: equalizer dialog > Parametric)
+    - Graphic | Parametric switch; each mode keeps its own settings; the dialog widens to 760 px in parametric mode only
+    - Response curve with draggable band handles (drag: frequency and gain, scroll: Q), band table (on/off, type, frequency, gain, Q, remove), preamp, clipping warning with 'Prevent clipping'
+    - Import and export of AutoEQ ParametricEQ.txt / Equalizer APO files; DesktopBase save/open dialogs accept file type filters (default unchanged: images)
+    - 24 new text keys in all 25 languages (English placeholder)
+    - Checked in the real app (Electron, Playwright): both modes render, dragging a handle updates the band and the saved settings
+
+- **2026-11-19** · `Tooling` · scripts/dev/app-screenshots.js launches the built app with a fresh profile and screenshots the equalizer (both modes) and the Statistics page

@@ -107,6 +107,7 @@ import { ConfirmationDialogComponent } from './ui/components/dialogs/confirmatio
 import { DialogHeaderComponent } from './ui/components/dialogs/dialog-header/dialog-header.component';
 import { EditColumnsDialogComponent } from './ui/components/dialogs/edit-columns-dialog/edit-columns-dialog.component';
 import { EqualizerDialogComponent } from './ui/components/dialogs/equalizer-dialog/equalizer-dialog.component';
+import { ParametricEqualizerPanelComponent } from './ui/components/dialogs/equalizer-dialog/parametric-equalizer-panel/parametric-equalizer-panel.component';
 import { EditPlaylistDialogComponent } from './ui/components/dialogs/edit-playlist-dialog/edit-playlist-dialog.component';
 import { ErrorDialogComponent } from './ui/components/dialogs/error-dialog/error-dialog.component';
 import { InputDialogComponent } from './ui/components/dialogs/input-dialog/input-dialog.component';
@@ -388,6 +389,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         LicenseDialogComponent,
         EditColumnsDialogComponent,
         EqualizerDialogComponent,
+        ParametricEqualizerPanelComponent,
         ManageCollectionComponent,
         ManageMusicComponent,
         ManageRefreshComponent,
