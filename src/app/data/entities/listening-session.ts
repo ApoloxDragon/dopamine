@@ -13,4 +13,8 @@ export class ListeningSession {
     public listenedMs: number = 0;
     public trackDurationMs: number = 0;
     public isCountedAsPlay: number = 0;
+    /** ListeningEndReason, or null when detailed statistics were off. */
+    public endReason: number | null = null;
+    /** Furthest position reached in the track, or null when detailed statistics were off. */
+    public furthestPositionMs: number | null = null;
 }

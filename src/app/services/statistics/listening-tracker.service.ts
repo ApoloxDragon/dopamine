@@ -8,6 +8,12 @@ import { ListeningSessionRepositoryBase } from '../../data/repositories/listenin
 import { PlaybackService } from '../playback/playback.service';
 import { PlaybackStarted } from '../playback/playback-started';
 import { TrackModel } from '../track/track-model';
+import { SettingsBase } from '../../common/settings/settings.base';
+import { PlaybackProgress } from '../playback/playback-progress';
+import { ListeningEndReason } from '../../data/entities/listening-end-reason';
+import { ListeningDetails } from '../../data/repositories/listening-session-repository.base';
+import { ListeningSegment } from '../../data/entities/listening-segment';
+import { ListeningDetailRecorder } from './listening-detail-recorder';
 
 interface CurrentSession {
     /** Database id, undefined while the session could not be written yet. */
@@ -17,6 +23,10 @@ interface CurrentSession {
     listenedMs: number;
     /** Wall clock time playback (re)started, undefined while paused. */
     playingSinceMs: number | undefined;
+    /** Detailed statistics (opt-in): heard parts and furthest position. */
+    detail?: ListeningDetailRecorder;
+    /** How the play ended, set when it ends (detailed statistics). */
+    endReason?: ListeningEndReason;
 }
 
 /**
@@ -29,6 +39,10 @@ interface CurrentSession {
  * Writes can fail while the collection is being indexed (the indexing worker keeps the database busy, "database is
  * locked"). Waiting is not an option: database calls block the window. So nothing is lost instead: a session that could
  * not be created or finished is kept in memory and written at the next save.
+ *
+ * With detailed statistics (opt-in setting), each play also records how it ended (completed, skipped, stopped), the
+ * furthest position reached, and which parts of the track were heard (see ListeningDetailRecorder). These are written
+ * with the regular saves.
  */
 @Injectable({ providedIn: 'root' })
 export class ListeningTrackerService {
@@ -51,6 +65,7 @@ export class ListeningTrackerService {
         private ipcProxy: IpcProxyBase,
         private dateProxy: DateProxy,
         private logger: Logger,
+        private settings: SettingsBase,
     ) {}
 
     public initialize(): void {
@@ -64,6 +79,8 @@ export class ListeningTrackerService {
         this.subscription.add(this.playbackService.playbackResumed$.subscribe(() => this.resume()));
         this.subscription.add(this.playbackService.playbackStopped$.subscribe(() => this.finish()));
         this.subscription.add(this.ipcProxy.onApplicationClose$.subscribe(() => this.finish()));
+        this.subscription.add(this.playbackService.progressChanged$.subscribe((progress: PlaybackProgress) => this.onProgress(progress)));
+        this.subscription.add(this.playbackService.playbackSkipped$.subscribe(() => this.onSeek()));
 
         this.saveIntervalId = setInterval(() => this.save(), ListeningTrackerService.saveIntervalMs);
     }
@@ -79,8 +96,11 @@ export class ListeningTrackerService {
         }
     }
 
-    /** Ends the current session and saves it. Public so it can be called when the app closes. */
-    public finish(): void {
+    /**
+     * Ends the current session and saves it. Public so it can be called when the app closes.
+     * `otherwise` is how it ended unless it reached the end of the track (detailed statistics).
+     */
+    public finish(otherwise: ListeningEndReason = ListeningEndReason.stopped): void {
         if (this.current == undefined) {
             return;
         }
@@ -88,6 +108,7 @@ export class ListeningTrackerService {
         const session: CurrentSession = this.current;
         this.current = undefined;
         this.accumulate(session);
+        session.endReason = session.detail?.endReason(otherwise);
 
         if (!this.write(session, true)) {
             this.pending.push(session);
@@ -116,6 +137,7 @@ export class ListeningTrackerService {
                 durationMs: running.durationMs,
                 listenedMs: 0,
                 playingSinceMs: isPlaying ? this.dateProxy.now() : undefined,
+                detail: this.createRecorder(running.durationMs, isPlaying),
             };
         }
 
@@ -126,7 +148,7 @@ export class ListeningTrackerService {
 
     private start(track: TrackModel): void {
         // A new track (also after a gapless transition) ends the session of the previous one.
-        this.finish();
+        this.finish(ListeningEndReason.skipped);
 
         const session: ListeningSession = new ListeningSession();
         session.trackPath = track.path;
@@ -138,7 +160,14 @@ export class ListeningTrackerService {
         session.startedAtMs = this.dateProxy.now();
         session.trackDurationMs = track.durationInMilliseconds;
 
-        this.current = { id: undefined, snapshot: session, durationMs: track.durationInMilliseconds, listenedMs: 0, playingSinceMs: this.dateProxy.now() };
+        this.current = {
+            id: undefined,
+            snapshot: session,
+            durationMs: track.durationInMilliseconds,
+            listenedMs: 0,
+            playingSinceMs: this.dateProxy.now(),
+            detail: this.createRecorder(track.durationInMilliseconds, true),
+        };
         this.write(this.current, false);
     }
 
@@ -149,13 +178,55 @@ export class ListeningTrackerService {
 
         this.accumulate(this.current);
         this.current.playingSinceMs = undefined;
+        this.current.detail?.end();
         this.save();
     }
 
     private resume(): void {
         if (this.current != undefined && this.current.playingSinceMs == undefined) {
             this.current.playingSinceMs = this.dateProxy.now();
+            this.current.detail?.begin(this.positionMs(), this.dateProxy.now());
         }
+    }
+
+    private onProgress(progress: PlaybackProgress): void {
+        const session: CurrentSession | undefined = this.current;
+
+        if (session?.detail == undefined || session.playingSinceMs == undefined) {
+            return;
+        }
+
+        if (!this.settings.detailedListeningStatistics) {
+            // Turned off during the song: stop recording details for it.
+            session.detail = undefined;
+            return;
+        }
+
+        session.detail.progress((progress?.progressSeconds ?? NaN) * 1000, this.dateProxy.now());
+    }
+
+    private onSeek(): void {
+        if (this.current?.detail != undefined && this.current.playingSinceMs != undefined) {
+            this.current.detail.seek(this.positionMs(), this.dateProxy.now());
+        }
+    }
+
+    private createRecorder(durationMs: number, isPlaying: boolean): ListeningDetailRecorder | undefined {
+        if (!this.settings.detailedListeningStatistics) {
+            return undefined;
+        }
+
+        const recorder: ListeningDetailRecorder = new ListeningDetailRecorder(durationMs);
+
+        if (isPlaying) {
+            recorder.begin(this.positionMs(), this.dateProxy.now());
+        }
+
+        return recorder;
+    }
+
+    private positionMs(): number {
+        return (this.playbackService.progress?.progressSeconds ?? NaN) * 1000;
     }
 
     /** Saves progress of the running session without ending it (protects against crashes). */
@@ -196,7 +267,22 @@ export class ListeningTrackerService {
                     session.id = this.repository.addSession(session.snapshot);
                 }
 
-                this.repository.updateListened(session.id, session.listenedMs, this.isCountedAsPlay(session));
+                const details: ListeningDetails | undefined =
+                    session.detail != undefined
+                        ? { endReason: isFinished ? (session.endReason ?? null) : null, furthestPositionMs: session.detail.furthestPositionMs }
+                        : undefined;
+                this.repository.updateListened(session.id, session.listenedMs, this.isCountedAsPlay(session), details);
+
+                if (session.detail != undefined) {
+                    const parts: ListeningSegment[] = session.detail.takeUnsaved();
+
+                    try {
+                        this.repository.addSegments(session.id, parts);
+                    } catch (e: unknown) {
+                        session.detail.restore(parts);
+                        throw e;
+                    }
+                }
             }
 
             if (this.isWriteFailing) {

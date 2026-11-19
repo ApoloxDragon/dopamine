@@ -15,10 +15,21 @@ async function main() {
     const home = fs.mkdtempSync(path.join(os.tmpdir(), 'dopamine-home-'));
     const userData = path.join(home, '.config', 'Dopamine');
     fs.mkdirSync(userData, { recursive: true });
+    // SEED_STATISTICS=1: a database with made-up listening history and detailed statistics turned on.
+    const seedStatistics = process.env.SEED_STATISTICS === '1';
+    if (seedStatistics) {
+        require('child_process').execFileSync(
+            path.join(__dirname, '../../node_modules/.bin/electron'),
+            [path.join(__dirname, 'seed-statistics.js'), path.join(userData, 'Dopamine.db')],
+            { env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }, stdio: 'inherit' },
+        );
+    }
     fs.writeFileSync(
         path.join(userData, 'config.json'),
         JSON.stringify({
             showWelcome: false,
+            detailedListeningStatistics: process.env.SEED_STATISTICS === '1',
+            useLightBackgroundTheme: process.env.LIGHT === '1',
             audioEqualizerEnabled: true,
             audioEqualizerMode: 'parametric',
             audioEqualizerParametricProfile: JSON.stringify({
@@ -95,6 +106,20 @@ async function main() {
         await stats.first().click();
         await page.waitForTimeout(1200);
         await page.screenshot({ path: path.join(out, '5-statistics.png') });
+
+        // The page scrolls: also take the lower parts.
+        for (let i = 1; i <= 3; i++) {
+            const scrolled = await page.evaluate((n) => {
+                const el = document.querySelector('.statistics');
+                if (!el) return false;
+                const before = el.scrollTop;
+                el.scrollTop = n * el.clientHeight * 0.9;
+                return el.scrollTop !== before;
+            }, i);
+            if (!scrolled) break;
+            await page.waitForTimeout(300);
+            await page.screenshot({ path: path.join(out, `5-statistics-${i}.png`) });
+        }
     }
 
     const config = JSON.parse(fs.readFileSync(path.join(userData, 'config.json'), 'utf8'));

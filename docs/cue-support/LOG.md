@@ -289,3 +289,9 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Changed` · Database in WAL journal mode (draft D14, approved): the window no longer blocks or fails while the indexer writes
     - Both DatabaseFactory classes set journal_mode=WAL on open; scripts/dev/db-lock-check.js: default mode 1 window write in 4 s (blocked 4 s), WAL 58 writes, none failed, longest 28 ms
+
+- **2026-11-19** · `Added` · Detailed statistics (3.2.2, opt-in): skips/completion, heard parts, when you listen, streaks, first/last played
+    - Data: Migration17 (EndReason, FurthestPositionMs, ListeningSegment); recording: ListeningDetailRecorder in ListeningTrackerService; page: cards with icons, completion ring, ranked lists with share lines, heatmap with legend, bar chart, chips and heard-part strips; theme variables only (dark and light checked in the real app)
+    - Tests incl. break-it cases and a seeded chaos test; unit 3415, database 46; tools: i18n-add.js, seed-statistics.js, SEED_STATISTICS/LIGHT for app-screenshots.js
+
+- **2026-11-19** · `Note` · Android plan written as a draft (docs/android-plan.md, D15), on hold; leaning towards forking an existing FOSS Android player

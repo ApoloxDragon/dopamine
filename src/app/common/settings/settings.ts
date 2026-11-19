@@ -499,6 +499,15 @@ export class Settings implements SettingsBase {
         this.set('enableDiscordRichPresence', v);
     }
 
+    // detailedListeningStatistics (opt-in: records skips, completion and the parts of songs that were heard)
+    public get detailedListeningStatistics(): boolean {
+        return this.get<boolean>('detailedListeningStatistics') ?? false;
+    }
+
+    public set detailedListeningStatistics(v: boolean) {
+        this.set('detailedListeningStatistics', v);
+    }
+
     // showAlbumCoverInDiscordRichPresence (looks the cover up on Last.fm)
     public get showAlbumCoverInDiscordRichPresence(): boolean {
         return this.get<boolean>('showAlbumCoverInDiscordRichPresence') ?? true;
