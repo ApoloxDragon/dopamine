@@ -136,3 +136,17 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-19** · `Changed` · Security updates: fast-xml-parser 4.3.2 -> 4.5.7 (removes the only critical issue in the app) and moment 2.29.4 -> 2.31.0
     - jimp 1.6.1 was tried and reverted: it does not fix its advisories (zod 3) and broke the artwork tests (ESM-only file-type 21). Details in docs/dependency-audit.md
     - Full test run: everything passes except the pre-existing contact-information.spec.ts failure
+
+- **2026-11-19** · `Fixed` · contact-information.spec.ts expected the old website URLs; updated to the URLs the code uses since 'Update website'
+    - The full test suite is now green (319 suites), which the CI build workflows require before they build
+
+- **2026-11-19** · `Added` · docs/dependency-upgrade-plan.md: phased plan to fix all remaining vulnerable dependencies, with test gates, a smoke test and rollback rules
+    - Found and documented an urgent risk: the Last.fm artist biography is inserted as HTML while the window has full Node access
+
+- **2026-11-19** · `Note` · Built Linux packages in the container from commit dd7a88d: release/Dopamine-3.0.12.AppImage (fuse3 runtime) and release/Dopamine-3.0.12.deb
+    - Same steps as the CI Linux job, but rpm/pacman/snap skipped (tools not available) and electron-builder's native rebuild turned off (-c.npmRebuild=false)
+    - Reason: the network here blocks www.electronjs.org (Electron headers), needed only to compile register-scheme, an optional discord-rpc module that is never loaded under Electron. better-sqlite3 was rebuilt for Electron 38.8.6 and verified
+    - Smoke test: AppImage starts on a virtual display, shows the welcome screen, creates a database at version 16 with the CUE columns and ListeningSession table
+
+- **2026-11-19** · `Fixed` · appimagetool-x86_64.AppImage (15 MB build tool) was committed by accident in 114d3e7 and removed again; now in .gitignore, and save.sh refuses files over 5 MB
+    - The binary is still in the branch history unless that commit is rewritten (your decision)
