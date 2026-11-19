@@ -270,3 +270,5 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Tooling` · Effort and usage guard: CLAUDE.md rules and a UserPromptSubmit hook (scripts/dev/effort-check.js) that flags high-effort prompts
     - Skip per prompt with #high or #medium; edit the pattern list at the top of the script
+
+- **2026-11-19** · `Note` · Real-music checks also pass on 5 public-domain FLAC transfers (Schubert, Winterreise 1-5, 44.1 kHz/16-bit, 16.5 min album): 4 boundaries + mid-music cut exact, fade even, EQ within 1 dB
