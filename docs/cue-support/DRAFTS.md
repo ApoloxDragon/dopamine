@@ -144,10 +144,16 @@ in D12. This is the same in upstream Dopamine. Fix: the same fallback in each pl
 re-fetch through the protocol (registered with `supportFetchAPI`) when decoding fails; the crossfade and legacy players
 would retry the element with the protocol URL. Playback change, so a high-effort session, with a test per player.
 
-## D14. The indexing worker keeps the database busy: `draft`, not started
+## D14. The indexing worker keeps the database busy: `implemented` (WAL, approved for 3.2.1)
 
 While the collection is indexed (63 s in a user's log), writes from the window fail with "database is locked". The
 listening tracker now retries them (3.2.1). Other writes from the window (play counts, ratings, playlists) can still
 fail during indexing, also in upstream Dopamine. A root fix is SQLite's WAL journal mode
 (`PRAGMA journal_mode=WAL`): readers and the writer no longer block each other. That is a lasting change to the
 database file (it adds -wal and -shm files next to it), so it needs your decision and a test with the real indexer.
+
+**Implemented:** both DatabaseFactory classes (window and indexing worker) set `PRAGMA journal_mode = WAL` when they
+open the database (a no-op once the file is in WAL mode; retried by the next connection if the switch fails).
+`scripts/dev/db-lock-check.js` compares both modes with a continuous writer like the indexer: before, the window got
+1 write through in 4 s and was blocked for 4 s; with WAL, 58 writes, none failed, longest 28 ms (and the indexer wrote
+about 6 times faster). Database and unit tests pass.

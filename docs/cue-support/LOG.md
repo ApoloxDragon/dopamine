@@ -286,3 +286,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-19** · `Fixed` · Listening statistics lost songs played during indexing ('database is locked' in the user's 3.2.0 log)
     - ListeningTrackerService keeps sessions it could not create or finish and writes them at the next save; warns once per failure period; 5 new specs
     - Draft D14: WAL journal mode as the root fix (needs a decision)
+
+- **2026-11-19** · `Changed` · Database in WAL journal mode (draft D14, approved): the window no longer blocks or fails while the indexer writes
+    - Both DatabaseFactory classes set journal_mode=WAL on open; scripts/dev/db-lock-check.js: default mode 1 window write in 4 s (blocked 4 s), WAL 58 writes, none failed, longest 28 ms

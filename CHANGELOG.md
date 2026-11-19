@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
 
+### Changed
+
+- The database uses SQLite's WAL mode, so the app no longer freezes or fails to save (play counts, ratings, statistics) while the collection is being indexed. If you back up `Dopamine.db` by hand, close Dopamine first, and copy `Dopamine.db-wal` and `Dopamine.db-shm` too if they are there
+
 ### Fixed
 
 - Listening statistics: songs played while the collection was being indexed were not recorded, or lost their last seconds ("database is locked"). Such writes are now retried
