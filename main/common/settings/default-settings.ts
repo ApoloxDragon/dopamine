@@ -101,6 +101,8 @@ export const DEFAULT_SETTINGS = {
     audioEqualizerEnabled: false,
     audioEqualizerPreset: 'flat',
     audioEqualizerGains: '0;0;0;0;0;0;0;0;0;0',
+    audioEqualizerMode: 'graphic',
+    audioEqualizerParametricProfile: '',
     useReplayGainNormalization: false,
     replayGainMode: 'track',
     replayGainPreAmp: 0,

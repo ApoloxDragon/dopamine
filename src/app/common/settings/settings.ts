@@ -999,6 +999,24 @@ export class Settings implements SettingsBase {
         this.set('audioEqualizerGains', v);
     }
 
+    // audioEqualizerMode: 'graphic' or 'parametric'
+    public get audioEqualizerMode(): string {
+        return this.get<string>('audioEqualizerMode') ?? 'graphic';
+    }
+
+    public set audioEqualizerMode(v: string) {
+        this.set('audioEqualizerMode', v);
+    }
+
+    // audioEqualizerParametricProfile: JSON, see ParametricEqualizer.serialize
+    public get audioEqualizerParametricProfile(): string {
+        return this.get<string>('audioEqualizerParametricProfile') ?? '';
+    }
+
+    public set audioEqualizerParametricProfile(v: string) {
+        this.set('audioEqualizerParametricProfile', v);
+    }
+
     // useReplayGainNormalization
     public get useReplayGainNormalization(): boolean {
         return this.get<boolean>('useReplayGainNormalization');

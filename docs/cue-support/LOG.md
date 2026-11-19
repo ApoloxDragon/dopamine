@@ -154,3 +154,11 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-19** · `Changed` · Discord status now reads 'Listening to <artist>' instead of 'Listening to Dopamine' (status_display_type = 1)
     - patch-discord-rpc.js now also passes status_display_type; each field is patched on its own so existing installs pick it up on the next npm install
     - Field values checked against discord-api-types (StatusDisplayType: Name 0, State 1, Details 2); discord.com itself is not reachable from the build container
+
+- **2026-11-19** · `Added` · Parametric equalizer engine (UI follows)
+    - parametric-equalizer.ts: bands (peak, low/high shelf, low/high-pass, notch), limits, AutoEQ / Equalizer APO import and export, response curve
+    - AudioEqualizer now builds input -> preamp -> N filters -> output; graphic mode is the same 10 filters as before; value changes update the existing nodes (no clicks)
+    - EqualizerService: graphic/parametric mode, parametric profile saved in settings (audioEqualizerMode, audioEqualizerParametricProfile), add/remove/edit bands, preamp, prevent clipping
+    - Low-pass/high-pass Q is converted to dB for Web Audio; shelves use Web Audio's fixed slope (about Q 0.71)
+
+- **2026-11-19** · `Tooling` · scripts/dev/eq-harness/run.js compares the drawn response curve with Chromium's real BiquadFilterNodes (exact match) and checks the audio level through the filters

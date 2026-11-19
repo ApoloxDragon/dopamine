@@ -109,6 +109,8 @@ export class SettingsMock implements SettingsBase {
     public audioEqualizerEnabled: boolean;
     public audioEqualizerPreset: string = 'flat';
     public audioEqualizerGains: string = '0;0;0;0;0;0;0;0;0;0';
+    public audioEqualizerMode: string = 'graphic';
+    public audioEqualizerParametricProfile: string = '';
     public crossfadeDuration: number;
     public useReplayGainNormalization: boolean;
     public replayGainMode: string;
