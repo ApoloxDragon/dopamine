@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.3.0-apolox] - 2026-11-19
 
 A release full of fixes. Many were found by testing the app with deliberately silly input, and by checking a real music
-library. Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+library. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
@@ -44,7 +44,7 @@ library. Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 
 
 ## [3.2.2-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
@@ -56,7 +56,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 
 ## [3.2.1-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Changed
 
@@ -69,7 +69,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 
 ## [3.2.0-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Security
 
@@ -90,7 +90,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 
 ## [3.1.0-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 

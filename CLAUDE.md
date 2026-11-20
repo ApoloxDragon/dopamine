@@ -7,7 +7,8 @@ Work on a `claude/...` branch with pull requests to `apolox-master`. Write overv
 `CHANGELOG.md` is what users read on the release page (`scripts/release-notes.js` turns a version's section into the page):
 write each item in plain words for someone who just listens to music, say what they will notice, no internals or code
 names. Headings: `### Added` (shown as "New"), `### Changed`, `### Fixed`, `### Good to know` (steps after updating).
-Technical detail goes in `docs/cue-support/LOG.md` and the pull request.
+Technical detail goes in `docs/cue-support/LOG.md` and the pull request. Each version's intro names the project the same way:
+"ApoloxDragon's fork of Dopamine, based on Dopamine <upstream version> by Digimezzo." (free and open source, GPL-3.0).
 
 ## Effort and usage
 
