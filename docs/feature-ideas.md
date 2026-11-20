@@ -49,3 +49,22 @@ beyond the existing optional Last.fm.
 
 3.3.1: liking (albums, artists, Liked page), sleep timer, recently added/played.
 Later: queue improvements, command palette, year in review, duplicate finder.
+
+## From other local players (foobar2000, MusicBee, Strawberry) — drafts, checked against what Dopamine has
+
+Fit well:
+- **Batch tag editor and file organiser:** edit tags of many songs at once; rename and move files into
+  `Artist/Year - Album/NN Title` (the alac2flac layout) from inside the app.
+- **Auto-tagging from MusicBrainz** (and cover lookup there), for CD rips and Bandcamp downloads with thin tags.
+- **Headphone crossfeed** (a small DSP next to the equalizer) and a **ReplayGain album mode** switch.
+- **Bit-perfect output** where the system allows it (exclusive mode on Windows, direct ALSA device on Linux).
+- **Waveform seek bar** (optional) and **A-B repeat** for a part of a song.
+- **Resume position** per long track or audiobook-like files.
+- **Web remote:** control playback from a phone on the same network (off by default, local only).
+
+Maybe later (bigger):
+- **CD ripping** (secure, with CUE + FLAC output) — fits the CD collection workflow.
+- **Device sync** (copy a playlist to a phone or player, converting if needed).
+- **Casting** to DLNA or Chromecast speakers.
+
+Not planned: streaming services, plugin/skin systems as complex as foobar2000's.
