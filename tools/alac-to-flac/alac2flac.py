@@ -166,24 +166,18 @@ def probe(track):
 
 LAYOUTS = ('folders', 'tags')
 FALLBACK_ARTIST, FALLBACK_ALBUM = 'Unknown Artist', 'Unknown Album'
-RESERVED_NAMES = {'CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1, 10)), *(f'LPT{i}' for i in range(1, 10))}
 MAXIMUM_NAME_BYTES = 180
 
 
 def safe_name(text, fallback):
-    """A tag value as one file or folder name that works on Linux, Windows and macOS. Never a path: '/', '..' and the
-    like cannot leave the output folder."""
+    """A tag value as one file or folder name (Linux). Never a path: '/' and '..' cannot leave the output folder.
+    Only what Linux forbids is changed, so names like "Album: Part 2?" stay as they are."""
     text = ''.join(c for c in str(text or '') if ord(c) >= 32 and c != '\x7f')
-    for c in '/\\':
+    for c in '/':
         text = text.replace(c, '-')
-    for c in ':*?"<>|':
-        text = text.replace(c, '_')
     text = ' '.join(text.split()).strip(' .')
     if not text or set(text) <= {'.', '_', '-', ' '}:
         text = fallback
-    stem, dot, rest = text.partition('.')
-    if stem.upper() in RESERVED_NAMES:  # Windows also refuses "COM1.txt"
-        text = stem + '_' + dot + rest
     while len(text.encode('utf-8')) > MAXIMUM_NAME_BYTES:
         text = text[:-1]
     return text.rstrip(' .') or fallback
@@ -197,13 +191,13 @@ def tag_number(value):
 
 
 def tag_path(track):
-    """Artist/Album (Year)/NN Title.flac from the tags (disc number first when the album has more than one disc)."""
+    """Artist/Year - Album/NN Title.flac from the tags (disc number first when the album has more than one disc)."""
     tags = track.tags
     artist = safe_name(tags.get('album_artist') or tags.get('albumartist') or tags.get('artist'), FALLBACK_ARTIST)
     album = safe_name(tags.get('album'), FALLBACK_ALBUM)
     year = str(tags.get('date') or tags.get('year') or '')[:4]
     if len(year) == 4 and all(c in '0123456789' for c in year):
-        album = safe_name(f'{album} ({year})', FALLBACK_ALBUM)
+        album = safe_name(f'{year} - {album}', FALLBACK_ALBUM)
     title = safe_name(tags.get('title'), safe_name(os.path.splitext(os.path.basename(track.path))[0], 'Track'))
     number = tag_number(tags.get('track'))
     disc = tag_number(tags.get('disc'))
@@ -780,7 +774,7 @@ class Interface:
                 self.message = 'Folders: the same as in the source folder.'
             else:
                 self.options.layout = 'tags'
-                self.message = 'Folders: Artist / Album (Year) / NN Title, from the tags.'
+                self.message = 'Folders: Artist / Year - Album / NN Title, from the tags.'
                 if self.options.output is None:
                     self.pick_folder('output')
                     self.message = 'Sorting by tags needs its own output folder: pick one.'
@@ -834,7 +828,7 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser(prog='alac2flac', description='Convert Apple Lossless (.m4a) to FLAC, bit-perfect and verified.')
     parser.add_argument('paths', nargs='*', help='folders or files (none: pick a folder in the interface; batch mode: the current folder)')
     parser.add_argument('--output', help='write FLAC files into this folder instead of next to the originals')
-    parser.add_argument('--layout', default='folders', help='folders: the same subfolders as the source (default); tags: Artist/Album (Year)/NN Title.flac from the tags')
+    parser.add_argument('--layout', default='folders', help='folders: the same subfolders as the source (default); tags: Artist/Year - Album/NN Title.flac from the tags')
     parser.add_argument('--originals', default='keep', help='keep (default), move:FOLDER or delete, after a verified conversion')
     parser.add_argument('--overwrite', action='store_true', help='replace FLAC files that already exist')
     parser.add_argument('--jobs', type=int, default=min(8, os.cpu_count() or 2), help='files at the same time')

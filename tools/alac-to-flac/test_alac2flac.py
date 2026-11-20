@@ -308,7 +308,7 @@ class AlacToFlacTest(unittest.TestCase):
 
 
 class TagLayoutTest(unittest.TestCase):
-    """Sorting the FLAC files into Artist/Album (Year)/NN Title.flac from their tags."""
+    """Sorting the FLAC files into Artist/Year - Album/NN Title.flac from their tags."""
 
     def track(self, path='/music/x/file name.m4a', **tags):
         track = alac2flac.Track(path, '/music')
@@ -320,7 +320,7 @@ class TagLayoutTest(unittest.TestCase):
 
     def test_the_usual_album(self):
         self.assertEqual(self.path(album_artist='Black Sabbath', artist='Black Sabbath', album='Paranoid', date='1970-09-18', track='2/8', title='Paranoid'),
-                         os.path.join('Black Sabbath', 'Paranoid (1970)', '02 Paranoid.flac'))
+                         os.path.join('Black Sabbath', '1970 - Paranoid', '02 Paranoid.flac'))
 
     def test_multi_disc_albums_get_the_disc_number(self):
         self.assertEqual(self.path(artist='Amon Amarth', album='Deceiver Of The Gods', disc='2/2', track='3', title='Warriors'),
@@ -334,18 +334,18 @@ class TagLayoutTest(unittest.TestCase):
     # Trying to break it
 
     def test_tags_cannot_make_paths_that_leave_the_output_folder(self):
-        for evil in ('../../../etc', '..', '.', '/etc/passwd', '\\\\server\\share', 'C:\\Windows', '~/.ssh', '....//....//'):
+        for evil in ('../../../etc', '..', '.', '/etc/passwd', '~/.ssh', '/', '....//....//'):
             path = self.path(album_artist=evil, album=evil, title=evil)
             self.assertEqual(os.path.normpath(path), path, evil)
             self.assertFalse(os.path.isabs(path), evil)
             self.assertNotIn('..', path.split(os.sep), evil)
             self.assertEqual(len(path.split(os.sep)), 3, evil)
 
-    def test_names_that_windows_or_macos_refuse(self):
-        for name in ('CON', 'nul', 'com1.txt', 'LPT9', 'a:b*c?d"e<f>g|h', 'trailing dot.', '   spaces   ', 'tab\there', 'nul\x00byte', 'bell\x07'):
+    def test_only_what_linux_forbids_is_changed(self):
+        self.assertEqual(alac2flac.safe_name('Album: Part 2? *Live* <"CON">|', 'X'), 'Album: Part 2? *Live* <"CON">|')
+        for name in ('a/b', 'nul\x00byte', 'bell\x07', 'tab\there', '   spaces   ', 'trailing dot.'):
             part = alac2flac.safe_name(name, 'X')
-            self.assertFalse(any(c in part for c in ':*?"<>|/\\\x00\x07\t'), name)
-            self.assertNotIn(part.split('.')[0].upper(), alac2flac.RESERVED_NAMES, name)
+            self.assertFalse(any(c in part for c in '/\x00\x07\t'), name)
             self.assertFalse(part.endswith(('.', ' ')), name)
 
     def test_very_long_and_emoji_names_are_cut_on_a_character(self):
@@ -359,7 +359,7 @@ class TagLayoutTest(unittest.TestCase):
             self.assertIn(name, ('T.flac', '01 T.flac'), value)
 
     def test_odd_years(self):
-        for value, folder in (('١٩٧٠', 'B'), ('1970', 'B (1970)'), ('19', 'B'), ('abcd', 'B'), ('2026-11-20T10:00:00Z', 'B (2026)'), ('', 'B')):
+        for value, folder in (('١٩٧٠', 'B'), ('1970', '1970 - B'), ('19', 'B'), ('abcd', 'B'), ('2026-11-20T10:00:00Z', '2026 - B'), ('', 'B')):
             self.assertEqual(self.path(artist='A', album='B', date=value).split(os.sep)[1], folder, value)
 
     def test_two_songs_with_the_same_name_do_not_overwrite_each_other(self):
@@ -387,7 +387,7 @@ class TagLayoutTest(unittest.TestCase):
         tracks = convert_folder(os.path.join(folder, 'messy'), output=out, layout='tags')
 
         self.assertEqual({t.status for t in tracks}, {'done'}, [t.message for t in tracks])
-        self.assertEqual(sorted(os.listdir(os.path.join(out, 'Band', 'Debut (1999)'))), ['01 First.flac', '02 Second.flac'])
+        self.assertEqual(sorted(os.listdir(os.path.join(out, 'Band', '1999 - Debut'))), ['01 First.flac', '02 Second.flac'])
         subprocess.run(['rm', '-rf', '--', folder], check=False)
 
 

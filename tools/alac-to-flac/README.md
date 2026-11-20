@@ -12,6 +12,8 @@ them bigger, not better.
 
 ## What you need
 
+- Linux (made and tested for Linux only)
+
 - Python 3.8 or newer (already on most Linux systems)
 - ffmpeg: `sudo apt install ffmpeg`, `sudo pacman -S ffmpeg` or `sudo dnf install ffmpeg`
 
@@ -33,7 +35,7 @@ Then a list of the `.m4a` files appears, with what each one is (for example "ALA
 | space | choose or unchoose a file |
 | a / n | choose all / none |
 | o | pick the output folder in the folder browser (or "Next to the originals"); `m` there makes a new folder |
-| l | layout: the same subfolders as the source, or sorted by the tags into `Artist/Album (Year)/01 Title.flac` (needs an output folder) |
+| l | layout: the same subfolders as the source, or sorted by the tags into `Artist/Year - Album/01 Title.flac` (needs an output folder) |
 | r | what to do with the originals after a verified conversion: keep, move to a folder (picked in the browser), or delete |
 | e | replace FLAC files that already exist, or skip them |
 | + / - | how many files at the same time |
