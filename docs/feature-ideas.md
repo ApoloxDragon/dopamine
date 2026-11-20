@@ -16,6 +16,13 @@ Dopamine already has "love" for songs (a heart, off by default: Settings, Behavi
   Songs keep using `Track.Love`, so nothing existing changes.
 - Optional: write the song heart to the file tag (like ratings can be) so it survives a new library.
 
+## Smart shuffle and continuous play
+
+- **Smart shuffle:** shuffle that favours liked and highly rated songs, avoids disliked ones, and does not play the same
+  artist or album twice in a row. Uses the play counts and skips from statistics. A toggle next to normal shuffle.
+- **Continuous play (autoplay):** when the queue ends, keep going with similar songs from the library (same artist, genre
+  or era, liked first) instead of stopping. Off by default; the added songs are marked in the queue.
+
 ## Other ideas, by how well they fit
 
 Fits well (small or medium):
