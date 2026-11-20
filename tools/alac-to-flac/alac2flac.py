@@ -77,6 +77,14 @@ def channel_name(channels):
     return {1: 'mono', 2: 'stereo'}.get(channels, f'{channels} ch')
 
 
+def short_path(path, limit=50):
+    """~ for the home folder, and the end of long paths (the part that tells folders apart)."""
+    home = os.path.expanduser('~')
+    if path == home or path.startswith(home + os.sep):
+        path = '~' + path[len(home):]
+    return path if len(path) <= limit else '…' + path[-(limit - 1):]
+
+
 def human_size(size):
     for unit in ('B', 'KB', 'MB', 'GB'):
         if size < 1024 or unit == 'GB':
@@ -314,6 +322,9 @@ class Interface:
         self.folder = os.path.abspath(os.path.expanduser(folder or os.getcwd()))
         self.entries = []
         self.searching = False
+        # What the browser is picking: 'source' (music to convert), 'output' (where the FLAC files go), 'originals' (where
+        # originals are moved after a verified conversion).
+        self.purpose = 'source'
         if self.mode == 'browse':
             self.open_folder(self.folder)
         self.lock = threading.Lock()
@@ -355,8 +366,8 @@ class Interface:
             if probing:
                 info += f' · reading {probing}…'
             self.put(1, 0, info, curses.A_BOLD)
-            out = 'next to the originals' if self.options.output is None else self.options.output
-            orig = self.options.originals.replace('move:', 'move to ')
+            out = 'next to the originals' if self.options.output is None else short_path(self.options.output, max(20, width // 3))
+            orig = 'move to ' + short_path(self.options.originals[5:], max(20, width // 4)) if self.options.originals.startswith('move:') else self.options.originals
             self.put(2, 0, f' Output: {out}   Originals: {orig}   Existing FLAC: {"replace" if self.options.overwrite else "skip"}   Jobs: {self.options.jobs}')
 
             list_top, list_height = 4, height - 7
@@ -384,9 +395,15 @@ class Interface:
             self.put(height - 1, 0, self.help_text().ljust(width), curses.A_REVERSE)
             self.screen.refresh()
 
+    BROWSER_TITLES = {
+        'source': ' Pick the folder with your Apple Lossless (.m4a) music. Subfolders are searched too.',
+        'output': ' Pick the folder for the FLAC files (the subfolders of your music are made inside it).',
+        'originals': ' Pick the folder the originals are moved to, after their FLAC is verified.',
+    }
+
     def draw_browser(self, height, width):
-        self.put(1, 0, ' Pick the folder with your Apple Lossless (.m4a) music. Subfolders are searched too.', curses.A_BOLD)
-        self.put(2, 0, f' {self.folder}', self.color(4))
+        self.put(1, 0, self.BROWSER_TITLES[self.purpose], curses.A_BOLD)
+        self.put(2, 0, f' {short_path(self.folder, width - 3)}', self.color(4))
         list_top, list_height = 4, height - 7
         self.cursor = max(0, min(self.cursor, len(self.entries) - 1))
         if self.cursor < self.top:
@@ -395,8 +412,11 @@ class Interface:
             self.top = self.cursor - list_height + 1
         for row, (kind, label, _) in enumerate(self.entries[self.top:self.top + list_height]):
             index = self.top + row
-            text = {'search': f' ▶ {label}', 'up': '  ↑ .. (parent folder)', 'dir': f'  ▸ {label}/'}[kind]
-            attribute = curses.A_BOLD if kind == 'search' else 0
+            text = {
+                'search': f' ▶ {label}', 'choose': f' ✓ {label}', 'beside': f' ↺ {label}',
+                'up': '  ↑ .. (parent folder)', 'dir': f'  ▸ {label}/',
+            }[kind]
+            attribute = curses.A_BOLD if kind in ('search', 'choose', 'beside') else 0
             if index == self.cursor:
                 attribute |= curses.A_REVERSE
             self.put(list_top + row, 0, text.ljust(width - 1), attribute)
@@ -412,8 +432,13 @@ class Interface:
         here = sum(1 for n in names if n.lower().endswith(AUDIO_EXTENSIONS))
         subfolders = [n for n in names if not n.startswith('.') and os.path.isdir(os.path.join(folder, n))]
         self.folder = folder
-        label = f'Search this folder ({here} .m4a here' + (', and its subfolders)' if subfolders else ')')
-        self.entries = [('search', label, folder)]
+        if self.purpose == 'source':
+            label = f'Search this folder ({here} .m4a here' + (', and its subfolders)' if subfolders else ')')
+            self.entries = [('search', label, folder)]
+        else:
+            self.entries = [('choose', 'Use this folder', folder)]
+            if self.purpose == 'output':
+                self.entries.append(('beside', 'Next to the originals (no output folder)', None))
         if os.path.dirname(folder) != folder:
             self.entries.append(('up', '..', os.path.dirname(folder)))
         self.entries += [('dir', n, os.path.join(folder, n)) for n in subfolders]
@@ -455,14 +480,67 @@ class Interface:
             kind, _, path = self.entries[self.cursor]
             if kind == 'search':
                 self.search(path)
+            elif kind in ('choose', 'beside'):
+                self.choose_folder(path)
             else:
                 self.open_folder(path)
         elif key in (ord('s'), ord('S')):
-            self.search(self.folder)
+            if self.purpose == 'source':
+                self.search(self.folder)
+            else:
+                self.choose_folder(self.folder)
+        elif key in (ord('m'), ord('M')) and self.purpose != 'source':
+            name = self.ask('Name of the new folder:', '')
+            if name:
+                path = os.path.join(self.folder, os.path.expanduser(name))
+                try:
+                    os.makedirs(path, exist_ok=True)
+                    self.open_folder(path)
+                except OSError as error:
+                    self.message = f'Cannot make {path}: {error.strerror or error}'
         elif key in (ord('g'), ord('G'), ord('~'), ord('/')):
             typed = self.ask('Go to folder:', '')
             if typed:
                 self.open_folder(typed)
+
+    def pick_folder(self, purpose):
+        """Opens the browser to pick the output folder or the folder for the originals."""
+        self.return_cursor = self.cursor
+        self.purpose = purpose
+        self.mode = 'browse'
+        self.message = ''
+        current = self.options.output if purpose == 'output' else self.options.originals[5:] if self.options.originals.startswith('move:') else None
+        start = current if current and os.path.isdir(current) else self.source_folder()
+        self.open_folder(start)
+
+    def source_folder(self):
+        roots = sorted({t.root for t in self.tracks})
+        return roots[0] if roots else self.folder
+
+    def choose_folder(self, path):
+        """The folder was picked: store it and go back to the file list."""
+        sources = {os.path.abspath(t.root) for t in self.tracks}
+        if self.purpose == 'output':
+            self.options.output = path
+            self.message = 'The FLAC files go next to the originals.' if path is None else f'The FLAC files go to {path}'
+            if path is not None and os.path.abspath(path) in sources:
+                self.options.output = None
+                self.message = 'That is the music folder itself: the FLAC files go next to the originals.'
+            elif path is not None and any(os.path.abspath(path).startswith(root + os.sep) for root in sources):
+                self.message += ' (inside the music folder: Dopamine will also find these)'
+        elif self.purpose == 'originals':
+            if os.path.abspath(path) in sources:
+                self.message = 'The originals cannot be moved into the music folder itself. Pick another folder.'
+                return
+            self.options.originals = f'move:{path}'
+            self.message = f'Originals are moved to {path} after their FLAC is verified.'
+        self.leave_browser()
+
+    def leave_browser(self):
+        self.purpose = 'source'
+        self.mode = 'list'
+        self.cursor = getattr(self, 'return_cursor', 0)
+        self.top = 0
 
     def status_text(self, track):
         return {
@@ -486,6 +564,8 @@ class Interface:
         self.put(y, 0, f' [{"█" * filled}{"░" * (bar_width - filled)}] {finished}/{len(jobs)}  {elapsed:.0f}s', self.color(4))
 
     def help_text(self):
+        if self.mode == 'browse' and self.purpose != 'source':
+            return ' ↑↓ move  enter open  ← back  s use this folder  m new folder  g type a path  q cancel'
         if self.mode == 'browse':
             return ' ↑↓ move  enter open  ← back  s search this folder  g type a path  q quit'
         if self.mode == 'list':
@@ -538,6 +618,10 @@ class Interface:
                     self.cancel.set()
                     self.message = 'Stopping after the files that are being converted…'
                 continue
+            if key in (ord('q'), ord('Q'), 27) and self.mode == 'browse' and self.purpose != 'source':
+                self.message = 'Nothing changed.'
+                self.leave_browser()
+                continue
             if key in (ord('q'), ord('Q'), 27):
                 if self.mode in ('finished', 'browse') or self.ask('Quit? (y/n)', 'n').lower().startswith('y'):
                     return
@@ -579,14 +663,13 @@ class Interface:
             for t in self.tracks:
                 t.selected = False
         elif key in (ord('o'), ord('O')):
-            answer = self.ask('Output folder (empty = next to the originals):', '')
-            self.options.output = os.path.abspath(os.path.expanduser(answer)) if answer else None
+            self.pick_folder('output')
         elif key in (ord('r'), ord('R')):
             current = 'move' if self.options.originals.startswith('move:') else self.options.originals
             mode = ORIGINAL_MODES[(ORIGINAL_MODES.index(current) + 1) % len(ORIGINAL_MODES)]
             if mode == 'move':
-                folder = self.ask('Move the originals to which folder?', '')
-                self.options.originals = f'move:{os.path.abspath(os.path.expanduser(folder))}' if folder else 'keep'
+                self.options.originals = 'keep'  # until a folder is picked
+                self.pick_folder('originals')
             elif mode == 'delete':
                 sure = self.ask('Delete each original after its FLAC is verified? Type delete to confirm:', '')
                 self.options.originals = 'delete' if sure == 'delete' else 'keep'

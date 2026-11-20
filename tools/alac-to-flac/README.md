@@ -32,8 +32,8 @@ Then a list of the `.m4a` files appears, with what each one is (for example "ALA
 | ↑ ↓, Page Up/Down | move |
 | space | choose or unchoose a file |
 | a / n | choose all / none |
-| o | output folder (empty: next to the originals) |
-| r | what to do with the originals after a verified conversion: keep, move to a folder, or delete |
+| o | pick the output folder in the folder browser (or "Next to the originals"); `m` there makes a new folder |
+| r | what to do with the originals after a verified conversion: keep, move to a folder (picked in the browser), or delete |
 | e | replace FLAC files that already exist, or skip them |
 | + / - | how many files at the same time |
 | b | back to the folders |

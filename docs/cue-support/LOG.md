@@ -345,3 +345,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-20** · `Fixed` · alac2flac: always opens the text interface, starting with a folder browser
     - Started without a folder (or in one without .m4a files) it quit with 'No .m4a files found'. Now: browser (enter/←, s search here, g type a path), search runs in the background, b goes back from the file list. Batch mode only with --yes/--dry-run or without a terminal.
+
+- **2026-11-20** · `Added` · alac2flac: output folder and originals folder picked in the folder browser
+    - o opens the browser for the output folder (Use this folder / Next to the originals / m new folder); r -> move does the same for the originals. The music folder itself is refused for originals and means 'next to the originals' for output; a folder inside the music folder gets a warning (Dopamine would see both). Long paths show their end.

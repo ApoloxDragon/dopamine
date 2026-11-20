@@ -388,6 +388,99 @@ class InterfaceTest(unittest.TestCase):
         self.assertEqual(ui.folder, '/')
         self.assertIn('Cannot open', ui.message)
 
+    def list_ui(self, root):
+        song = os.path.join(root, 'music', 'a.m4a')
+        os.makedirs(os.path.dirname(song), exist_ok=True)
+        open(song, 'w').close()
+        track = alac2flac.Track(song, os.path.join(root, 'music'))
+        track.codec, track.status = 'alac', 'ready'
+        screen = self.Screen(30, 120)
+        patches = [mock.patch.object(alac2flac.curses, 'color_pair', return_value=0), mock.patch.object(alac2flac.curses, 'has_colors', return_value=False)]
+        for patch in patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+        return alac2flac.Interface(screen, [track], options()), screen
+
+    def test_output_folder_is_picked_in_the_browser(self):
+        root = tempfile.mkdtemp(prefix='alac2flac-out-')
+        os.makedirs(os.path.join(root, 'flac'))
+        ui, screen = self.list_ui(root)
+
+        ui.list_key(ord('o'))
+        self.assertEqual((ui.mode, ui.purpose), ('browse', 'output'))
+        self.assertEqual([e[0] for e in ui.entries][:2], ['choose', 'beside'])
+        ui.open_folder(os.path.join(root, 'flac'))
+        ui.browse_key(10)  # Enter on "Use this folder"
+        ui.draw()
+
+        self.assertEqual(ui.mode, 'list')
+        self.assertEqual(ui.options.output, os.path.join(root, 'flac'))
+        self.assertIn(os.path.join(root, 'flac'), screen.lines[2])
+
+    def test_output_can_go_back_to_next_to_the_originals_and_cancel_changes_nothing(self):
+        ui, _ = self.list_ui(tempfile.mkdtemp(prefix='alac2flac-out-'))
+        ui.options.output = '/somewhere'
+
+        ui.pick_folder('output')
+        ui.cursor = 1  # "Next to the originals"
+        ui.browse_key(10)
+        self.assertIsNone(ui.options.output)
+
+        ui.options.output = '/kept'
+        ui.pick_folder('output')
+        self.assertEqual(ui.mode, 'browse')
+        ui.leave_browser()
+        self.assertEqual(ui.options.output, '/kept')
+
+    def test_picking_the_music_folder_itself_or_a_folder_inside_it(self):
+        root = tempfile.mkdtemp(prefix='alac2flac-out-')
+        ui, _ = self.list_ui(root)
+        music = os.path.join(root, 'music')
+
+        ui.pick_folder('output')
+        ui.choose_folder(music)
+        self.assertIsNone(ui.options.output)
+        self.assertIn('music folder itself', ui.message)
+
+        os.makedirs(os.path.join(music, 'flac'))
+        ui.pick_folder('output')
+        ui.choose_folder(os.path.join(music, 'flac'))
+        self.assertIn('Dopamine will also find', ui.message)
+
+        ui.pick_folder('originals')
+        ui.choose_folder(music)
+        self.assertEqual(ui.mode, 'browse', 'moving originals into the music folder is refused')
+        self.assertEqual(ui.options.originals, 'keep')
+
+    def test_originals_folder_is_picked_in_the_browser_and_new_folders_can_be_made(self):
+        root = tempfile.mkdtemp(prefix='alac2flac-out-')
+        ui, _ = self.list_ui(root)
+
+        ui.list_key(ord('r'))  # keep -> move: opens the browser
+        self.assertEqual(ui.purpose, 'originals')
+        ui.open_folder(root)
+        with mock.patch.object(ui, 'ask', return_value='alac backup 🍺'):
+            ui.browse_key(ord('m'))
+        self.assertTrue(os.path.isdir(os.path.join(root, 'alac backup 🍺')))
+        ui.browse_key(ord('s'))
+
+        self.assertEqual(ui.options.originals, 'move:' + os.path.join(root, 'alac backup 🍺'))
+        self.assertEqual(ui.mode, 'list')
+
+    def test_long_paths_keep_their_end(self):
+        self.assertEqual(alac2flac.short_path('/a/' + 'x' * 100 + '/FLAC rips', 20), '…' + ('x' * 100 + '/FLAC rips')[-19:])
+        self.assertEqual(alac2flac.short_path(os.path.expanduser('~') + '/Music', 50), '~/Music')
+        self.assertEqual(alac2flac.short_path(os.path.expanduser('~') + 'other', 50), os.path.expanduser('~') + 'other')
+
+    def test_a_new_folder_that_cannot_be_made_only_gives_a_message(self):
+        ui, _ = self.list_ui(tempfile.mkdtemp(prefix='alac2flac-out-'))
+        ui.pick_folder('output')
+        with mock.patch.object(ui, 'ask', return_value='x'), mock.patch.object(alac2flac.os, 'makedirs', side_effect=OSError(13, 'Permission denied')):
+            ui.browse_key(ord('m'))
+
+        self.assertIn('Cannot make', ui.message)
+        self.assertEqual(ui.mode, 'browse')
+
     def test_searching_a_folder_without_music_stays_in_the_browser(self):
         root = tempfile.mkdtemp(prefix='alac2flac-browse-')
         ui, _ = self.browser(root)
