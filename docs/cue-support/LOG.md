@@ -326,3 +326,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-19** · `Note` · Plans: docs/3.4.0-plan.md (everything up to date) and D19 (album details from a dopamine.json file)
     - npm outdated: 47 direct packages a major behind (Angular 16→22, Electron 38→45, TypeScript 4.9, RxJS 6). npm audit: 88 advisories (high 41, critical 0).
+
+- **2026-11-20** · `Note` · Plan for following official Dopamine: docs/upstream-sync-plan.md, tool scripts/dev/upstream-diff.sh
+    - master stays an exact copy of upstream; each upstream release is merged through a sync/upstream-<version> branch. Biggest risk: migration numbers (ours are 15-17); upstream's new ones get the next free numbers and must be safe to re-run.
