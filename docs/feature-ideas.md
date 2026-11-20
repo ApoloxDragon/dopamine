@@ -5,7 +5,10 @@ no streaming service, no social feed. Everything stays on the computer and can b
 
 ## 3.3.1 candidate: liking songs, albums and artists
 
-Dopamine already has "love" for songs (heart, stored in `Track.Love`) and star ratings. Plan:
+Dopamine already has "love" for songs (a heart, off by default: Settings, Behavior, "Show 'Love'") and star ratings. Plan:
+- Replace the heart with **like / dislike** (thumbs up / down), shown by default. Star ratings stay as they are.
+  `Track.Love` keeps working: 1 = liked, -1 = disliked (new), 0 = neither, so existing hearts become likes.
+- Disliked songs can be skipped in shuffle and smart playlists (an option, off by default).
 - Like albums and artists too (heart on the album and artist pages and in their right-click menu).
 - A "Liked" section in the collection: liked songs, albums and artists, each sortable, playable as a whole.
 - Liked songs as an automatic playlist ("Liked songs"), like Spotify.
