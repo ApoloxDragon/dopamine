@@ -57,7 +57,10 @@ Fit well:
   `Artist/Year - Album/NN Title` (the alac2flac layout) from inside the app.
 - **Auto-tagging from MusicBrainz** (and cover lookup there), for CD rips and Bandcamp downloads with thin tags.
 - **Headphone crossfeed** (a small DSP next to the equalizer) and a **ReplayGain album mode** switch.
-- **Bit-perfect output** where the system allows it (exclusive mode on Windows, direct ALSA device on Linux).
+- **Bit-perfect output:** today Chromium's audio engine resamples and mixes in float, and the equalizer, volume and fades
+  change samples, so nothing is bit-perfect yet. Needs a native output path that bypasses Chromium, plus a "bit-perfect"
+  switch that turns off the equalizer, volume and fades. Linux first (direct ALSA device, or PipeWire following the
+  file's sample rate); Windows (WASAPI exclusive) and macOS (CoreAudio hog mode) later. High effort.
 - **Waveform seek bar** (optional) and **A-B repeat** for a part of a song.
 - **Resume position** per long track or audiobook-like files.
 - **Web remote:** control playback from a phone on the same network (off by default, local only).
