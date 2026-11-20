@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import alac2flac  # noqa: E402
 
 
-def make_audio(path, codec='alac', bits=16, rate=44100, channels=2, seconds=1, cover=True, title='Song'):
+def make_audio(path, codec='alac', bits=16, rate=44100, channels=2, seconds=1, cover=True, title='Song', tags=None):
     sample_format = {16: 's16p', 24: 's32p'}[bits] if codec == 'alac' else 'fltp'
     command = ['ffmpeg', '-v', 'error', '-y', '-f', 'lavfi', '-i', f'anoisesrc=d={seconds}:c=pink:a=0.5:r={rate}']
     if cover:
@@ -29,8 +29,13 @@ def make_audio(path, codec='alac', bits=16, rate=44100, channels=2, seconds=1, c
     command += ['-map', '0:a', '-ac', str(channels), '-c:a', codec, '-sample_fmt', sample_format, '-ar', str(rate)]
     if cover:
         command += ['-map', '1:v', '-c:v', 'copy', '-disposition:v', 'attached_pic']
-    command += ['-metadata', f'title={title}', '-metadata', 'artist=Band', '-metadata', 'album=Album', '-metadata', 'track=3/10',
-                '-metadata', 'date=1970', '-metadata', 'album_artist=Band', 'file:' + path]
+    values = {'title': title, 'artist': 'Band', 'album': 'Album', 'track': '3/10', 'date': '1970', 'album_artist': 'Band'}
+    if tags is not None:
+        values = tags
+    for key, value in values.items():
+        command += ['-metadata', f'{key}={value}']
+    command += ['file:' + path]
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     subprocess.run(command, check=True)
     return path
 
@@ -53,7 +58,7 @@ def info(path):
 
 
 def options(**changes):
-    values = dict(output=None, originals='keep', overwrite=False, jobs=2, compression=8, yes=True, dry_run=False, log_dir=None, paths=[])
+    values = dict(output=None, layout='folders', originals='keep', overwrite=False, jobs=2, compression=8, yes=True, dry_run=False, log_dir=None, paths=[])
     values.update(changes)
     return types.SimpleNamespace(**values)
 
@@ -302,6 +307,90 @@ class AlacToFlacTest(unittest.TestCase):
         self.assertEqual({t.status for t in tracks}, {'done'})
 
 
+class TagLayoutTest(unittest.TestCase):
+    """Sorting the FLAC files into Artist/Album (Year)/NN Title.flac from their tags."""
+
+    def track(self, path='/music/x/file name.m4a', **tags):
+        track = alac2flac.Track(path, '/music')
+        track.codec, track.tags = 'alac', {k.lower(): v for k, v in tags.items()}
+        return track
+
+    def path(self, **tags):
+        return alac2flac.tag_path(self.track(**tags))
+
+    def test_the_usual_album(self):
+        self.assertEqual(self.path(album_artist='Black Sabbath', artist='Black Sabbath', album='Paranoid', date='1970-09-18', track='2/8', title='Paranoid'),
+                         os.path.join('Black Sabbath', 'Paranoid (1970)', '02 Paranoid.flac'))
+
+    def test_multi_disc_albums_get_the_disc_number(self):
+        self.assertEqual(self.path(artist='Amon Amarth', album='Deceiver Of The Gods', disc='2/2', track='3', title='Warriors'),
+                         os.path.join('Amon Amarth', 'Deceiver Of The Gods', '2-03 Warriors.flac'))
+        self.assertEqual(self.path(artist='A', album='B', disc='1/1', track='3', title='T'), os.path.join('A', 'B', '03 T.flac'))
+
+    def test_missing_tags_fall_back(self):
+        self.assertEqual(self.path(), os.path.join('Unknown Artist', 'Unknown Album', 'file name.flac'))
+        self.assertEqual(self.path(artist='Only Artist'), os.path.join('Only Artist', 'Unknown Album', 'file name.flac'))
+
+    # Trying to break it
+
+    def test_tags_cannot_make_paths_that_leave_the_output_folder(self):
+        for evil in ('../../../etc', '..', '.', '/etc/passwd', '\\\\server\\share', 'C:\\Windows', '~/.ssh', '....//....//'):
+            path = self.path(album_artist=evil, album=evil, title=evil)
+            self.assertEqual(os.path.normpath(path), path, evil)
+            self.assertFalse(os.path.isabs(path), evil)
+            self.assertNotIn('..', path.split(os.sep), evil)
+            self.assertEqual(len(path.split(os.sep)), 3, evil)
+
+    def test_names_that_windows_or_macos_refuse(self):
+        for name in ('CON', 'nul', 'com1.txt', 'LPT9', 'a:b*c?d"e<f>g|h', 'trailing dot.', '   spaces   ', 'tab\there', 'nul\x00byte', 'bell\x07'):
+            part = alac2flac.safe_name(name, 'X')
+            self.assertFalse(any(c in part for c in ':*?"<>|/\\\x00\x07\t'), name)
+            self.assertNotIn(part.split('.')[0].upper(), alac2flac.RESERVED_NAMES, name)
+            self.assertFalse(part.endswith(('.', ' ')), name)
+
+    def test_very_long_and_emoji_names_are_cut_on_a_character(self):
+        part = alac2flac.safe_name('🍺' * 500, 'X')
+        self.assertLessEqual(len(part.encode('utf-8')), alac2flac.MAXIMUM_NAME_BYTES)
+        part.encode('utf-8')  # still valid text
+
+    def test_odd_track_and_disc_numbers(self):
+        for value in ('abc', '-1', '', '99999999', '3.5', '1e3', None, '٣', '³', '１'):
+            name = os.path.basename(self.path(artist='A', album='B', track=value, disc=value, title='T'))
+            self.assertIn(name, ('T.flac', '01 T.flac'), value)
+
+    def test_odd_years(self):
+        for value, folder in (('١٩٧٠', 'B'), ('1970', 'B (1970)'), ('19', 'B'), ('abcd', 'B'), ('2026-11-20T10:00:00Z', 'B (2026)'), ('', 'B')):
+            self.assertEqual(self.path(artist='A', album='B', date=value).split(os.sep)[1], folder, value)
+
+    def test_two_songs_with_the_same_name_do_not_overwrite_each_other(self):
+        tracks = [self.track(f'/music/{i}.m4a', artist='A', album='B', title='Intro', track='1') for i in range(3)]
+        tracks.append(self.track('/music/x.m4a', artist='a', album='b', title='INTRO', track='1'))  # same name, other case
+
+        alac2flac.plan_targets(tracks, options(output='/out', layout='tags'))
+
+        names = [os.path.basename(t.planned) for t in tracks]
+        self.assertEqual(names, ['01 Intro.flac', '01 Intro (2).flac', '01 Intro (3).flac', '01 INTRO (4).flac'])
+
+    def test_tags_layout_needs_an_output_folder_on_the_command_line(self):
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            alac2flac.parse_arguments(['--layout', 'tags'])
+        with self.assertRaises(SystemExit), contextlib.redirect_stderr(io.StringIO()):
+            alac2flac.parse_arguments(['--layout', 'lizard', '--output', '/out'])
+        self.assertEqual(alac2flac.parse_arguments(['--layout', 'tags', '--output', '/out']).layout, 'tags')
+
+    def test_real_files_end_up_sorted(self):
+        folder = tempfile.mkdtemp(prefix='alac2flac-tags-')
+        out = os.path.join(folder, 'sorted')
+        make_audio(os.path.join(folder, 'messy', 'track01.m4a'), tags={'artist': 'Band', 'album': 'Debut', 'date': '1999', 'track': '1/2', 'title': 'First'})
+        make_audio(os.path.join(folder, 'messy', 'other', 'zzz.m4a'), tags={'artist': 'Band', 'album': 'Debut', 'date': '1999', 'track': '2/2', 'title': 'Second'})
+
+        tracks = convert_folder(os.path.join(folder, 'messy'), output=out, layout='tags')
+
+        self.assertEqual({t.status for t in tracks}, {'done'}, [t.message for t in tracks])
+        self.assertEqual(sorted(os.listdir(os.path.join(out, 'Band', 'Debut (1999)'))), ['01 First.flac', '02 Second.flac'])
+        subprocess.run(['rm', '-rf', '--', folder], check=False)
+
+
 class InterfaceTest(unittest.TestCase):
     """The text interface draws without errors at odd sizes and with odd names (no real terminal needed)."""
 
@@ -471,6 +560,26 @@ class InterfaceTest(unittest.TestCase):
         self.assertEqual(alac2flac.short_path('/a/' + 'x' * 100 + '/FLAC rips', 20), '…' + ('x' * 100 + '/FLAC rips')[-19:])
         self.assertEqual(alac2flac.short_path(os.path.expanduser('~') + '/Music', 50), '~/Music')
         self.assertEqual(alac2flac.short_path(os.path.expanduser('~') + 'other', 50), os.path.expanduser('~') + 'other')
+
+    def test_layout_key_asks_for_an_output_folder_and_cancel_goes_back(self):
+        ui, screen = self.list_ui(tempfile.mkdtemp(prefix='alac2flac-out-'))
+
+        ui.list_key(ord('l'))
+        self.assertEqual((ui.mode, ui.purpose, ui.options.layout), ('browse', 'output', 'tags'))
+        ui.cancel_browser()
+
+        self.assertEqual(ui.options.layout, 'folders')
+
+    def test_layout_shows_where_the_current_song_goes(self):
+        root = tempfile.mkdtemp(prefix='alac2flac-out-')
+        ui, screen = self.list_ui(root)
+        ui.tracks[0].tags = {'artist': 'Band', 'album': 'Debut', 'track': '1', 'title': 'First'}
+        ui.options.output, ui.options.layout = os.path.join(root, 'out'), 'tags'
+
+        ui.draw()
+
+        self.assertIn('Artist/Album from tags', screen.lines[2])
+        self.assertIn('→ ' + os.path.join('Band', 'Debut', '01 First.flac'), ''.join(screen.lines.values()))
 
     def test_a_new_folder_that_cannot_be_made_only_gives_a_message(self):
         ui, _ = self.list_ui(tempfile.mkdtemp(prefix='alac2flac-out-'))

@@ -60,6 +60,8 @@ class Track:
         self.status = 'waiting'  # waiting, probing, ready, skip, working, done, failed, exists
         self.message = ''
         self.output = None
+        self.tags = {}  # lower-case tag name -> value (title, artist, album_artist, album, date, track, disc)
+        self.planned = None  # target chosen before converting (layouts that can give two songs the same name)
 
     @property
     def is_alac(self):
@@ -128,11 +130,14 @@ def probe(track):
         track.size = os.path.getsize(track.path)
         result = subprocess.run(
             ['ffprobe', '-v', 'error', '-select_streams', 'a:0', '-show_entries',
-             'stream=codec_name,sample_fmt,bits_per_raw_sample,bits_per_sample,sample_rate,channels', '-of', 'json',
+             'stream=codec_name,sample_fmt,bits_per_raw_sample,bits_per_sample,sample_rate,channels:format_tags', '-of', 'json',
              ffmpeg_path(track.path)],
             capture_output=True, timeout=PROBE_TIMEOUT, check=False,
         )
-        streams = json.loads(result.stdout or b'{}').get('streams') or []
+        data = json.loads(result.stdout or b'{}')
+        streams = data.get('streams') or []
+        tags = (data.get('format') or {}).get('tags') or {}
+        track.tags = {str(k).lower(): str(v) for k, v in tags.items() if isinstance(v, (str, int, float))}
         if not streams:
             track.codec = 'none'
             track.status = 'skip'
@@ -159,12 +164,81 @@ def probe(track):
         track.message = f'cannot read: {error}'
 
 
-def output_path(track, output_dir):
+LAYOUTS = ('folders', 'tags')
+FALLBACK_ARTIST, FALLBACK_ALBUM = 'Unknown Artist', 'Unknown Album'
+RESERVED_NAMES = {'CON', 'PRN', 'AUX', 'NUL', *(f'COM{i}' for i in range(1, 10)), *(f'LPT{i}' for i in range(1, 10))}
+MAXIMUM_NAME_BYTES = 180
+
+
+def safe_name(text, fallback):
+    """A tag value as one file or folder name that works on Linux, Windows and macOS. Never a path: '/', '..' and the
+    like cannot leave the output folder."""
+    text = ''.join(c for c in str(text or '') if ord(c) >= 32 and c != '\x7f')
+    for c in '/\\':
+        text = text.replace(c, '-')
+    for c in ':*?"<>|':
+        text = text.replace(c, '_')
+    text = ' '.join(text.split()).strip(' .')
+    if not text or set(text) <= {'.', '_', '-', ' '}:
+        text = fallback
+    stem, dot, rest = text.partition('.')
+    if stem.upper() in RESERVED_NAMES:  # Windows also refuses "COM1.txt"
+        text = stem + '_' + dot + rest
+    while len(text.encode('utf-8')) > MAXIMUM_NAME_BYTES:
+        text = text[:-1]
+    return text.rstrip(' .') or fallback
+
+
+def tag_number(value):
+    """'3', '03', '3/10' -> 3; anything else -> 0."""
+    head = str(value or '').split('/')[0].strip()
+    # Only 0-9: isdigit() also accepts other scripts' digits ("٣") and superscripts ("³"), which int() may not read as meant.
+    return int(head) if head and len(head) <= 4 and all(c in '0123456789' for c in head) else 0
+
+
+def tag_path(track):
+    """Artist/Album (Year)/NN Title.flac from the tags (disc number first when the album has more than one disc)."""
+    tags = track.tags
+    artist = safe_name(tags.get('album_artist') or tags.get('albumartist') or tags.get('artist'), FALLBACK_ARTIST)
+    album = safe_name(tags.get('album'), FALLBACK_ALBUM)
+    year = str(tags.get('date') or tags.get('year') or '')[:4]
+    if len(year) == 4 and all(c in '0123456789' for c in year):
+        album = safe_name(f'{album} ({year})', FALLBACK_ALBUM)
+    title = safe_name(tags.get('title'), safe_name(os.path.splitext(os.path.basename(track.path))[0], 'Track'))
+    number = tag_number(tags.get('track'))
+    disc = tag_number(tags.get('disc'))
+    discs = tag_number(str(tags.get('disc') or '').split('/')[1] if '/' in str(tags.get('disc') or '') else '')
+    prefix = ''
+    if number:
+        prefix = f'{disc}-{number:02} ' if disc and (discs > 1 or disc > 1) else f'{number:02} '
+    name = safe_name(prefix + title, 'Track')
+    return os.path.join(artist, album, name + '.flac')
+
+
+def output_path(track, output_dir, layout='folders'):
+    if layout == 'tags' and output_dir is not None:
+        return os.path.join(os.path.abspath(output_dir), tag_path(track))
     base = os.path.splitext(os.path.basename(track.path))[0] + '.flac'
     if output_dir is None:
         return os.path.join(os.path.dirname(track.path), base)
     relative = os.path.relpath(os.path.dirname(track.path), track.root)
     return os.path.normpath(os.path.join(os.path.abspath(output_dir), relative, base))
+
+
+def plan_targets(tracks, options):
+    """Fixes every target before converting, so two songs that would get the same name get "(2)", "(3)" instead of
+    overwriting each other (with files converted at the same time, this cannot be left to chance)."""
+    used = set()
+    for track in tracks:
+        track.planned = None
+        target = output_path(track, options.output, getattr(options, 'layout', 'folders'))
+        stem, extension = os.path.splitext(target)
+        n = 2
+        while target.lower() in used:
+            target = f'{stem} ({n}){extension}'
+            n += 1
+        used.add(target.lower())
+        track.planned = target
 
 
 def audio_hash(path):
@@ -194,7 +268,7 @@ def flac_command(source, target, compression, with_cover):
 def convert(track, options, cancel=None):
     """Converts and verifies one track. Sets track.status to done, exists or failed. Never raises."""
     try:
-        target = output_path(track, options.output)
+        target = track.planned or output_path(track, options.output, getattr(options, 'layout', 'folders'))
         track.output = target
         if os.path.exists(target) and not options.overwrite:
             track.status = 'exists'
@@ -257,6 +331,7 @@ def handle_original(track, options):
 
 def run_all(tracks, options, on_change=None, cancel=None):
     todo = [t for t in tracks if t.selected and t.is_alac]
+    plan_targets(todo, options)
     for track in todo:
         track.status = 'queued'
 
@@ -299,6 +374,10 @@ def validate_options(options):
         raise SystemExit('--originals must be keep, delete or move:FOLDER')
     if options.originals.startswith('move:') and not options.originals[5:].strip():
         raise SystemExit('--originals move: needs a folder, for example move:~/alac-backup')
+    if getattr(options, 'layout', 'folders') not in LAYOUTS:
+        raise SystemExit('--layout must be folders or tags')
+    if getattr(options, 'layout', 'folders') == 'tags' and not options.output:
+        raise SystemExit('--layout tags needs --output: the sorted copy goes into its own folder, not between your originals')
     if not 0 <= options.compression <= 12:
         raise SystemExit('--compression must be between 0 and 12')
     options.jobs = max(1, min(options.jobs, 32))
@@ -368,7 +447,8 @@ class Interface:
             self.put(1, 0, info, curses.A_BOLD)
             out = 'next to the originals' if self.options.output is None else short_path(self.options.output, max(20, width // 3))
             orig = 'move to ' + short_path(self.options.originals[5:], max(20, width // 4)) if self.options.originals.startswith('move:') else self.options.originals
-            self.put(2, 0, f' Output: {out}   Originals: {orig}   Existing FLAC: {"replace" if self.options.overwrite else "skip"}   Jobs: {self.options.jobs}')
+            layout = 'Artist/Album from tags' if self.options.layout == 'tags' else 'same as source'
+            self.put(2, 0, f' Output: {out}   Folders: {layout}   Originals: {orig}   Existing FLAC: {"replace" if self.options.overwrite else "skip"}   Jobs: {self.options.jobs}')
 
             list_top, list_height = 4, height - 7
             if self.mode == 'list':
@@ -391,7 +471,13 @@ class Interface:
 
             if self.mode != 'list':
                 self.draw_progress(height - 3, width)
-            self.put(height - 2, 0, ' ' + self.message)
+            message = self.message
+            if not message and self.mode == 'list' and self.tracks and self.options.output:
+                track = self.tracks[self.cursor]
+                if track.is_alac:
+                    target = output_path(track, self.options.output, self.options.layout)
+                    message = '→ ' + os.path.relpath(target, self.options.output)
+            self.put(height - 2, 0, ' ' + message)
             self.put(height - 1, 0, self.help_text().ljust(width), curses.A_REVERSE)
             self.screen.refresh()
 
@@ -402,7 +488,10 @@ class Interface:
     }
 
     def draw_browser(self, height, width):
-        self.put(1, 0, self.BROWSER_TITLES[self.purpose], curses.A_BOLD)
+        title = self.BROWSER_TITLES[self.purpose]
+        if self.purpose == 'output' and self.options.layout == 'tags':
+            title = ' Pick the folder for the FLAC files (Artist / Album folders are made inside it, from the tags).'
+        self.put(1, 0, title, curses.A_BOLD)
         self.put(2, 0, f' {short_path(self.folder, width - 3)}', self.color(4))
         list_top, list_height = 4, height - 7
         self.cursor = max(0, min(self.cursor, len(self.entries) - 1))
@@ -521,6 +610,8 @@ class Interface:
         """The folder was picked: store it and go back to the file list."""
         sources = {os.path.abspath(t.root) for t in self.tracks}
         if self.purpose == 'output':
+            if path is None and self.options.layout == 'tags':
+                self.options.layout = 'folders'
             self.options.output = path
             self.message = 'The FLAC files go next to the originals.' if path is None else f'The FLAC files go to {path}'
             if path is not None and os.path.abspath(path) in sources:
@@ -534,6 +625,13 @@ class Interface:
                 return
             self.options.originals = f'move:{path}'
             self.message = f'Originals are moved to {path} after their FLAC is verified.'
+        self.leave_browser()
+
+    def cancel_browser(self):
+        self.message = 'Nothing changed.'
+        if self.options.layout == 'tags' and self.options.output is None:
+            self.options.layout = 'folders'
+            self.message = 'No output folder picked: folders stay the same as in the source.'
         self.leave_browser()
 
     def leave_browser(self):
@@ -569,7 +667,7 @@ class Interface:
         if self.mode == 'browse':
             return ' ↑↓ move  enter open  ← back  s search this folder  g type a path  q quit'
         if self.mode == 'list':
-            return ' ↑↓ move  space choose  a all  n none  o output  r originals  e existing  +/- jobs  b folders  enter convert  q quit'
+            return ' ↑↓ move  space choose  a all  n none  o output  l layout  r originals  e existing  +/- jobs  b folders  enter convert  q quit'
         if self.mode == 'running':
             return ' Converting… press c to stop after the files that are being converted'
         return ' Done. ↑↓ scroll through the results, f show failed, q quit'
@@ -619,8 +717,7 @@ class Interface:
                     self.message = 'Stopping after the files that are being converted…'
                 continue
             if key in (ord('q'), ord('Q'), 27) and self.mode == 'browse' and self.purpose != 'source':
-                self.message = 'Nothing changed.'
-                self.leave_browser()
+                self.cancel_browser()
                 continue
             if key in (ord('q'), ord('Q'), 27):
                 if self.mode in ('finished', 'browse') or self.ask('Quit? (y/n)', 'n').lower().startswith('y'):
@@ -677,6 +774,16 @@ class Interface:
                 self.options.originals = 'keep'
         elif key in (ord('e'), ord('E')):
             self.options.overwrite = not self.options.overwrite
+        elif key in (ord('l'), ord('L')):
+            if self.options.layout == 'tags':
+                self.options.layout = 'folders'
+                self.message = 'Folders: the same as in the source folder.'
+            else:
+                self.options.layout = 'tags'
+                self.message = 'Folders: Artist / Album (Year) / NN Title, from the tags.'
+                if self.options.output is None:
+                    self.pick_folder('output')
+                    self.message = 'Sorting by tags needs its own output folder: pick one.'
         elif key == ord('+'):
             self.options.jobs = min(32, self.options.jobs + 1)
         elif key == ord('-'):
@@ -727,6 +834,7 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser(prog='alac2flac', description='Convert Apple Lossless (.m4a) to FLAC, bit-perfect and verified.')
     parser.add_argument('paths', nargs='*', help='folders or files (none: pick a folder in the interface; batch mode: the current folder)')
     parser.add_argument('--output', help='write FLAC files into this folder instead of next to the originals')
+    parser.add_argument('--layout', default='folders', help='folders: the same subfolders as the source (default); tags: Artist/Album (Year)/NN Title.flac from the tags')
     parser.add_argument('--originals', default='keep', help='keep (default), move:FOLDER or delete, after a verified conversion')
     parser.add_argument('--overwrite', action='store_true', help='replace FLAC files that already exist')
     parser.add_argument('--jobs', type=int, default=min(8, os.cpu_count() or 2), help='files at the same time')
@@ -749,8 +857,11 @@ def run_without_interface(tracks, options):
     for track in tracks:
         if not track.is_alac:
             print(f'  skip  {track.path}  ({track.message})')
-        elif options.dry_run:
-            print(f'  would convert  {track.path}  ->  {output_path(track, options.output)}')
+    if options.dry_run:
+        plan_targets(alac, options)
+    for track in alac:
+        if options.dry_run:
+            print(f'  would convert  {track.path}  ->  {track.planned}')
     if options.dry_run or not alac:
         return 0
 

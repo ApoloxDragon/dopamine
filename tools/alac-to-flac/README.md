@@ -33,6 +33,7 @@ Then a list of the `.m4a` files appears, with what each one is (for example "ALA
 | space | choose or unchoose a file |
 | a / n | choose all / none |
 | o | pick the output folder in the folder browser (or "Next to the originals"); `m` there makes a new folder |
+| l | layout: the same subfolders as the source, or sorted by the tags into `Artist/Album (Year)/01 Title.flac` (needs an output folder) |
 | r | what to do with the originals after a verified conversion: keep, move to a folder (picked in the browser), or delete |
 | e | replace FLAC files that already exist, or skip them |
 | + / - | how many files at the same time |
@@ -57,7 +58,7 @@ python3 tools/alac-to-flac/alac2flac.py ~/Music --dry-run
 python3 tools/alac-to-flac/alac2flac.py ~/Music --yes --originals move:~/alac-backup
 ```
 
-Options: `--output DIR`, `--originals keep|move:DIR|delete`, `--overwrite`, `--jobs N`, `--compression 0-12`
+Options: `--output DIR`, `--layout folders|tags` (tags needs `--output`), `--originals keep|move:DIR|delete`, `--overwrite`, `--jobs N`, `--compression 0-12`
 (only size and speed, never the sound), `--log-dir DIR`. The exit code is 1 when a file failed.
 
 ## Safety

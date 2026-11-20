@@ -348,3 +348,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-20** · `Added` · alac2flac: output folder and originals folder picked in the folder browser
     - o opens the browser for the output folder (Use this folder / Next to the originals / m new folder); r -> move does the same for the originals. The music folder itself is refused for originals and means 'next to the originals' for output; a folder inside the music folder gets a warning (Dopamine would see both). Long paths show their end.
+
+- **2026-11-20** · `Added` · alac2flac: sort into Artist/Album (Year)/NN Title.flac from the tags (l key, --layout tags)
+    - Needs an output folder (asked for in the browser; cancelling switches back). Names are made safe: no path separators or '..', Windows-reserved names and characters, 180-byte limit cut on a character. Targets are planned before converting so equal names get (2), (3) (case-insensitive).
+    - Torture tests found: Arabic-Indic and superscript digits passed isdigit() as track numbers; 'com1.txt' is still reserved on Windows. Both fixed.
