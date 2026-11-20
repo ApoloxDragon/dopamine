@@ -9,7 +9,8 @@ FLAC would only make them bigger.
 
 Needs ffmpeg and ffprobe (any recent version). Python 3.8+, standard library only.
 
-  alac2flac.py [FOLDER or FILE ...]            text interface (in a terminal)
+  alac2flac.py                                 text interface: pick a folder, choose files, convert
+  alac2flac.py [FOLDER or FILE ...]            text interface, starting with those files
   alac2flac.py FOLDER --yes [options]          no interface: convert and print a summary (for scripts)
   alac2flac.py FOLDER --dry-run                show what would happen, change nothing
 
@@ -301,14 +302,20 @@ ORIGINAL_MODES = ['keep', 'move', 'delete']
 
 
 class Interface:
-    def __init__(self, screen, tracks, options):
+    def __init__(self, screen, tracks, options, folder=None, message=''):
         self.screen = screen
         self.tracks = tracks
         self.options = options
         self.cursor = 0
         self.top = 0
-        self.mode = 'list'  # list, running, finished
-        self.message = ''
+        # browse (pick a folder), list (choose files), running, finished
+        self.mode = 'list' if tracks else 'browse'
+        self.message = message
+        self.folder = os.path.abspath(os.path.expanduser(folder or os.getcwd()))
+        self.entries = []
+        self.searching = False
+        if self.mode == 'browse':
+            self.open_folder(self.folder)
         self.lock = threading.Lock()
         self.cancel = threading.Event()
         self.started = None
@@ -335,6 +342,12 @@ class Interface:
                 self.screen.refresh()
                 return
             self.put(0, 0, ' ALAC → FLAC  ·  bit-perfect, verified  ·  offline '.ljust(width), curses.A_REVERSE | curses.A_BOLD)
+            if self.mode == 'browse':
+                self.draw_browser(height, width)
+                self.put(height - 2, 0, ' ' + self.message)
+                self.put(height - 1, 0, self.help_text().ljust(width), curses.A_REVERSE)
+                self.screen.refresh()
+                return
             alac = [t for t in self.tracks if t.is_alac]
             chosen = [t for t in alac if t.selected]
             probing = sum(1 for t in self.tracks if t.codec is None)
@@ -371,6 +384,86 @@ class Interface:
             self.put(height - 1, 0, self.help_text().ljust(width), curses.A_REVERSE)
             self.screen.refresh()
 
+    def draw_browser(self, height, width):
+        self.put(1, 0, ' Pick the folder with your Apple Lossless (.m4a) music. Subfolders are searched too.', curses.A_BOLD)
+        self.put(2, 0, f' {self.folder}', self.color(4))
+        list_top, list_height = 4, height - 7
+        self.cursor = max(0, min(self.cursor, len(self.entries) - 1))
+        if self.cursor < self.top:
+            self.top = self.cursor
+        if self.cursor >= self.top + list_height:
+            self.top = self.cursor - list_height + 1
+        for row, (kind, label, _) in enumerate(self.entries[self.top:self.top + list_height]):
+            index = self.top + row
+            text = {'search': f' ▶ {label}', 'up': '  ↑ .. (parent folder)', 'dir': f'  ▸ {label}/'}[kind]
+            attribute = curses.A_BOLD if kind == 'search' else 0
+            if index == self.cursor:
+                attribute |= curses.A_REVERSE
+            self.put(list_top + row, 0, text.ljust(width - 1), attribute)
+
+    def open_folder(self, folder):
+        """Shows a folder in the browser: a 'search here' line, the parent, then the subfolders."""
+        folder = os.path.abspath(os.path.expanduser(folder))
+        try:
+            names = sorted(os.listdir(folder), key=str.lower)
+        except OSError as error:
+            self.message = f'Cannot open {folder}: {error.strerror or error}'
+            return
+        here = sum(1 for n in names if n.lower().endswith(AUDIO_EXTENSIONS))
+        subfolders = [n for n in names if not n.startswith('.') and os.path.isdir(os.path.join(folder, n))]
+        self.folder = folder
+        label = f'Search this folder ({here} .m4a here' + (', and its subfolders)' if subfolders else ')')
+        self.entries = [('search', label, folder)]
+        if os.path.dirname(folder) != folder:
+            self.entries.append(('up', '..', os.path.dirname(folder)))
+        self.entries += [('dir', n, os.path.join(folder, n)) for n in subfolders]
+        self.cursor, self.top = 0, 0
+
+    def search(self, folder):
+        if self.searching:
+            return
+        self.searching = True
+        self.message = f'Searching {folder} …'
+
+        def worker():
+            found = find_files([folder])
+            self.searching = False
+            if not found:
+                self.message = f'No .m4a files in {folder} or its subfolders. Pick another folder.'
+                return
+            with self.lock:
+                self.tracks = found
+                self.cursor, self.top = 0, 0
+                self.mode = 'list'
+                self.message = ''
+            threading.Thread(target=self.probe_all, daemon=True).start()
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def browse_key(self, key):
+        if key in (curses.KEY_UP, ord('k')):
+            self.cursor = max(0, self.cursor - 1)
+        elif key in (curses.KEY_DOWN, ord('j')):
+            self.cursor = min(len(self.entries) - 1, self.cursor + 1)
+        elif key == curses.KEY_PPAGE:
+            self.cursor = max(0, self.cursor - 10)
+        elif key == curses.KEY_NPAGE:
+            self.cursor = min(len(self.entries) - 1, self.cursor + 10)
+        elif key in (curses.KEY_BACKSPACE, 127, 8, curses.KEY_LEFT, ord('h')):
+            self.open_folder(os.path.dirname(self.folder))
+        elif key in (10, 13, curses.KEY_ENTER, curses.KEY_RIGHT, ord('l')) and self.entries:
+            kind, _, path = self.entries[self.cursor]
+            if kind == 'search':
+                self.search(path)
+            else:
+                self.open_folder(path)
+        elif key in (ord('s'), ord('S')):
+            self.search(self.folder)
+        elif key in (ord('g'), ord('G'), ord('~'), ord('/')):
+            typed = self.ask('Go to folder:', '')
+            if typed:
+                self.open_folder(typed)
+
     def status_text(self, track):
         return {
             'waiting': ('', 0),
@@ -393,8 +486,10 @@ class Interface:
         self.put(y, 0, f' [{"█" * filled}{"░" * (bar_width - filled)}] {finished}/{len(jobs)}  {elapsed:.0f}s', self.color(4))
 
     def help_text(self):
+        if self.mode == 'browse':
+            return ' ↑↓ move  enter open  ← back  s search this folder  g type a path  q quit'
         if self.mode == 'list':
-            return ' ↑↓ move  space choose  a all  n none  o output  r originals  e existing  +/- jobs  enter convert  q quit'
+            return ' ↑↓ move  space choose  a all  n none  o output  r originals  e existing  +/- jobs  b folders  enter convert  q quit'
         if self.mode == 'running':
             return ' Converting… press c to stop after the files that are being converted'
         return ' Done. ↑↓ scroll through the results, f show failed, q quit'
@@ -428,7 +523,8 @@ class Interface:
                 curses.init_pair(n, c, -1)
         self.screen.timeout(150)
 
-        threading.Thread(target=self.probe_all, daemon=True).start()
+        if self.tracks:
+            threading.Thread(target=self.probe_all, daemon=True).start()
 
         while True:
             self.draw()
@@ -443,8 +539,11 @@ class Interface:
                     self.message = 'Stopping after the files that are being converted…'
                 continue
             if key in (ord('q'), ord('Q'), 27):
-                if self.mode == 'finished' or self.ask('Quit? (y/n)', 'n').lower().startswith('y'):
+                if self.mode in ('finished', 'browse') or self.ask('Quit? (y/n)', 'n').lower().startswith('y'):
                     return
+                continue
+            if self.mode == 'browse':
+                self.browse_key(key)
                 continue
             if key in (curses.KEY_UP, ord('k')):
                 self.cursor = max(0, self.cursor - 1)
@@ -501,6 +600,10 @@ class Interface:
             self.options.jobs = max(1, self.options.jobs - 1)
         elif key in (10, 13, curses.KEY_ENTER):
             self.start()
+        elif key in (ord('b'), ord('B')):
+            self.mode = 'browse'
+            self.message = ''
+            self.open_folder(self.folder)
         if track is not None and key == ord('?'):
             self.message = track.message
 
@@ -539,7 +642,7 @@ class Interface:
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser(prog='alac2flac', description='Convert Apple Lossless (.m4a) to FLAC, bit-perfect and verified.')
-    parser.add_argument('paths', nargs='*', default=['.'], help='folders or files (default: the current folder)')
+    parser.add_argument('paths', nargs='*', help='folders or files (none: pick a folder in the interface; batch mode: the current folder)')
     parser.add_argument('--output', help='write FLAC files into this folder instead of next to the originals')
     parser.add_argument('--originals', default='keep', help='keep (default), move:FOLDER or delete, after a verified conversion')
     parser.add_argument('--overwrite', action='store_true', help='replace FLAC files that already exist')
@@ -588,20 +691,29 @@ def run_without_interface(tracks, options):
 def main(argv=None):
     options = parse_arguments(sys.argv[1:] if argv is None else argv)
     check_tools()
-    tracks = find_files(options.paths)
-    if not tracks:
-        print('No .m4a files found.')
-        return 0
-    if options.yes or options.dry_run or not sys.stdout.isatty():
+    interactive = sys.stdin.isatty() and sys.stdout.isatty() and not options.yes and not options.dry_run
+
+    if not interactive:
         if not options.yes and not options.dry_run:
             options.dry_run = True
             print('No terminal: showing what would be done. Add --yes to convert.')
+        paths = options.paths or ['.']
+        tracks = find_files(paths)
+        if not tracks:
+            print(f"No .m4a files in {', '.join(os.path.abspath(p) for p in paths)} (subfolders included).")
+            return 0
         return run_without_interface(tracks, options)
+
+    # The text interface: with a folder, its files; without one (or when it has no .m4a files), the folder browser.
+    tracks = find_files(options.paths) if options.paths else []
+    folder = options.paths[0] if options.paths and os.path.isdir(os.path.expanduser(options.paths[0])) else None
+    message = '' if tracks or not options.paths else 'No .m4a files there. Pick another folder.'
     locale.setlocale(locale.LC_ALL, '')
-    curses.wrapper(lambda screen: Interface(screen, tracks, options).run())
-    done = summary(tracks)
+    interface = {}
+    curses.wrapper(lambda screen: interface.setdefault('ui', Interface(screen, tracks, options, folder, message)).run())
+    done = summary(interface['ui'].tracks) if 'ui' in interface else {}
     print(', '.join(f'{n} {k}' for k, n in done.items() if n) or 'Nothing converted.')
-    return 1 if done['failed'] else 0
+    return 1 if done.get('failed') else 0
 
 
 if __name__ == '__main__':

@@ -342,3 +342,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-20** · `Tooling` · tools/alac-to-flac: bit-perfect ALAC to FLAC converter with a curses interface
     - ffmpeg converts (tags, cover, bit depth kept); every file is verified by SHA-256 of the decoded samples at s32 (a 16-bit check would miss 24-bit differences; a test flips the lowest 24-bit bit). Written to a temp name, renamed only after verification; originals kept, moved or deleted only after it. AAC skipped.
     - Tests: 25 (unittest, real files from ffmpeg). Driving the interface in a pty found a real bug: prompts used the main loop's 150 ms input timeout, so every y/n answer was read as no.
+
+- **2026-11-20** · `Fixed` · alac2flac: always opens the text interface, starting with a folder browser
+    - Started without a folder (or in one without .m4a files) it quit with 'No .m4a files found'. Now: browser (enter/←, s search here, g type a path), search runs in the background, b goes back from the file list. Batch mode only with --yes/--dry-run or without a terminal.

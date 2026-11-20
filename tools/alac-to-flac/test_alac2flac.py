@@ -357,6 +357,50 @@ class InterfaceTest(unittest.TestCase):
     def test_empty_list(self):
         self.interface(30, 100, [])
 
+    # The folder browser (what opens when there is no folder, or no .m4a files where it was started)
+
+    def browser(self, folder, height=30, width=100):
+        screen = self.Screen(height, width)
+        with mock.patch.object(alac2flac.curses, 'color_pair', return_value=0), mock.patch.object(alac2flac.curses, 'has_colors', return_value=False):
+            ui = alac2flac.Interface(screen, [], options(), folder)
+            ui.draw()
+        return ui, screen
+
+    def test_browser_opens_when_there_are_no_files_and_lists_subfolders(self):
+        root = tempfile.mkdtemp(prefix='alac2flac-browse-')
+        for name in ('Music', 'Downloads', '.hidden'):
+            os.makedirs(os.path.join(root, name))
+        open(os.path.join(root, 'song.m4a'), 'w').close()
+
+        ui, screen = self.browser(root)
+
+        self.assertEqual(ui.mode, 'browse')
+        self.assertEqual([e[0] for e in ui.entries], ['search', 'up', 'dir', 'dir'])
+        self.assertEqual([e[1] for e in ui.entries if e[0] == 'dir'], ['Downloads', 'Music'])
+        self.assertIn('1 .m4a here', ui.entries[0][1])
+        self.assertIn('Search this folder', ''.join(screen.lines.values()))
+
+    def test_browser_at_the_root_has_no_parent_and_unreadable_folders_only_give_a_message(self):
+        ui, _ = self.browser('/')
+        self.assertNotIn('up', [e[0] for e in ui.entries])
+
+        ui.open_folder('/does/not/exist')
+        self.assertEqual(ui.folder, '/')
+        self.assertIn('Cannot open', ui.message)
+
+    def test_searching_a_folder_without_music_stays_in_the_browser(self):
+        root = tempfile.mkdtemp(prefix='alac2flac-browse-')
+        ui, _ = self.browser(root)
+
+        ui.search(root)
+        for _ in range(50):
+            if not ui.searching:
+                break
+            alac2flac.time.sleep(0.05)
+
+        self.assertEqual(ui.mode, 'browse')
+        self.assertIn('No .m4a files', ui.message)
+
 
 if __name__ == '__main__':
     unittest.main()

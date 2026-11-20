@@ -18,10 +18,14 @@ them bigger, not better.
 ## Use it
 
 ```bash
-python3 tools/alac-to-flac/alac2flac.py ~/Music
+python3 tools/alac-to-flac/alac2flac.py
 ```
 
-A list of the `.m4a` files appears, with what each one is (for example "ALAC 24-bit 96 kHz stereo"). Keys:
+It opens a full-screen text interface. First pick a folder: arrow keys and Enter to move through folders, `s` to search the
+folder you are in (subfolders included), `g` to type a path. You can also start with a folder:
+`python3 tools/alac-to-flac/alac2flac.py ~/Music`.
+
+Then a list of the `.m4a` files appears, with what each one is (for example "ALAC 24-bit 96 kHz stereo"). Keys:
 
 | Key | What it does |
 | --- | --- |
@@ -32,6 +36,7 @@ A list of the `.m4a` files appears, with what each one is (for example "ALAC 24-
 | r | what to do with the originals after a verified conversion: keep, move to a folder, or delete |
 | e | replace FLAC files that already exist, or skip them |
 | + / - | how many files at the same time |
+| b | back to the folders |
 | Enter | convert |
 | q | quit |
 
