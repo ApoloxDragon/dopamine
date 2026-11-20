@@ -329,3 +329,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-20** · `Note` · Plan for following official Dopamine: docs/upstream-sync-plan.md, tool scripts/dev/upstream-diff.sh
     - master stays an exact copy of upstream; each upstream release is merged through a sync/upstream-<version> branch. Biggest risk: migration numbers (ours are 15-17); upstream's new ones get the next free numbers and must be safe to re-run.
+
+- **2026-11-20** · `Tooling` · Release notes: change log section + GitHub's generated notes (pull requests, contributors, full changelog link)
+    - scripts/release-notes.js combines them; release.yml asks GitHub for its notes since the last published release. If that fails the change log alone is used, so a release never fails because of the notes.

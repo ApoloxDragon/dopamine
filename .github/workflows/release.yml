@@ -312,14 +312,19 @@ jobs:
                   cd assets
                   sha256sum Dopamine-* > SHA256SUMS.txt
                   ls -la
-            - name: Release notes from the change log
+            - name: Release notes (change log section + GitHub's pull request list)
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   version="$(node -p "require('./get-package-information.js').getFullVersion()")"
-                  awk -v header="## [$version]" 'index($0, header) == 1 { found = 1; next } /^## \[/ { found = 0 } found' CHANGELOG.md > notes.md
-                  if [ ! -s notes.md ]; then
-                    echo "CHANGELOG.md has no section for $version" >&2
-                    exit 1
+                  # GitHub's generated notes since the last published release. Optional: if this fails, the change log alone is used.
+                  previous="$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)"
+                  args=(-f tag_name="v$version" -f target_commitish="$GITHUB_SHA")
+                  if [ -n "$previous" ]; then
+                    args+=(-f previous_tag_name="$previous")
                   fi
+                  gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" "${args[@]}" --jq .body > generated.md 2>/dev/null || echo "" > generated.md
+                  node scripts/release-notes.js "$version" generated.md > notes.md
                   cat notes.md
             - name: Create the release
               env:
