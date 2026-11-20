@@ -93,6 +93,14 @@ export class IndexingService implements OnDestroy {
         this.indexCollection('outdated');
     }
 
+    /** Fast refresh: only songs that were added, changed or removed. */
+    public async indexCollectionFastAsync(): Promise<void> {
+        await this.notificationService.refreshingAsync();
+        await this.scheduler.sleepAsync(1000); // Wait a bit to ensure user sees a refreshing notification
+        this.indexCollection('fast');
+    }
+
+    /** Full refresh: every song is read again. */
     public async indexCollectionAlwaysAsync(): Promise<void> {
         await this.notificationService.refreshingAsync();
         await this.scheduler.sleepAsync(1000); // Wait a bit to ensure user sees a refreshing notification

@@ -5,6 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Two refresh buttons in Settings, Collection: "Fast refresh" only looks at songs that were added, changed or removed,
+  and "Full refresh" reads every song again (what "Refresh now" did before).
+
 ### Fixed
 
 - The total size shown under your songs is right again. Albums ripped as one big file with a .cue sheet were counted once
@@ -35,7 +40,7 @@ library. Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 
 
 ### Good to know
 
-- Covers kept in subfolders show up after you refresh your collection (Settings, Collection).
+- After updating, press "Refresh now" once (Settings, Collection) so track counts, bit rates and covers are updated.
 
 ## [3.2.2-apolox] - 2026-11-19
 

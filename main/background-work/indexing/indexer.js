@@ -25,6 +25,19 @@ class Indexer {
         this.workerProxy.postMessage(new DismissMessage());
     }
 
+    /**
+     * Fast refresh: removes songs that are gone, re-reads songs whose file changed and adds new ones. Unchanged songs are not
+     * read again. Unlike indexCollectionIfOutdatedAsync it does not first guess whether anything changed.
+     */
+    async indexCollectionFastAsync() {
+        this.logger.info('Indexing collection (fast).', 'Indexer', 'indexCollectionFastAsync');
+
+        await this.trackIndexer.indexTracksAsync(false);
+
+        this.workerProxy.postMessage(new DismissMessage());
+    }
+
+    /** Full refresh: like the fast refresh, but every song is read again, also the ones that did not change. */
     async indexCollectionAlwaysAsync() {
         this.logger.info('Indexing collection.', 'Indexer', 'indexCollectionAlwaysAsync');
 

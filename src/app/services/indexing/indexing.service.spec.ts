@@ -134,6 +134,29 @@ describe('IndexingService', () => {
         });
     });
 
+    describe('fast and full refresh', () => {
+        it.each([
+            ['indexCollectionFastAsync', 'fast'],
+            ['indexCollectionAlwaysAsync', 'always'],
+        ])('%s should send the %s task to the indexing worker', async (method: string, task: string) => {
+            const sut: IndexingService = createSut();
+            settingsMock.setup((x) => x.skipRemovedFilesDuringRefresh).returns(() => false);
+            desktopMock.setup((x) => x.getApplicationDataDirectory()).returns(() => '/appData');
+
+            await (sut as any)[method]();
+
+            ipcProxyMock.verify(
+                (x) =>
+                    x.sendToMainProcess('indexing-worker', {
+                        task,
+                        skipRemovedFilesDuringRefresh: false,
+                        applicationDataDirectory: '/appData',
+                    }),
+                Times.once(),
+            );
+        });
+    });
+
     describe('reindexReplayGainForExistingTracks', () => {
         it('should return early when indexing is already running', () => {
             // Arrange

@@ -335,3 +335,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-20** · `Tooling` · Release notes in the fork's own format
     - release-notes.js now writes one page: What's Changed, intro, New / Changed / Fixed / Good to know from CHANGELOG.md (written in plain words, rule in CLAUDE.md), then only the pull request lines and the Full Changelog link from GitHub's generated notes. 3.3.0 and Unreleased entries rewritten in plain words.
+
+- **2026-11-20** · `Added` · Fast refresh and Full refresh buttons (Settings, Collection)
+    - The manual 'Refresh now' was already a full refresh (task 'always', forceUpdateExistingTracks=true); only the startup refresh is fast, and it first guesses with isCollectionOutdatedAsync. New task 'fast' runs indexTracksAsync(false) without guessing. The planned migration to re-read affected tracks was dropped: a full refresh does it.

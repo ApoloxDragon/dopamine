@@ -15,6 +15,10 @@ export class ManageRefreshComponent {
         private indexingService: IndexingService,
     ) {}
 
+    public async refreshFastAsync(): Promise<void> {
+        await this.indexingService.indexCollectionFastAsync();
+    }
+
     public async refreshNowAsync(): Promise<void> {
         await this.indexingService.indexCollectionAlwaysAsync();
     }

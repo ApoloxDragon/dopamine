@@ -35,6 +35,15 @@ describe('ManageRefreshComponent', () => {
             expect(component.settings).toBeDefined();
         });
     });
+    describe('refreshFastAsync', () => {
+        it('should do a fast refresh, not a full one', async () => {
+            await component.refreshFastAsync();
+
+            indexingServiceMock.verify((x) => x.indexCollectionFastAsync(), Times.exactly(1));
+            indexingServiceMock.verify((x) => x.indexCollectionAlwaysAsync(), Times.never());
+        });
+    });
+
     describe('refreshNowAsync', () => {
         it('should index the collection', async () => {
             // Arrange
