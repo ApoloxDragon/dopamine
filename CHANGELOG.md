@@ -7,32 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- The total size of songs counted the file of a CUE album once per track (a 10 track album counted 10 times), so the
-  Songs page could show 177 GB for 53 GB of music. Each file is now counted once.
+- The total size shown under your songs is right again. Albums ripped as one big file with a .cue sheet were counted once
+  for every song on them, so a library could show 177 GB when it was really 53 GB.
 
 ## [3.3.0-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo. Mostly fixes, many found by new
-"break it" tests and by checking a real library.
+A release full of fixes. Many were found by testing the app with deliberately silly input, and by checking a real music
+library. Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
-- Discord: albums split into discs ("Album (CD1)", "Album [Disc 2]") now show the album cover; all discs share it
-- Album covers are also found in an Artwork, Scans or Covers subfolder ("Album/Artwork/Front.jpg"), as vinyl and boxed set rips often have them
+- Albums split into discs, like "Album (CD1)" and "Album (CD2)", now show their cover on Discord too.
+- Album covers kept in a subfolder such as "Artwork", "Scans" or "Covers" are now found (common with vinyl rips and box sets).
 
 ### Fixed
 
-- Fade out on pause and stop cut the sound almost at once after a fade in had happened (fade in worked)
-- A pause or stop is no longer lost (music playing on while shown as paused) when the fade fails, for example when the audio device disappears
-- CUE sheets with repeated, negative or nonsense track numbers no longer give two tracks the same identity; tracks that start where the next one starts are left out; a track can no longer end after the end of its file
-- Very large files named .cue (over 10 MB) are skipped instead of read into memory
-- Discord: empty, one-letter, very long or emoji-cut titles and broken timestamps no longer make Discord drop the whole status
-- CUE sheets with one FILE per track (EAC "multiple files", vinyl rips) showed every track as "track N of 1"; the count is now the whole sheet (re-index to update)
-- ALAC .m4a files showed a bit rate of 0; it is now worked out from the file size and length (re-index to update)
-- Playing more than about 1000 selected artists or genres at once failed ("Expression tree is too large")
-- Tags containing a NUL character broke the database query for that artist, album or genre
-- Artist, genre and smart playlist matching treated "%" and "_" in names as wildcards ("AC_DC" also matched "AC/DC")
-- Smart playlists with a limit like 1.5 or a huge number in a rule failed to load
+- Pausing with fade on now fades out smoothly every time. Before, it cut off almost at once after the first fade in.
+- If your audio device disappears during a fade, the music still pauses or stops instead of playing on while the app says it is paused.
+- Albums with a .cue sheet: songs no longer get mixed up when the sheet has odd or repeated track numbers, and every song
+  shows the right track count (vinyl rips showed "track 3 of 1").
+- Apple Lossless (.m4a) songs now show their bit rate instead of 0.
+- Playing a very large selection (more than about 1000 artists or genres at once) works again.
+- Artists, albums and genres with unusual characters in their names (like "AC_DC" or "100%") now find exactly the right songs.
+- Smart playlists with an unusual song limit or number no longer fail to open.
+- Discord no longer drops your status for songs with very short, very long or emoji-heavy titles.
+- A huge file that only pretends to be a .cue sheet is skipped instead of slowing the app down.
+
+### Good to know
+
+- Covers kept in subfolders show up after you refresh your collection (Settings, Collection).
 
 ## [3.2.2-apolox] - 2026-11-19
 

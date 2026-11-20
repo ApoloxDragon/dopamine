@@ -332,3 +332,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-20** · `Tooling` · Release notes: change log section + GitHub's generated notes (pull requests, contributors, full changelog link)
     - scripts/release-notes.js combines them; release.yml asks GitHub for its notes since the last published release. If that fails the change log alone is used, so a release never fails because of the notes.
+
+- **2026-11-20** · `Tooling` · Release notes in the fork's own format
+    - release-notes.js now writes one page: What's Changed, intro, New / Changed / Fixed / Good to know from CHANGELOG.md (written in plain words, rule in CLAUDE.md), then only the pull request lines and the Full Changelog link from GitHub's generated notes. 3.3.0 and Unreleased entries rewritten in plain words.

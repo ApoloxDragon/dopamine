@@ -312,7 +312,7 @@ jobs:
                   cd assets
                   sha256sum Dopamine-* > SHA256SUMS.txt
                   ls -la
-            - name: Release notes (change log section + GitHub's pull request list)
+            - name: Release notes (plain-language change log + pull request links)
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |

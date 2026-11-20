@@ -2,6 +2,13 @@
 
 Work on a `claude/...` branch with pull requests to `apolox-master`. Write overviews in `docs/cue-support/LOG.md` (use `scripts/dev/devlog.sh`) and anything uncertain or risky in `docs/cue-support/DRAFTS.md`. Explain drafts and risky edits before doing them. Don't delete code just to delete it.
 
+## Change log and release notes
+
+`CHANGELOG.md` is what users read on the release page (`scripts/release-notes.js` turns a version's section into the page):
+write each item in plain words for someone who just listens to music, say what they will notice, no internals or code
+names. Headings: `### Added` (shown as "New"), `### Changed`, `### Fixed`, `### Good to know` (steps after updating).
+Technical detail goes in `docs/cue-support/LOG.md` and the pull request.
+
 ## Effort and usage
 
 The owner has a limited usage budget. Match the work to the session's effort level.
