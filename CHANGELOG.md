@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A small separate tool for the terminal, `tools/alac-to-flac`, turns Apple Lossless (.m4a) songs into FLAC without changing
+  the sound at all. It checks every song after converting it, and keeps the tags and the cover. See its README.
 - Two refresh buttons in Settings, Collection: "Fast refresh" only looks at songs that were added, changed or removed,
   and "Full refresh" reads every song again (what "Refresh now" did before).
 

@@ -338,3 +338,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-20** · `Added` · Fast refresh and Full refresh buttons (Settings, Collection)
     - The manual 'Refresh now' was already a full refresh (task 'always', forceUpdateExistingTracks=true); only the startup refresh is fast, and it first guesses with isCollectionOutdatedAsync. New task 'fast' runs indexTracksAsync(false) without guessing. The planned migration to re-read affected tracks was dropped: a full refresh does it.
+
+- **2026-11-20** · `Tooling` · tools/alac-to-flac: bit-perfect ALAC to FLAC converter with a curses interface
+    - ffmpeg converts (tags, cover, bit depth kept); every file is verified by SHA-256 of the decoded samples at s32 (a 16-bit check would miss 24-bit differences; a test flips the lowest 24-bit bit). Written to a temp name, renamed only after verification; originals kept, moved or deleted only after it. AAC skipped.
+    - Tests: 25 (unittest, real files from ffmpeg). Driving the interface in a pty found a real bug: prompts used the main loop's 150 ms input timeout, so every y/n answer was read as no.
