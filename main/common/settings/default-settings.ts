@@ -71,7 +71,7 @@ export const DEFAULT_SETTINGS = {
     lastFmSessionKey: '',
     listenbrainzToken: '',
     listenbrainzUsername: '',
-    showLove: false,
+    showLove: true,
     showAlbumOnNowPlayingPage: true,
     downloadArtistInformationFromLastFm: true,
     downloadLyricsOnline: true,

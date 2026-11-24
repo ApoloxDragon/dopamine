@@ -362,3 +362,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · LAN part 2: offline notice, skip unreachable songs, add a network folder by path
     - Worker posts foldersUnreachable (FolderReachability); IndexingService shows it after the refresh ends (the end of a refresh dismisses notices). PlaybackService: on a playback failure, if the song's audio file does not exist, notify and play next instead of the dialog; 10 quick misses in a row stop playback. AddFolderComponent: 'Add a network folder' (input dialog), NetworkFolderPath refuses URLs (smb://) and relative paths, strips quotes and trailing separators; unreachable paths need a confirmation.
+
+- **2026-11-24** · `Added` · Like / dislike for songs (thumbs), replacing the heart
+    - Same storage (Track.Love: 1 like, -1 dislike, 0 none; the heart already cycled through -1 as a 'broken heart'). Two buttons, each toggles its own state; Last.fm 'love' only for a like. showLove now defaults to true (new installs and users who never changed it). Not checked visually (screenshot tool has no songs).

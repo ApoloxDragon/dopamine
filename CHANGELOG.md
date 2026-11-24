@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Like and dislike buttons (thumbs up and down) next to each song and in the player, shown by default. They replace the
+  heart: songs you loved are now liked. Star ratings stay as they are.
+
 - "Add a network folder" in Settings, Collection: type the path of a shared folder (for example \\\\192.168.1.10\\music on
   Windows, or a mounted share such as /mnt/music on Linux). A share that is offline right now can still be added.
 - When a music folder can't be reached during a refresh, a short message says so. Its songs stay in your collection.

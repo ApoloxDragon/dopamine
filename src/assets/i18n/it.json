@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "Accesso a Last.fm non riuscito",
     "love": "Cuore",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Mostra 'Cuore'",
     "save-love-error": "C'è stato un errore durante il salvataggio del 'Cuore'. Verifica il log per maggiori informazioni.",
     "log-file": "File di log",

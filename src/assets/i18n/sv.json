@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz inloggning misslyckades",
     "last-fm-login-failed": "Last.fm inloggning misslyckades",
     "love": "Älskar",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Visa 'Älskar'",
     "save-love-error": "Ett fel uppstod när 'Älskar' skulle sparas. Vänligen verifiera loggen om du behöver mer information.",
     "log-file": "Loggfil",

@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "Không thể đăng nhập ListenBrainz",
     "last-fm-login-failed": "Không thể đăng nhập Last.fm",
     "love": "Yêu thích",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Hiện nút 'Yêu thích'",
     "save-love-error": "Đã xảy ra lỗi khi lưu 'Yêu thích'. Vui lòng xem tệp log để biết thêm thông tin.",
     "log-file": "Tệp log",

@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "ההתחברות אל Last.fm נכשלה",
     "love": "אהבתי",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "הצגת 'אהבתי'",
     "save-love-error": "אירעה שגיאה בשמירת 'אהבתי'. נא לעיין ביומן למידע נוסף.",
     "log-file": "קובץ יומן",

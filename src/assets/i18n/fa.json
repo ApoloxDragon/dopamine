@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "ورود به سیستم Last.fm انجام نشد",
     "love": "عشق",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "نمایش \"عشق\"",
     "save-love-error": "هنگام ذخیره «Love» خطایی روی داد. ",
     "log-file": "ورود به سیستم فایل",

@@ -135,6 +135,69 @@ describe('LoveComponent', () => {
         });
     });
 
+    describe('like and dislike', () => {
+        function withLove(love: number): { component: LoveComponent; track: Track } {
+            const track: Track = new Track('Path');
+            track.love = love;
+            const component: LoveComponent = createComponent();
+            component.track = new TrackModel(track, dateTimeMock.object, translatorServiceMock.object, settingsMock);
+            return { component, track };
+        }
+
+        it.each([
+            [0, 1],
+            [1, 0],
+            [-1, 1],
+            [5, 1],
+        ])('like: love %p becomes %p', async (before: number, after: number) => {
+            const { component, track } = withLove(before);
+
+            await component.likeAsync();
+
+            expect(track.love).toEqual(after);
+            metadataServiceMock.verify((x) => x.saveTrackLove(It.isAny()), Times.once());
+        });
+
+        it.each([
+            [0, -1],
+            [-1, 0],
+            [1, -1],
+            [NaN, -1],
+        ])('dislike: love %p becomes %p', async (before: number, after: number) => {
+            const { component, track } = withLove(before);
+
+            await component.dislikeAsync();
+
+            expect(track.love).toEqual(after);
+        });
+
+        it('should tell Last.fm "loved" only for a like', async () => {
+            const liked = withLove(0);
+            await liked.component.likeAsync();
+            scrobblingServiceMock.verify((x) => x.sendTrackLoveAsync(It.isAny(), true), Times.once());
+
+            const disliked = withLove(1);
+            await disliked.component.dislikeAsync();
+            scrobblingServiceMock.verify((x) => x.sendTrackLoveAsync(It.isAny(), false), Times.once());
+        });
+
+        it('should fill the button that is active', () => {
+            expect(withLove(1).component.likeClasses).toContain('fas fa-thumbs-up');
+            expect(withLove(1).component.dislikeClasses).toContain('far fa-thumbs-down');
+            expect(withLove(-1).component.dislikeClasses).toContain('fas fa-thumbs-down');
+            expect(withLove(0).component.likeClasses).toContain('far fa-thumbs-up');
+        });
+
+        it('should show an error and keep the click when saving fails', async () => {
+            const { component } = withLove(0);
+            metadataServiceMock.setup((x) => x.saveTrackLove(It.isAny())).throws(new Error('read-only file'));
+
+            await component.likeAsync();
+
+            dialogServiceMock.verify((x) => x.showErrorDialog(It.isAny()), Times.once());
+        });
+    });
+
     describe('toggleLoveAsync', () => {
         it('should set track love to 1 when track love is 0', async () => {
             // Arrange

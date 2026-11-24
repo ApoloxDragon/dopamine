@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "La connexion Last.fm a échoué",
     "love": "Aimer",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Afficher 'Aimer'",
     "save-love-error": "Une erreur s'est produite lors de l'enregistrement de 'Aimer'. Le fichier audio sélectionné ne peut pas être lu. Veuillez consulter le fichier journal pour plus d'informations.",
     "log-file": "Fichier journal",

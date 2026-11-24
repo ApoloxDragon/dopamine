@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz 登录失败",
     "last-fm-login-failed": "Last.fm 登录失败",
     "love": "喜爱",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "显示♡",
     "save-love-error": "保存♡时发生错误。请查看日志以获取更多信息。",
     "log-file": "日志文件",

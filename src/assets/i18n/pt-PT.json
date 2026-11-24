@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "Falha no início de sessão do ListenBrainz",
     "last-fm-login-failed": "Falha no início de sessão do Last.fm",
     "love": "Gosto",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Mostrar 'Gosto'",
     "save-love-error": "Ocorreu um erro ao guardar o 'Gosto'. Consulta o registo para mais informações.",
     "log-file": "Ficheiro de registo",

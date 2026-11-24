@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz girişi başarısız oldu",
     "last-fm-login-failed": "Last.fm girişi başarısız oldu",
     "love": "Sevgi",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "'Sevgi' Gösterin",
     "save-love-error": "''Sevgi'' kaydedilirken bir hata oluştu. Daha fazla bilgiye ihtiyacınız varsa lütfen günlüğü doğrulayın.",
     "log-file": "Günlük dosyası",

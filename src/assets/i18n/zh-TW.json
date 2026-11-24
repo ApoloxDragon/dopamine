@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "Last.fm login failed",
     "love": "Love",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Show 'Love'",
     "save-love-error": "An error occurred while saving 'Love'. Please verify the log if you need more information.",
     "log-file": "Log file",

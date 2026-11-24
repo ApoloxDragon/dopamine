@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "فشل تسجيل الدخول إلى Last.fm",
     "love": "إعجاب",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "إظهار 'الإعجاب'",
     "save-love-error": "حدث خطأ أثناء حفظ 'الإعجاب'. يرجى التحقق من السجل إذا كنت بحاجة إلى مزيد من المعلومات.",
     "log-file": "ملف السجل",

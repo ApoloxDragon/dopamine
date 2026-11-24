@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "Prijava na Last.fm nije uspjela",
     "love": "Volim",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Prikaži 'Volim'",
     "save-love-error": "Dogodila se greška tijekom spremanja oznake 'Volim'. Pogledaj zapisnik, ako trebaš više informacija.",
     "log-file": "Datoteka zapisnika",

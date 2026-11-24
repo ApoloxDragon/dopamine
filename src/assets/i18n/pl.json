@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "Logowanie do Last.fm nie powiodło się",
     "love": "Uwielbiam to",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Pokaż przycisk 'Uwielbiam to'",
     "save-love-error": "Wystąpił błąd podczas zapisywania akcji przycisku 'Uwielbiam to'. Sprawdź szczegóły w dzienniku.",
     "log-file": "Plik dziennika",

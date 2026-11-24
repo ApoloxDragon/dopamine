@@ -205,6 +205,8 @@ describe('validate i18n', () => {
         'logged-out',
         'loop',
         'love',
+        'like',
+        'dislike',
         'lrc-lyrics',
         'lyrics',
         'manage-collection',

@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "Inloggen op Last.fm mislukt",
     "love": "Vind ik leuk",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Toon 'Vind ik leuk'",
     "save-love-error": "Er is een fout opgetreden bij het opslaan van 'Vind ik leuk'. Raadpleeg het logbestand voor meer informatie.",
     "log-file": "Log bestand",

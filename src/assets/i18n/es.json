@@ -300,6 +300,8 @@
     "listenbrainz-login-failed": "ListenBrainz login failed",
     "last-fm-login-failed": "Error al iniciar sesión en Last.fm",
     "love": "Me gusta",
+    "like": "Like",
+    "dislike": "Dislike",
     "show-love": "Mostrar 'Me gusta'",
     "save-love-error": "Ocurrió un error al guardar 'Me gusta'. Verifique el registro si necesita más información.",
     "log-file": "Archivo de registro",
