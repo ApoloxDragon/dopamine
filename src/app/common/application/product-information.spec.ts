@@ -21,7 +21,7 @@ describe('ProductInformation', () => {
             const applicationVersion: string = ProductInformation.applicationVersion;
 
             // Assert
-            expect(applicationVersion).toEqual('3.3.0-apolox');
+            expect(applicationVersion).toEqual('3.3.1-apolox');
         });
     });
 
