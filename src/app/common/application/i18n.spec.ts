@@ -217,6 +217,8 @@ describe('validate i18n', () => {
         'recently-added-and-played',
         'recently-added',
         'recently-played',
+        'smart-shuffle',
+        'smart-shuffle-description',
         'dislike',
         'lrc-lyrics',
         'lyrics',

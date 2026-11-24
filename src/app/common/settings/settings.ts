@@ -1125,6 +1125,15 @@ export class Settings implements SettingsBase {
         this.set('rememberScrollPosition', v);
     }
 
+    // useSmartShuffle
+    public get useSmartShuffle(): boolean {
+        return this.get<boolean>('useSmartShuffle');
+    }
+
+    public set useSmartShuffle(v: boolean) {
+        this.set('useSmartShuffle', v);
+    }
+
     // showAlbumShelves
     public get showAlbumShelves(): boolean {
         return this.get<boolean>('showAlbumShelves');

@@ -312,6 +312,8 @@
     "recently-added-and-played": "Recently added and played",
     "recently-added": "Recently added",
     "recently-played": "Recently played",
+    "smart-shuffle": "Smart shuffle",
+    "smart-shuffle-description": "Shuffle favours songs you like and rate highly, plays disliked songs last, and avoids the same artist or album twice in a row.",
     "dislike": "Dislike",
     "show-love": "Show 'Love'",
     "save-love-error": "An error occurred while saving 'Love'. Please verify the log if you need more information.",

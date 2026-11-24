@@ -371,3 +371,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Recently added / recently played album rows
     - AlbumShelvesComponent above the album browser (12 each, from AlbumModel dateAdded / dateLastPlayed; albums without a date left out). Click selects through AlbumsAlbumsPersister, double-click plays. Folded state in the new setting showAlbumShelves (default open).
+
+- **2026-11-24** · `Added` · Smart shuffle
+    - SmartShuffler: weighted random order (Efraimidis-Spirakis; like x3, rating 4-5 x2, 1-2 x0.5, skip ratio), disliked songs last, then a spread-out pass (look-ahead 8; when one artist has more left than all others, it is spread first). Queue uses it when the new setting useSmartShuffle is on.

@@ -126,6 +126,7 @@ export class SettingsMock implements SettingsBase {
     public rememberScrollPosition: boolean;
     public showSquareImages: boolean;
     public showAlbumShelves: boolean = true;
+    public useSmartShuffle: boolean = false;
     public useCompactYearView: boolean;
     public albumCoverSize: number = 130;
     public playlistCoverSize: number = 130;

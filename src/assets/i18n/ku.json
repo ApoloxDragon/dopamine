@@ -312,6 +312,8 @@
     "recently-added-and-played": "Recently added and played",
     "recently-added": "Recently added",
     "recently-played": "Recently played",
+    "smart-shuffle": "Smart shuffle",
+    "smart-shuffle-description": "Shuffle favours songs you like and rate highly, plays disliked songs last, and avoids the same artist or album twice in a row.",
     "dislike": "Dislike",
     "show-love": "'Hezkirin' nîşan bide",
     "save-love-error": "Di dema tomarkirina 'Love' de şaşetî derket. Ji bo bêtir zanyarî pelê têketinê biperjîne",

@@ -312,6 +312,8 @@
     "recently-added-and-played": "Recently added and played",
     "recently-added": "Recently added",
     "recently-played": "Recently played",
+    "smart-shuffle": "Smart shuffle",
+    "smart-shuffle-description": "Shuffle favours songs you like and rate highly, plays disliked songs last, and avoids the same artist or album twice in a row.",
     "dislike": "Dislike",
     "show-love": "نمایش \"عشق\"",
     "save-love-error": "هنگام ذخیره «Love» خطایی روی داد. ",

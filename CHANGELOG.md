@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Smart shuffle (Settings, Behavior): shuffle favours songs you like and rate highly, plays disliked songs last, and
+  avoids the same artist or album twice in a row. Off by default; every song still plays.
+
 - "Recently added" and "Recently played" rows of album covers at the top of the Albums page. Click a cover to see its
   songs, double-click to play it. The rows can be folded away.
 
