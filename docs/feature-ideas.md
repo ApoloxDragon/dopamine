@@ -58,6 +58,14 @@ Fits, larger:
 Does not fit (left out on purpose): streaming services, social features, podcasts, video, cloud sync, online accounts
 beyond the existing optional Last.fm.
 
+## Planned for 3.3.2
+
+1. **Continuous play:** when the queue ends, keep going with similar songs from the library (same artist, genre or era,
+   liked first, disliked never), marked in the queue. Off by default.
+2. **Like / dislike for albums and artists**, and a **Liked** page (needs a database migration).
+3. **Album details from `dopamine.json`** in the album folder (D19).
+4. **Year in review** cards on the Statistics page.
+
 ## Order suggestion
 
 3.3.1: liking (albums, artists, Liked page), sleep timer, recently added/played.

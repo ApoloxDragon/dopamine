@@ -3,6 +3,8 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
 ## [3.3.1-apolox] - 2026-11-24
 
 A release for listening at home: music on a home server keeps working when the server is asleep, and some small
