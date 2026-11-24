@@ -3,7 +3,8 @@ const { Timer } = require('../common/scheduling/timer');
 const { MathUtils } = require('../common/utils/math-utils');
 
 class TrackUpdater {
-    constructor(trackRepository, trackVerifier, trackFiller, workerProxy, logger) {
+    constructor(trackRepository, trackVerifier, trackFiller, workerProxy, logger, folderReachability = undefined) {
+        this.folderReachability = folderReachability;
         this.trackRepository = trackRepository;
         this.trackVerifier = trackVerifier;
         this.trackFiller = trackFiller;
@@ -17,6 +18,8 @@ class TrackUpdater {
 
         try {
             const tracks = this.trackRepository.getAllTracks() ?? [];
+            // Songs in a folder that cannot be reached are not read (each attempt on an offline share can take seconds).
+            const isUnreachable = this.folderReachability?.check(tracks) ?? (() => false);
 
             let numberOfUpdatedTracks = 0;
 
@@ -24,6 +27,10 @@ class TrackUpdater {
 
             for (let i = 0; i < tracks.length; i++) {
                 try {
+                    if (isUnreachable(tracks[i])) {
+                        continue;
+                    }
+
                     if (
                         forceUpdateExistingTracks ||
                         this.trackVerifier.doesTrackNeedIndexing(tracks[i]) ||

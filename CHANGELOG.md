@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Music on a network share or an external drive is no longer removed from your collection when the share or drive can't
+  be reached (server asleep, laptop away from home, drive unplugged). The songs stay, with their play counts and ratings,
+  and are checked again once the folder is back. Refreshing is also much faster while it is away.
 - The total size shown under your songs is right again. Albums ripped as one big file with a .cue sheet were counted once
   for every song on them, so a library could show 177 GB when it was really 53 GB.
 

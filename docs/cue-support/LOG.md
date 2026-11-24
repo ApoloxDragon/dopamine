@@ -355,3 +355,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-20** · `Changed` · alac2flac: Linux only for now; tag layout is Artist/Year - Album/NN Title.flac
     - Names only lose what Linux forbids (/, control characters); Windows rules removed until a cross-platform version.
+
+- **2026-11-24** · `Fixed` · Offline network folders no longer empty the collection (LAN, part 1)
+    - TrackRemover deleted every song whose file was not found, so an offline share or unplugged drive removed the whole folder from the database (play counts, ratings, likes; ListeningSession survives). New FolderReachability: one readdir per collection folder per refresh; unreachable when it cannot be listed, or empty while it has songs (unmounted share on Linux). TrackRemover and TrackUpdater skip songs there (also avoids a network timeout per song).
+    - Spec folder-reachability.spec.js: offline/timeout/EACCES/missing, empty mount point, /music vs /music2, Windows case and slashes, UNC and mapped drives, CUE tracks, nested folders, broken folder list, 100k songs, real temp folders, remover and updater integration.
