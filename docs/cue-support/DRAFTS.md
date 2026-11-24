@@ -189,7 +189,7 @@ with a warning on every index. It is not resolved against the parent folder on p
 give every track twice. Deleting or renaming the copy (for example to .cue.old) stops the warning.
 
 
-## D19. Change album details with a small file in the album folder: `draft`, for 3.3.1 or later
+## D19. Change album details with a small file in the album folder: `implemented` (3.3.2, JSON only)
 
 Owner's idea: fix small things such as an album's year without retagging every file, using a file next to the music.
 Proposal: an optional `dopamine.json` in the album folder (or next to a .cue sheet), read by the indexer, for example:

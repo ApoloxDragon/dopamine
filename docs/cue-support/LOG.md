@@ -377,3 +377,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Continuous play (3.3.2)
     - ContinuousPlay.pick: weighted random (0.2 base, +3 same artist, +2 same genre, +1 within 5 years of the last 10 songs, +2 liked, +1 rated 4-5), never disliked or already queued, each path once. PlaybackService adds 10 when the queue ends (not with repeat all), marks them (continuousPlayPaths, accent line in the queue), and plays the first. Setting useContinuousPlay (off).
+
+- **2026-11-24** · `Added` · dopamine.json album details (D19, 3.3.2)
+    - AlbumDetails (worker): one read per folder per refresh, 64 KB limit, strict fields (albumTitle, albumArtist, genre, year 1000-9999, discNumber/discCount 1-999, discNumber <= discCount), BOM accepted, bad values ignored and logged. TrackFiller applies it after tags and the cue sheet (new album key). Its mtime is part of dateFileModified in TrackFiller, TrackVerifier and IndexablePathFetcher, so editing it re-reads the folder.

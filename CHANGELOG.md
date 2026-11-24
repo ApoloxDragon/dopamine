@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Fix an album's title, artist, year, genre or disc numbers with a small `dopamine.json` file in its folder, without
+  changing your music files. Two folders like "Album (CD1)" and "Album (CD2)" can become one album with two discs this way.
+  See docs/album-details-file.md.
+
 - Continuous play (Settings, Behavior): when the queue ends, the music keeps going with similar songs from your library:
   the same artists, genres or years, liked songs first and disliked songs never. Added songs have a small mark in the
   queue. Off by default.
