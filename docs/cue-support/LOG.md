@@ -380,3 +380,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · dopamine.json album details (D19, 3.3.2)
     - AlbumDetails (worker): one read per folder per refresh, 64 KB limit, strict fields (albumTitle, albumArtist, genre, year 1000-9999, discNumber/discCount 1-999, discNumber <= discCount), BOM accepted, bad values ignored and logged. TrackFiller applies it after tags and the cue sheet (new album key). Its mtime is part of dateFileModified in TrackFiller, TrackVerifier and IndexablePathFetcher, so editing it re-reads the folder.
+
+- **2026-11-24** · `Added` · Year in review (3.3.2)
+    - StatisticsService.getYearInReview (since 1 January, local): summary, top 5 lists, mostPlayedDay (ties to the earlier day, garbage ignored), longest streak counting only this year's days, first listen (reduce, not Math.min spread: 300 000 plays tested). Card section on the Statistics page, 'so far' before December. Not done: first song title (needs a new query) and saving as an image.

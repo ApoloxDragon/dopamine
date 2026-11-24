@@ -69,9 +69,27 @@ export interface StatisticsOverview {
     topArtists: ListeningTotal[];
 }
 
+/** The year so far (or the whole year from December), like "Wrapped" but only on this computer. */
+export interface YearInReview {
+    year: number;
+    /** True from December: the year is (nearly) complete. */
+    isYearEnd: boolean;
+    summary: ListeningSummary;
+    topTracks: ListeningTotal[];
+    topAlbums: ListeningTotal[];
+    topArtists: ListeningTotal[];
+    /** The day with the most listening time (local date, YYYY-MM-DD). */
+    mostPlayedDay: { day: string; listenedMs: number } | undefined;
+    longestStreakDays: number;
+    /** When the first song of the year was played. */
+    firstListenMs: number | undefined;
+}
+
 /** Reads the listening history recorded by ListeningTrackerService, for the Statistics page. */
 @Injectable({ providedIn: 'root' })
 export class StatisticsService {
+    public static readonly yearInReviewListSize: number = 5;
+
     public static readonly topListSize: number = 10;
     public static readonly historyPageSize: number = 50;
     /** A day counts for streaks with at least this much listening. */
@@ -117,6 +135,58 @@ export class StatisticsService {
             barMaxMs: bars.reduce((max, b) => Math.max(max, b.listenedMs), 0),
             streaks: StatisticsService.streaks(this.repository.getActiveDays(StatisticsService.streakMinimumMs), this.dateProxy.now()),
         };
+    }
+
+    /** The current year in review, or undefined when nothing was played this year. */
+    public getYearInReview(): YearInReview | undefined {
+        const now: Date = new Date(this.dateProxy.now());
+        const year: number = now.getFullYear();
+        const sinceMs: number = new Date(year, 0, 1).getTime();
+        const summary: ListeningSummary = this.repository.getSummary(sinceMs);
+
+        if (!(summary?.listenedMs > 0)) {
+            return undefined;
+        }
+
+        const times: ListeningTimeEntry[] = this.repository.getListeningTimes(sinceMs).filter((t) => StatisticsService.isValidTime(t));
+        const days: string[] = this.repository.getActiveDays(StatisticsService.streakMinimumMs).filter((d) => d.startsWith(`${year}-`));
+
+        return {
+            year,
+            isYearEnd: now.getMonth() === 11,
+            summary,
+            topTracks: this.repository.getTopTracks(sinceMs, StatisticsService.yearInReviewListSize),
+            topAlbums: this.repository.getTopAlbums(sinceMs, StatisticsService.yearInReviewListSize),
+            topArtists: this.repository.getTopArtists(sinceMs, StatisticsService.yearInReviewListSize),
+            mostPlayedDay: StatisticsService.mostPlayedDay(times),
+            longestStreakDays: StatisticsService.streaks(days, this.dateProxy.now()).longestDays,
+            firstListenMs: times.length > 0 ? times.reduce((first, t) => Math.min(first, t.startedAtMs), Infinity) : undefined,
+        };
+    }
+
+    /** The local day with the most listening time. Ties go to the earlier day. */
+    public static mostPlayedDay(times: ListeningTimeEntry[]): { day: string; listenedMs: number } | undefined {
+        const perDay: Map<string, number> = new Map();
+
+        for (const t of times) {
+            if (!StatisticsService.isValidTime(t)) {
+                continue;
+            }
+
+            const date: Date = new Date(t.startedAtMs);
+            const day: string = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            perDay.set(day, (perDay.get(day) ?? 0) + t.listenedMs);
+        }
+
+        let best: { day: string; listenedMs: number } | undefined;
+
+        for (const [day, listenedMs] of [...perDay.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+            if (best === undefined || listenedMs > best.listenedMs) {
+                best = { day, listenedMs };
+            }
+        }
+
+        return best;
     }
 
     /** Listening time per weekday and hour (local time). Entries that are not valid are left out. */
@@ -223,7 +293,8 @@ export class StatisticsService {
     public getHistory(period: StatisticsPeriod, offset: number): ListeningHistoryItem[] {
         const sessions: ListeningSession[] = this.repository.getHistory(this.getSinceMs(period), StatisticsService.historyPageSize, offset);
         const withDetails: number[] = sessions.filter((s) => s.endReason != undefined).map((s) => s.listeningSessionId);
-        const parts: Map<number, ListeningSegment[]> = withDetails.length > 0 ? this.repository.getSegments(withDetails) : new Map<number, ListeningSegment[]>();
+        const parts: Map<number, ListeningSegment[]> =
+            withDetails.length > 0 ? this.repository.getSegments(withDetails) : new Map<number, ListeningSegment[]>();
 
         return sessions.map((s: ListeningSession) => ({
             listeningSessionId: s.listeningSessionId,

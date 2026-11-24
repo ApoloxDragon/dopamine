@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Your year in music, at the top of the Statistics page: listening time and plays this year, your top 5 songs, albums and
+  artists, your longest streak, your most played day and when you played your first song of the year. Like "Wrapped",
+  but it stays on your computer.
+
 - Fix an album's title, artist, year, genre or disc numbers with a small `dopamine.json` file in its folder, without
   changing your music files. Two folders like "Album (CD1)" and "Album (CD2)" can become one album with two discs this way.
   See docs/album-details-file.md.
