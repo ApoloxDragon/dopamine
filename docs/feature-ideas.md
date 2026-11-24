@@ -9,10 +9,11 @@ Dopamine already has "love" for songs (a heart, off by default: Settings, Behavi
 - Replace the heart with **like / dislike** (thumbs up / down), shown by default. Star ratings stay as they are.
   `Track.Love` keeps working: 1 = liked, -1 = disliked (new), 0 = neither, so existing hearts become likes.
 - Disliked songs can be skipped in shuffle and smart playlists (an option, off by default).
-- Like albums and artists too (heart on the album and artist pages and in their right-click menu).
+- Like or dislike albums and artists too (thumbs on the album and artist pages and in their right-click menu).
+  Disliked albums and artists are left out of smart shuffle and continuous play.
 - A "Liked" section in the collection: liked songs, albums and artists, each sortable, playable as a whole.
 - Liked songs as an automatic playlist ("Liked songs"), like Spotify.
-- Storage: a new table `Liked (Kind, Key, LikedAtMs)` keyed by album key / artist name (needs a migration: high effort).
+- Storage: a new table `Liked (Kind, Key, Value (1 like / -1 dislike), LikedAtMs)` keyed by album key / artist name (needs a migration: high effort).
   Songs keep using `Track.Love`, so nothing existing changes.
 - Optional: write the song heart to the file tag (like ratings can be) so it survives a new library.
 
