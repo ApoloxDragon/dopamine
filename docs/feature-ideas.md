@@ -34,7 +34,8 @@ questions: D19 in `cue-support/DRAFTS.md`. Medium to high effort.
 
 Fits well (small or medium):
 1. **Queue improvements:** "play next" vs "add to queue", save the queue as a playlist, clear played songs.
-2. **Sleep timer:** stop (with fade out) after N minutes or at the end of the song/album.
+2. **Sleep timer:** stop (with fade out) after N minutes or at the end of the song/album. Presets 15, 30, 45, 60 and
+   90 minutes plus a custom time; a countdown shows in the player (click it to add time or cancel).
 3. **Recently added / recently played** views (data already exists: date added, statistics).
 4. **Smart shuffle / "radio" from local files:** play songs similar to the current one by genre, artist and year.
 5. **Album "Play from disc 2"** and grouping CD1/CD2 albums (see D17 in `cue-support/DRAFTS.md`).
