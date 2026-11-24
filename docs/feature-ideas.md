@@ -61,6 +61,9 @@ Fit well:
   change samples, so nothing is bit-perfect yet. Needs a native output path that bypasses Chromium, plus a "bit-perfect"
   switch that turns off the equalizer, volume and fades. Linux first (direct ALSA device, or PipeWire following the
   file's sample rate); Windows (WASAPI exclusive) and macOS (CoreAudio hog mode) later. High effort.
+  With the equalizer on: "bit-perfect path" mode — no resampling (output at the file's own rate), EQ in 64-bit float,
+  dither down to the device's bit depth. When the EQ is off or flat (and volume 100%, no fade), the samples pass through
+  untouched: true bit-perfect. The player shows which of the two is active.
 - **Waveform seek bar** (optional) and **A-B repeat** for a part of a song.
 - **Resume position** per long track or audiobook-like files.
 - **Web remote:** control playback from a phone on the same network (off by default, local only).
