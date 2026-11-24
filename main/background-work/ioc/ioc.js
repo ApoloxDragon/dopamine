@@ -57,7 +57,7 @@ class Ioc {
         global.iocContainer.set('FolderTrackRepository', new FolderTrackRepository(Ioc.get('DatabaseFactory')));
         global.iocContainer.set('RemovedTrackRepository', new RemovedTrackRepository(Ioc.get('DatabaseFactory')));
         global.iocContainer.set('TrackRepository', new TrackRepository(Ioc.get('DatabaseFactory')));
-        global.iocContainer.set('FolderReachability', new FolderReachability(Ioc.get('FolderRepository'), Ioc.get('Logger')));
+        global.iocContainer.set('FolderReachability', new FolderReachability(Ioc.get('FolderRepository'), Ioc.get('Logger'), undefined, Ioc.get('WorkerProxy')));
 
         global.iocContainer.set('TrackFieldCreator', new TrackFieldCreator());
 

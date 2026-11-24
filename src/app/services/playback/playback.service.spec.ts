@@ -1321,6 +1321,58 @@ describe('PlaybackService', () => {
         test.todo('should write tests');
     });
 
+    describe('songs that cannot be reached (network folder offline)', () => {
+        const flush = (): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+        async function playing(): Promise<PlaybackService> {
+            const service: PlaybackService = createService();
+            queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel1);
+            queueMock.setup((x) => x.getNextTrack(It.isAny(), It.isAny())).returns(() => trackModel2);
+            await service.enqueueAndPlayTracksAsync(trackModels);
+            return service;
+        }
+
+        it('should skip to the next song with a notice, instead of the error dialog', async () => {
+                        const service = await playing();
+            // The share goes offline while playing.
+            fileAccessMock.reset();
+            fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => false);
+
+            playbackFailed.next('Path 1');
+            await flush();
+
+            notificationServiceMock.verify((x) => x.songUnreachableSkippedAsync(), Times.once());
+            dialogServiceMock.verify((x) => x.cannotPlayAudioFileAsync(), Times.never());
+            expect(service.currentTrack).toBe(trackModel2);
+        });
+
+        it('should still show the error dialog when the file is there (a damaged file)', async () => {
+            fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => true);
+            await playing();
+
+            playbackFailed.next('Path 1');
+            await flush();
+
+            dialogServiceMock.verify((x) => x.cannotPlayAudioFileAsync(), Times.once());
+            notificationServiceMock.verify((x) => x.songUnreachableSkippedAsync(), Times.never());
+        });
+
+        it('should stop after too many songs in a row cannot be reached, instead of going through the whole queue', async () => {
+                        const service = await playing();
+            // The share goes offline while playing.
+            fileAccessMock.reset();
+            fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => false);
+
+            for (let i = 0; i < PlaybackService.maximumUnreachableSkips; i++) {
+                playbackFailed.next('Path');
+                await flush();
+            }
+
+            notificationServiceMock.verify((x) => x.songsUnreachableStoppedAsync(), Times.once());
+            expect(service.isPlaying).toBeFalsy();
+        });
+    });
+
     describe('fade on pause, resume and stop', () => {
         let resolveFade: () => void;
 

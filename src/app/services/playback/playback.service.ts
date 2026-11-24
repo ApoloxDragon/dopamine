@@ -16,6 +16,7 @@ import { Queue } from './queue';
 import { TrackServiceBase } from '../track/track.service.base';
 import { PlaylistServiceBase } from '../playlist/playlist.service.base';
 import { SettingsBase } from '../../common/settings/settings.base';
+import { StringUtils } from '../../common/utils/string-utils';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { TrackSorter } from '../../common/sorting/track-sorter';
 import { QueuePersister } from './queue-persister';
@@ -672,7 +673,18 @@ export class PlaybackService {
         this.stop();
     }
 
+    // Songs on a network share or a drive that cannot be reached are skipped. After this many in a row (each one quickly
+    // after the other) playback stops instead of going through the whole queue.
+    public static readonly maximumUnreachableSkips: number = 10;
+    private static readonly unreachableSkipWindowMs: number = 30000;
+    private _unreachableSkips: number = 0;
+    private _lastUnreachableSkipMs: number = 0;
+
     private async playbackFailedHandlerAsync(audioFilePath: string): Promise<void> {
+        if (await this.skipIfUnreachableAsync()) {
+            return;
+        }
+
         const extension: string = this.fileAccess.getFileExtension(audioFilePath);
 
         if (extension === FileFormats.m4a) {
@@ -682,6 +694,36 @@ export class PlaybackService {
         }
 
         this.stop();
+    }
+
+    /**
+     * When the song's file cannot be reached (network share offline, drive unplugged), shows a short notice and plays the
+     * next song instead of the "cannot play" dialog. Returns false when the file is there (then the file itself is the
+     * problem and the dialog is right).
+     */
+    private async skipIfUnreachableAsync(): Promise<boolean> {
+        const track: TrackModel | undefined = this.currentTrack;
+
+        if (track == undefined || StringUtils.isNullOrWhiteSpace(track.audioPath) || this.fileAccess.pathExists(track.audioPath)) {
+            return false;
+        }
+
+        const now: number = Date.now();
+        this._unreachableSkips =
+            now - this._lastUnreachableSkipMs < PlaybackService.unreachableSkipWindowMs ? this._unreachableSkips + 1 : 1;
+        this._lastUnreachableSkipMs = now;
+        this.logger.warn(`Cannot reach '${track.audioPath}': skipping it`, 'PlaybackService', 'skipIfUnreachableAsync');
+
+        if (this._unreachableSkips >= PlaybackService.maximumUnreachableSkips) {
+            this._unreachableSkips = 0;
+            this.stop();
+            await this.notificationService.songsUnreachableStoppedAsync();
+            return true;
+        }
+
+        void this.notificationService.songUnreachableSkippedAsync();
+        await this.playNextAsync();
+        return true;
     }
 
     private async playingPreloadedTrackHandler(preloadedTrack: TrackModel): Promise<void> {

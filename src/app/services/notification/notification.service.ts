@@ -106,6 +106,27 @@ export class NotificationService implements NotificationServiceBase {
         await this.showSelfClosingNotificationAsync('las la-frown', message, false);
     }
 
+    /** Music folders that could not be reached (network share offline, drive unplugged): their songs were kept. */
+    public async foldersUnreachableAsync(folders: string[], numberOfKeptTracks: number): Promise<void> {
+        const message: string = await this.translatorService.getAsync('folders-unreachable', {
+            folders: folders.join(', '),
+            numberOfSongs: numberOfKeptTracks,
+        });
+        await this.showSelfClosingNotificationAsync('las la-network-wired', message, false);
+    }
+
+    /** The song's file cannot be reached right now: playback goes on with the next song. */
+    public async songUnreachableSkippedAsync(): Promise<void> {
+        const message: string = await this.translatorService.getAsync('song-unreachable-skipped');
+        await this.showSelfClosingNotificationAsync('las la-forward', message, false);
+    }
+
+    /** Several songs in a row could not be reached: playback stopped. */
+    public async songsUnreachableStoppedAsync(): Promise<void> {
+        const message: string = await this.translatorService.getAsync('songs-unreachable-stopped');
+        await this.showSelfClosingNotificationAsync('las la-network-wired', message, false);
+    }
+
     public dismiss(): void {
         this._notificationData = undefined;
         this.dismissNotification.next();

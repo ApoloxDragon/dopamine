@@ -86,6 +86,23 @@ describe('FolderReachability', () => {
 
     // Trying to break it.
 
+    it('should tell the window which folders could not be reached, and stay quiet when all can', () => {
+        const workerProxy = { postMessage: jest.fn() };
+        const offline = new FolderReachability(folders('/music', '//nas/music'), logger(), fileSystem({ '/music': ['a'] }), workerProxy);
+
+        offline.check([track(1, '//nas/music/a.flac'), track(2, '//nas/music/b.flac'), track(3, '/music/a.flac')]);
+
+        expect(workerProxy.postMessage).toHaveBeenCalledWith({
+            type: 'foldersUnreachable',
+            folders: ['//nas/music'],
+            numberOfKeptTracks: 2,
+        });
+
+        workerProxy.postMessage.mockClear();
+        new FolderReachability(folders('/music'), logger(), fileSystem({ '/music': ['a'] }), workerProxy).check([]);
+        expect(workerProxy.postMessage).not.toHaveBeenCalled();
+    });
+
     it('should not mix up /music and /music2', () => {
         const reachability = new FolderReachability(folders('/music', '/music2'), logger(), fileSystem({ '/music2': ['x'] }));
 

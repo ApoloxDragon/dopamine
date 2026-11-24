@@ -5,6 +5,9 @@
     </div>
     <div class="mb-3">
         <app-icon-text-button (click)="addFolderAsync()" icon="las la-plus">{{ 'add-folder' | translate }} </app-icon-text-button>
+        <app-icon-text-button class="ml-3" (click)="addNetworkFolderAsync()" icon="las la-network-wired"
+            >{{ 'add-network-folder' | translate }}
+        </app-icon-text-button>
     </div>
     <app-toggle-switch class="mb-2" [(isChecked)]="showAllFoldersInCollection" *ngIf="showCheckBoxes">
         {{ 'show-all-folders-in-the-collection' | translate }}

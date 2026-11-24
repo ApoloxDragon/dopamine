@@ -134,6 +134,46 @@ describe('IndexingService', () => {
         });
     });
 
+    describe('folders that cannot be reached', () => {
+        const settle = async (): Promise<void> => {
+            for (let i = 0; i < 5; i++) {
+                await new Promise((resolve) => setTimeout(resolve, 0));
+            }
+        };
+
+        it('should show a notice about them once the refresh is done, and only once', async () => {
+            createSut();
+
+            onIndexingWorkerMessage.next({
+                type: 'foldersUnreachable',
+                folders: ['\\\\192.168.10.183\\storage\\music'],
+                numberOfKeptTracks: 969,
+            } as any);
+            onIndexingWorkerMessage.next({
+                type: 'foldersUnreachable',
+                folders: ['\\\\192.168.10.183\\storage\\music'],
+                numberOfKeptTracks: 969,
+            } as any);
+            notificationServiceMock.verify((x) => x.foldersUnreachableAsync(It.isAny(), It.isAny()), Times.never());
+
+            onIndexingWorkerExit.next();
+            await settle();
+            onIndexingWorkerExit.next();
+            await settle();
+
+            notificationServiceMock.verify((x) => x.foldersUnreachableAsync(['\\\\192.168.10.183\\storage\\music'], 969), Times.once());
+        });
+
+        it('should say nothing when every folder could be reached', async () => {
+            createSut();
+
+            onIndexingWorkerExit.next();
+            await settle();
+
+            notificationServiceMock.verify((x) => x.foldersUnreachableAsync(It.isAny(), It.isAny()), Times.never());
+        });
+    });
+
     describe('fast and full refresh', () => {
         it.each([
             ['indexCollectionFastAsync', 'fast'],

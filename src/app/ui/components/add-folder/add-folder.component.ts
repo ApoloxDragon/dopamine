@@ -1,3 +1,5 @@
+import { FileAccessBase } from '../../../common/io/file-access.base';
+import { NetworkFolderPath, NetworkFolderCheck } from '../../../common/io/network-folder-path';
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { Logger } from '../../../common/logger';
 import { StringUtils } from '../../../common/utils/string-utils';
@@ -26,6 +28,7 @@ export class AddFolderComponent implements OnInit {
         public indexingService: IndexingService,
         private settings: SettingsBase,
         private logger: Logger,
+        private fileAccess?: FileAccessBase,
     ) {}
 
     @Input() public showCheckBoxes: boolean = false;
@@ -94,6 +97,45 @@ export class AddFolderComponent implements OnInit {
                 const errorText: string = await this.translatorService.getAsync('add-folder-error');
                 this.dialogService.showErrorDialog(errorText);
             }
+        }
+    }
+
+    /** Adds a folder by typing its path: a network share (for example \\\\server\\share\\music) or a mounted drive. */
+    public async addNetworkFolderAsync(): Promise<void> {
+        const title: string = await this.translatorService.getAsync('add-network-folder');
+        const placeholder: string = await this.translatorService.getAsync('add-network-folder-placeholder');
+        const typed: string = await this.dialogService.showInputDialogAsync(title, placeholder, '', []);
+
+        if (StringUtils.isNullOrWhiteSpace(typed)) {
+            return;
+        }
+
+        const checked: NetworkFolderCheck = NetworkFolderPath.check(typed);
+
+        if (checked.path === undefined) {
+            const key: string = checked.problem === 'url' ? 'network-folder-url' : 'network-folder-not-a-path';
+            this.dialogService.showErrorDialog(await this.translatorService.getAsync(key));
+            return;
+        }
+
+        // A share that is offline right now can still be added: its songs appear once it can be reached.
+        if (this.fileAccess !== undefined && !this.fileAccess.pathExists(checked.path)) {
+            const confirmTitle: string = await this.translatorService.getAsync('add-network-folder');
+            const confirmText: string = await this.translatorService.getAsync('network-folder-unreachable-confirm', {
+                folderPath: checked.path,
+            });
+
+            if (!(await this.dialogService.showConfirmationDialogAsync(confirmTitle, confirmText))) {
+                return;
+            }
+        }
+
+        try {
+            await this.folderService.addFolderAsync(checked.path);
+            await this.getFoldersAsync();
+        } catch (e: unknown) {
+            this.logger.error(e, `Could not add folder with path='${checked.path}'`, 'AddFolderComponent', 'addNetworkFolderAsync');
+            this.dialogService.showErrorDialog(await this.translatorService.getAsync('add-folder-error'));
         }
     }
 

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { FoldersUnreachableMessage } = require('./messages/folders-unreachable-message');
 
 /**
  * Tells which collection folders cannot be reached right now: a network share that is offline (server asleep, laptop away
@@ -12,7 +13,8 @@ const fs = require('fs');
  * Each folder is checked once per check() call, not once per song.
  */
 class FolderReachability {
-    constructor(folderRepository, logger, fileSystem = fs) {
+    constructor(folderRepository, logger, fileSystem = fs, workerProxy = undefined) {
+        this.workerProxy = workerProxy;
         this.folderRepository = folderRepository;
         this.logger = logger;
         this.fileSystem = fileSystem;
@@ -33,6 +35,8 @@ class FolderReachability {
         }
 
         const unreachable = [];
+        const unreachablePaths = [];
+        let numberOfKeptTracks = 0;
 
         for (const folder of folders) {
             const prefix = FolderReachability.#prefix(folder.path);
@@ -41,6 +45,8 @@ class FolderReachability {
 
             if (reason !== undefined) {
                 unreachable.push(prefix);
+                unreachablePaths.push(folder.path);
+                numberOfKeptTracks += songs.length;
                 this.logger.warn(
                     `Folder '${folder.path}' cannot be reached (${reason}). Its ${songs.length} songs are kept and not checked until it is back.`,
                     'FolderReachability',
@@ -52,6 +58,9 @@ class FolderReachability {
         if (unreachable.length === 0) {
             return () => false;
         }
+
+        // The window shows a notice once the refresh is done.
+        this.workerProxy?.postMessage(new FoldersUnreachableMessage(unreachablePaths, numberOfKeptTracks));
 
         return (track) => unreachable.some((prefix) => FolderReachability.#isInside(track, prefix));
     }

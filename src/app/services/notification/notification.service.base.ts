@@ -13,6 +13,9 @@ export abstract class NotificationServiceBase {
     public abstract addedTracksAsync(numberOfAddedTracks: number, percentageOfAddedTracks: number): Promise<void>;
     public abstract updatingAlbumArtworkAsync(): Promise<void>;
     public abstract updatingArtistArtworkAsync(): Promise<void>;
+    public abstract foldersUnreachableAsync(folders: string[], numberOfKeptTracks: number): Promise<void>;
+    public abstract songUnreachableSkippedAsync(): Promise<void>;
+    public abstract songsUnreachableStoppedAsync(): Promise<void>;
     public abstract dismiss(): void;
     public abstract singleTrackAddedToPlaylistAsync(playlistName: string): Promise<void>;
     public abstract multipleTracksAddedToPlaylistAsync(playlistName: string, numberOfAddedTracks: number): Promise<void>;
