@@ -368,3 +368,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Sleep timer
     - SleepTimerService (presets, custom, +15, end of song, 24 h cap, re-checks after a late timer e.g. sleep); stops with PlaybackService.stopPlayback(10000) (new optional fade length). End of song: PlaybackService.stopAfterCurrentTrack, checked when a song finishes and in the gapless preloaded path (the next song is stopped at once). Moon button with countdown in the collection playback pane.
+
+- **2026-11-24** · `Added` · Recently added / recently played album rows
+    - AlbumShelvesComponent above the album browser (12 each, from AlbumModel dateAdded / dateLastPlayed; albums without a date left out). Click selects through AlbumsAlbumsPersister, double-click plays. Folded state in the new setting showAlbumShelves (default open).

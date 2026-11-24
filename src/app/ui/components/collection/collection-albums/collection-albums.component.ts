@@ -17,6 +17,7 @@ import { IndexingService } from '../../../../services/indexing/indexing.service'
 import { SettingsBase } from '../../../../common/settings/settings.base';
 import { SchedulerBase } from '../../../../common/scheduling/scheduler.base';
 import { TrackOrder } from '../track-order';
+import { PlaybackService } from '../../../../services/playback/playback.service';
 
 @Component({
     selector: 'app-collection-albums',
@@ -39,7 +40,18 @@ export class CollectionAlbumsComponent implements OnInit, OnDestroy {
         private settings: SettingsBase,
         private scheduler: SchedulerBase,
         private logger: Logger,
+        private playbackService?: PlaybackService,
     ) {}
+
+    /** A cover in "recently added / played" was clicked: select that album (its songs show on the right). */
+    public selectShelfAlbum(album: AlbumModel): void {
+        this.albumsPersister.setSelectedAlbums([album]);
+    }
+
+    /** A cover in "recently added / played" was double-clicked: play that album. */
+    public async playShelfAlbumAsync(album: AlbumModel): Promise<void> {
+        await this.playbackService?.enqueueAndPlayAlbumAsync(album);
+    }
 
     public trackOrders: TrackOrder[] = [
         TrackOrder.byTrackTitleAscending,

@@ -121,6 +121,7 @@ export abstract class SettingsBase {
     public abstract jumpToPlayingSong: boolean;
     public abstract rememberScrollPosition: boolean;
     public abstract showSquareImages: boolean;
+    public abstract showAlbumShelves: boolean;
     public abstract useCompactYearView: boolean;
     public abstract albumCoverSize: number;
     public abstract playlistCoverSize: number;

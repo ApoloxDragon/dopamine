@@ -1,12 +1,18 @@
 <div class="collection-viewport">
     <as-split gutterSize="4" unit="percent" direction="horizontal" (dragEnd)="splitDragEnd($event)">
         <as-split-area [size]="leftPaneSize" minSize="5" maxSize="95"
-            ><app-album-browser
-                class="p-3 fill"
-                [albums]="this.albums | albumsFilter: this.searchService.delayedSearchText"
-                [(albumsPersister)]="this.albumsPersister"
-                scrollPositionKey="albums-albums"
-            ></app-album-browser
+            ><div class="albums-left-pane">
+                <app-album-shelves
+                    [albums]="this.albums"
+                    (albumSelected)="this.selectShelfAlbum($event)"
+                    (albumPlayed)="this.playShelfAlbumAsync($event)"
+                ></app-album-shelves>
+                <app-album-browser
+                    class="p-3 albums-left-pane__browser"
+                    [albums]="this.albums | albumsFilter: this.searchService.delayedSearchText"
+                    [(albumsPersister)]="this.albumsPersister"
+                    scrollPositionKey="albums-albums"
+                ></app-album-browser></div
         ></as-split-area>
         <as-split-area [size]="rightPaneSize" minSize="5" maxSize="95"
             ><div class="right-side-pane">

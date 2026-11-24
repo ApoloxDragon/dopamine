@@ -1,0 +1,48 @@
+.app-album-shelves {
+    padding: 8px 16px 0;
+}
+
+.app-album-shelves__toggle {
+    font-size: 0.9em;
+    user-select: none;
+}
+
+.app-album-shelves__shelf {
+    margin-top: 6px;
+}
+
+.app-album-shelves__title {
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.app-album-shelves__row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.app-album-shelves__album {
+    flex: 0 0 auto;
+}
+
+.app-album-shelves__cover {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    display: block;
+}
+
+.app-album-shelves__cover.rounded {
+    border-radius: 6px;
+}
+
+.app-album-shelves__cover--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    background: var(--theme-hovered-item-background);
+    border-radius: 6px;
+}

@@ -135,6 +135,7 @@ import { NowPlayingComponent } from './ui/components/now-playing/now-playing.com
 import { PlaybackControlsComponent } from './ui/components/playback-controls/playback-controls.component';
 import { PlaybackSpeedControlComponent } from './ui/components/playback-speed-control/playback-speed-control.component';
 import { SleepTimerComponent } from './ui/components/sleep-timer/sleep-timer.component';
+import { AlbumShelvesComponent } from './ui/components/collection/album-shelves/album-shelves.component';
 import { CoverSizeControlComponent } from './ui/components/cover-size-control/cover-size-control.component';
 import { PlaybackCoverArtComponent } from './ui/components/playback-cover-art/playback-cover-art.component';
 import { PlaybackIndicatorComponent } from './ui/components/playback-indicator/playback-indicator.component';
@@ -437,6 +438,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         PlaybackControlsComponent,
         PlaybackSpeedControlComponent,
         SleepTimerComponent,
+        AlbumShelvesComponent,
         CoverSizeControlComponent,
         PlaybackProgressComponent,
         PlaybackTimeComponent,

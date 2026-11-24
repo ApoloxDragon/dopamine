@@ -1125,6 +1125,15 @@ export class Settings implements SettingsBase {
         this.set('rememberScrollPosition', v);
     }
 
+    // showAlbumShelves
+    public get showAlbumShelves(): boolean {
+        return this.get<boolean>('showAlbumShelves');
+    }
+
+    public set showAlbumShelves(v: boolean) {
+        this.set('showAlbumShelves', v);
+    }
+
     // showSquareImages
     public get showSquareImages(): boolean {
         return this.get<boolean>('showSquareImages');

@@ -115,6 +115,7 @@ export const DEFAULT_SETTINGS = {
     jumpToPlayingSong: true,
     rememberScrollPosition: true,
     showSquareImages: false,
+    showAlbumShelves: true,
     useCompactYearView: false,
     albumCoverSize: 130,
     playlistCoverSize: 130,
