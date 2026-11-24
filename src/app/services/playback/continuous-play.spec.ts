@@ -93,4 +93,10 @@ describe('ContinuousPlay', () => {
         expect(ContinuousPlay.pick(library.slice(0, 10), library, library.slice(0, 10)).length).toEqual(10);
         expect(Date.now() - started).toBeLessThan(2000);
     });
+
+    it('should never pick songs on disliked albums or by disliked artists', () => {
+        const library: TrackModel[] = [track('/a', { rawArtists: ['Bad'] }), track('/b')];
+
+        expect(ContinuousPlay.pick([], library, [], 10, seeded(5), (t) => t.rawArtists.includes('Bad')).map((x) => x.path)).toEqual(['/b']);
+    });
 });

@@ -18,6 +18,7 @@ import { PlaylistServiceBase } from '../playlist/playlist.service.base';
 import { SettingsBase } from '../../common/settings/settings.base';
 import { StringUtils } from '../../common/utils/string-utils';
 import { ContinuousPlay } from './continuous-play';
+import { LikeService } from '../like/like.service';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { TrackSorter } from '../../common/sorting/track-sorter';
 import { QueuePersister } from './queue-persister';
@@ -69,6 +70,7 @@ export class PlaybackService {
         private mathExtensions: MathExtensions,
         private settings: SettingsBase,
         private logger: Logger,
+        private likeService?: LikeService,
     ) {
         this._audioPlayer = this.audioPlayerFactory.create();
         this.initializeSubscriptions();
@@ -763,7 +765,14 @@ export class PlaybackService {
         try {
             const library: TrackModel[] = this.trackService.getVisibleTracks().tracks;
             const played: TrackModel[] = this.queue.tracksInPlaybackOrder;
-            const picked: TrackModel[] = ContinuousPlay.pick(played, library, played);
+            const picked: TrackModel[] = ContinuousPlay.pick(
+                played,
+                library,
+                played,
+                ContinuousPlay.songsPerTurn,
+                Math.random,
+                (track) => this.likeService?.isDislikedByAlbumOrArtist(track) === true,
+            );
 
             if (picked.length === 0) {
                 return false;

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Like or dislike whole albums and artists (right-click an album or artist). Liked albums get their own row at the top
+  of the Albums page. Smart shuffle and continuous play leave out disliked albums and artists.
+
 - Your year in music, at the top of the Statistics page: listening time and plays this year, your top 5 songs, albums and
   artists, your longest streak, your most played day and when you played your first song of the year. Like "Wrapped",
   but it stays on your computer.

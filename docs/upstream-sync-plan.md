@@ -68,17 +68,17 @@ Before detaching, the "Sync fork" button on GitHub does the same.
 ## Database migrations (the riskiest part)
 
 Each migration has a number, stored in the database file (`PRAGMA user_version`); the app runs every migration whose number
-is higher than the database's. Our releases already added **15, 16 and 17** (CUE columns, statistics). If upstream adds its
+is higher than the database's. Our releases already added **15, 16, 17 and 18** (CUE columns, statistics). If upstream adds its
 own migration 15, a database at our 17 would **never run it**, and a fresh install would run both 15s in a mixed order.
 
 Rule when merging:
-1. Keep our numbers as they are (users' databases are already at 17).
-2. Give upstream's new migrations the next free numbers (18, 19, ...), in upstream's order, renaming the files and classes.
+1. Keep our numbers as they are (users' databases are already at 18 from 3.3.2).
+2. Give upstream's new migrations the next free numbers (19, 20, ...), in upstream's order, renaming the files and classes.
 3. Make each moved migration safe to run on a database that already has our changes: check whether a column or table
    exists before adding it (SQLite has no `ADD COLUMN IF NOT EXISTS`; use `PRAGMA table_info`).
 4. Add a database test: a database at our 17 and a fresh one both end at the same schema after migrating
    (compare `sqlite_master`), and a copy of a real database migrates without errors.
-5. Write the mapping (upstream 15 → ours 18, ...) in the change log and in `docs/cue-support/LOG.md`.
+5. Write the mapping (upstream 15 → ours 19, ...) in the change log and in `docs/cue-support/LOG.md`.
 
 If upstream ever moves to a different database or migration system, that release gets its own plan before merging.
 

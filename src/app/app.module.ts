@@ -75,6 +75,8 @@ import { CollectionFoldersComponent } from './ui/components/collection/collectio
 import { CollectionStatisticsComponent } from './ui/components/collection/collection-statistics/collection-statistics.component';
 import { ListeningSessionRepositoryBase } from './data/repositories/listening-session-repository.base';
 import { ListeningSessionRepository } from './data/repositories/listening-session-repository';
+import { LikedRepositoryBase } from './data/repositories/liked-repository.base';
+import { LikedRepository } from './data/repositories/liked-repository';
 import { FolderTracksPersister } from './ui/components/collection/collection-folders/folder-tracks-persister';
 import { FoldersPersister } from './ui/components/collection/collection-folders/folders-persister';
 import { CollectionGenresComponent } from './ui/components/collection/collection-genres/collection-genres.component';
@@ -630,6 +632,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         { provide: QueuedTrackRepositoryBase, useClass: QueuedTrackRepository },
         { provide: PlaylistSessionRepositoryBase, useClass: PlaylistSessionRepository },
         { provide: ListeningSessionRepositoryBase, useClass: ListeningSessionRepository },
+        { provide: LikedRepositoryBase, useClass: LikedRepository },
         { provide: ApplicationServiceBase, useClass: ApplicationService },
         { provide: NavigationServiceBase, useClass: NavigationService },
         { provide: AlbumArtworkCacheServiceBase, useClass: AlbumArtworkCacheService },

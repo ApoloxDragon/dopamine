@@ -383,3 +383,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Year in review (3.3.2)
     - StatisticsService.getYearInReview (since 1 January, local): summary, top 5 lists, mostPlayedDay (ties to the earlier day, garbage ignored), longest streak counting only this year's days, first listen (reduce, not Math.min spread: 300 000 plays tested). Card section on the Statistics page, 'so far' before December. Not done: first song title (needs a new query) and saving as an image.
+
+- **2026-11-24** · `Added` · Album and artist like/dislike (3.3.2, migration 18)
+    - Migration18 adds table Liked (Kind, Key, Value, LikedAtMs; PK Kind+Key); nothing existing changes. LikedRepository (upsert / delete on 0), LikeService (cached, artist keys lower case, failures logged and the old value kept). Context menu items in the album and artist browsers, 'Liked albums' shelf row (memoised filter). SmartShuffler and ContinuousPlay take an isDisliked predicate fed by LikeService. Real-SQLite spec: migrates to 18, hostile keys kept exactly.

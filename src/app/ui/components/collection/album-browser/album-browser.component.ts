@@ -3,6 +3,7 @@ import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { Constants } from '../../../../common/application/constants';
+import { LikeService } from '../../../../services/like/like.service';
 import { Logger } from '../../../../common/logger';
 import { NativeElementProxy } from '../../../../common/native-element-proxy';
 import { AlbumModel } from '../../../../services/album/album-model';
@@ -50,6 +51,7 @@ export class AlbumBrowserComponent extends BaseVirtualScrollBrowser implements O
         public addToPlaylistMenu: AddToPlaylistMenu,
         private settings: SettingsBase,
         private logger: Logger,
+        public likeService?: LikeService,
         scrollPositionService: ScrollPositionService,
         searchService: SearchServiceBase,
     ) {

@@ -16,6 +16,7 @@ export class ContinuousPlay {
         inQueue: TrackModel[],
         count: number = ContinuousPlay.songsPerTurn,
         random: () => number = Math.random,
+        isDisliked: (track: TrackModel) => boolean = () => false,
     ): TrackModel[] {
         const seeds: TrackModel[] = recentlyPlayed.filter((x) => x != undefined).slice(-ContinuousPlay.songsToLookAt);
         const queued: Set<string> = new Set(inQueue.filter((x) => x != undefined).map((x) => x.path));
@@ -25,7 +26,7 @@ export class ContinuousPlay {
         const averageYear: number = years.length > 0 ? years.reduce((a, b) => a + b, 0) / years.length : 0;
 
         const candidates = library
-            .filter((x) => x != undefined && typeof x.path === 'string' && !queued.has(x.path) && x.love !== -1)
+            .filter((x) => x != undefined && typeof x.path === 'string' && !queued.has(x.path) && x.love !== -1 && !isDisliked(x))
             .map((track) => {
                 let score: number = 0.2; // every song has a chance
 
