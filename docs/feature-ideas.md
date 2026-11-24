@@ -16,6 +16,13 @@ Dopamine already has "love" for songs (a heart, off by default: Settings, Behavi
   Songs keep using `Track.Love`, so nothing existing changes.
 - Optional: write the song heart to the file tag (like ratings can be) so it survives a new library.
 
+## Album details from a file in the album folder
+
+An optional `dopamine.json` next to the music (or the .cue sheet) fixes small things without retagging the files, for
+example `{ "year": 1970, "albumTitle": "Paranoid", "discNumber": 1, "discCount": 2 }`. It overrides the tags for every song
+in that folder; the music files are never changed. Disc numbers also solve "(CD1)/(CD2)" albums. Details and open
+questions: D19 in `cue-support/DRAFTS.md`. Medium to high effort.
+
 ## Smart shuffle and continuous play
 
 - **Smart shuffle:** shuffle that favours liked and highly rated songs, avoids disliked ones, and does not play the same
