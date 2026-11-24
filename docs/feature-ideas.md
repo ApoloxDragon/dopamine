@@ -37,7 +37,9 @@ Fits well (small or medium):
 1. **Queue improvements:** "play next" vs "add to queue", save the queue as a playlist, clear played songs.
 2. **Sleep timer:** stop (with fade out) after N minutes or at the end of the song/album. Presets 15, 30, 45, 60 and
    90 minutes plus a custom time; a countdown shows in the player (click it to add time or cancel).
-3. **Recently added / recently played** views (data already exists: date added, statistics).
+3. **Recently added / recently played** views (data already exists: date added, statistics). Shown as two rows of
+   album covers at the top of the Albums page (can be hidden), each with a "see all" list of songs and albums for the
+   last 7, 30 or 90 days; recently played works even with detailed statistics off.
 4. **Smart shuffle / "radio" from local files:** play songs similar to the current one by genre, artist and year.
 5. **Album "Play from disc 2"** and grouping CD1/CD2 albums (see D17 in `cue-support/DRAFTS.md`).
 6. **Lyrics view** improvements: synced `.lrc` scrolling full screen (lyrics already supported).
