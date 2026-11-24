@@ -51,9 +51,9 @@ export class AlbumBrowserComponent extends BaseVirtualScrollBrowser implements O
         public addToPlaylistMenu: AddToPlaylistMenu,
         private settings: SettingsBase,
         private logger: Logger,
-        public likeService?: LikeService,
         scrollPositionService: ScrollPositionService,
         searchService: SearchServiceBase,
+        public likeService?: LikeService,
     ) {
         super(scrollPositionService, searchService);
 

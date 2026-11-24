@@ -62,9 +62,9 @@ export class ArtistBrowserComponent extends BaseVirtualScrollBrowser implements 
         private dialogService: DialogServiceBase,
         public settings: SettingsBase,
         private logger: Logger,
-        public likeService?: LikeService,
         scrollPositionService: ScrollPositionService,
         searchService: SearchServiceBase,
+        public likeService?: LikeService,
     ) {
         super(scrollPositionService, searchService);
 
