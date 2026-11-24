@@ -5,6 +5,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Continuous play (Settings, Behavior): when the queue ends, the music keeps going with similar songs from your library:
+  the same artists, genres or years, liked songs first and disliked songs never. Added songs have a small mark in the
+  queue. Off by default.
+
 ## [3.3.1-apolox] - 2026-11-24
 
 A release for listening at home: music on a home server keeps working when the server is asleep, and some small

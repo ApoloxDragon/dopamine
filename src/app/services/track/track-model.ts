@@ -100,6 +100,13 @@ export class TrackModel implements ISelectable {
         return trackArtists.filter((x) => !StringUtils.isNullOrWhiteSpace(x));
     }
 
+    /** The genres as stored, without the translated "Unknown genre". */
+    public get rawGenres(): string[] {
+        const trackGenres: string[] = DataDelimiter.fromDelimitedString(this.track.genres);
+
+        return DataDelimiter.isUnknownValue(trackGenres) ? [] : trackGenres.filter((x) => x.trim().length > 0);
+    }
+
     public get rawFirstArtist(): string {
         if (this.rawArtists.length === 0) {
             return '';

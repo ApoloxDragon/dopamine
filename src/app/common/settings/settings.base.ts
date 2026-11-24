@@ -123,6 +123,7 @@ export abstract class SettingsBase {
     public abstract showSquareImages: boolean;
     public abstract showAlbumShelves: boolean;
     public abstract useSmartShuffle: boolean;
+    public abstract useContinuousPlay: boolean;
     public abstract useCompactYearView: boolean;
     public abstract albumCoverSize: number;
     public abstract playlistCoverSize: number;

@@ -1321,6 +1321,46 @@ describe('PlaybackService', () => {
         test.todo('should write tests');
     });
 
+    describe('continuous play', () => {
+        async function playingLastSong(): Promise<PlaybackService> {
+            const service: PlaybackService = createService();
+            queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel1);
+            queueMock.setup((x) => x.tracksInPlaybackOrder).returns(() => [trackModel1]);
+            await service.enqueueAndPlayTracksAsync(trackModels);
+            return service;
+        }
+
+        it('should add similar songs and keep playing when the queue ends', async () => {
+            settingsStub.useContinuousPlay = true;
+            const service = await playingLastSong();
+            const library = new TrackModels();
+            library.addTrack(trackModel3);
+            trackServiceMock.setup((x) => x.getVisibleTracks()).returns(() => library);
+            let added: TrackModel[] = [];
+            queueMock.setup((x) => x.addTracks(It.isAny())).callback((t: TrackModel[]) => (added = t));
+            queueMock.setup((x) => x.getNextTrack(It.isAny(), false)).returns(() => (added.length > 0 ? added[0] : undefined));
+
+            playbackFinished.next();
+            await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+            expect(added.map((x) => x.path)).toEqual([trackModel3.path]);
+            expect(service.continuousPlayPaths.has(trackModel3.path)).toBe(true);
+            expect(service.currentTrack?.path).toEqual(trackModel3.path);
+        });
+
+        it('should stop as before when it is off', async () => {
+            settingsStub.useContinuousPlay = false;
+            const service = await playingLastSong();
+            queueMock.setup((x) => x.getNextTrack(It.isAny(), It.isAny())).returns(() => undefined);
+
+            playbackFinished.next();
+            await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+            queueMock.verify((x) => x.addTracks(It.isAny()), Times.never());
+            expect(service.isPlaying).toBeFalsy();
+        });
+    });
+
     describe('sleep timer support', () => {
         async function playing(): Promise<PlaybackService> {
             const service: PlaybackService = createService();

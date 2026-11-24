@@ -17,6 +17,7 @@ import { TrackServiceBase } from '../track/track.service.base';
 import { PlaylistServiceBase } from '../playlist/playlist.service.base';
 import { SettingsBase } from '../../common/settings/settings.base';
 import { StringUtils } from '../../common/utils/string-utils';
+import { ContinuousPlay } from './continuous-play';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { TrackSorter } from '../../common/sorting/track-sorter';
 import { QueuePersister } from './queue-persister';
@@ -687,6 +688,10 @@ export class PlaybackService {
             return;
         }
 
+        if (!allowWrapAround && this.settings.useContinuousPlay === true && (await this.continuePlayingAsync())) {
+            return;
+        }
+
         this.stop();
     }
 
@@ -741,6 +746,46 @@ export class PlaybackService {
         void this.notificationService.songUnreachableSkippedAsync();
         await this.playNextAsync();
         return true;
+    }
+
+    /** Songs added by continuous play (by path), so the queue can mark them. */
+    public readonly continuousPlayPaths: Set<string> = new Set<string>();
+
+    /**
+     * Continuous play: the queue has ended, so similar songs from the library are added and the first one plays.
+     * Returns false when it is off or nothing fits (then playback stops as usual).
+     */
+    private async continuePlayingAsync(): Promise<boolean> {
+        if (this.settings.useContinuousPlay !== true) {
+            return false;
+        }
+
+        try {
+            const library: TrackModel[] = this.trackService.getVisibleTracks().tracks;
+            const played: TrackModel[] = this.queue.tracksInPlaybackOrder;
+            const picked: TrackModel[] = ContinuousPlay.pick(played, library, played);
+
+            if (picked.length === 0) {
+                return false;
+            }
+
+            const lastTrack: TrackModel | undefined = this.currentTrack;
+            this.queue.addTracks(picked);
+            picked.forEach((x) => this.continuousPlayPaths.add(x.path));
+            this.logger.info(`Continuous play added ${picked.length} songs`, 'PlaybackService', 'continuePlayingAsync');
+
+            const next: TrackModel | undefined = this.queue.getNextTrack(lastTrack, false);
+
+            if (next == undefined) {
+                return false;
+            }
+
+            await this.playAsync(next, false);
+            return true;
+        } catch (e: unknown) {
+            this.logger.error(e, 'Continuous play could not add songs', 'PlaybackService', 'continuePlayingAsync');
+            return false;
+        }
     }
 
     private async playingPreloadedTrackHandler(preloadedTrack: TrackModel): Promise<void> {

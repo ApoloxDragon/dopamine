@@ -62,6 +62,10 @@
         <app-toggle-switch [(isChecked)]="this.settings.useSmartShuffle"> {{ 'smart-shuffle' | translate }}</app-toggle-switch>
         <div class="secondary-text mt-1">{{ 'smart-shuffle-description' | translate }}</div>
     </div>
+    <div class="mt-3">
+        <app-toggle-switch [(isChecked)]="this.settings.useContinuousPlay"> {{ 'continuous-play' | translate }}</app-toggle-switch>
+        <div class="secondary-text mt-1">{{ 'continuous-play-description' | translate }}</div>
+    </div>
     <mat-divider class="my-4"></mat-divider>
     <div class="title">{{ 'now-playing' | translate }}</div>
     <div>
