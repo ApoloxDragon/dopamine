@@ -3,29 +3,27 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.3.1-apolox] - 2026-11-24
+
+A release for listening at home: music on a home server keeps working when the server is asleep, and some small
+favourites from other players. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
 - Smart shuffle (Settings, Behavior): shuffle favours songs you like and rate highly, plays disliked songs last, and
   avoids the same artist or album twice in a row. Off by default; every song still plays.
-
 - "Recently added" and "Recently played" rows of album covers at the top of the Albums page. Click a cover to see its
   songs, double-click to play it. The rows can be folded away.
-
 - Sleep timer (the moon button in the player): stop the music after 15, 30, 45, 60 or 90 minutes, another time you
   type, or at the end of the current song. The time left counts down in the player, you can add 15 minutes, and the music
   fades out slowly at the end.
-
 - Like and dislike buttons (thumbs up and down) next to each song and in the player, shown by default. They replace the
   heart: songs you loved are now liked. Star ratings stay as they are.
-
 - "Add a network folder" in Settings, Collection: type the path of a shared folder (for example \\\\192.168.1.10\\music on
   Windows, or a mounted share such as /mnt/music on Linux). A share that is offline right now can still be added.
 - When a music folder can't be reached during a refresh, a short message says so. Its songs stay in your collection.
 - A song whose folder can't be reached is skipped with a short message, instead of stopping with an error. If many songs in
   a row can't be reached, playback stops.
-
 - A small separate tool for the terminal, `tools/alac-to-flac`, turns Apple Lossless (.m4a) songs into FLAC without changing
   the sound at all. It checks every song after converting it, and keeps the tags and the cover. See its README.
 - Two refresh buttons in Settings, Collection: "Fast refresh" only looks at songs that were added, changed or removed,
