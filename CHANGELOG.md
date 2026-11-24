@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Sleep timer (the moon button in the player): stop the music after 15, 30, 45, 60 or 90 minutes, another time you
+  type, or at the end of the current song. The time left counts down in the player, you can add 15 minutes, and the music
+  fades out slowly at the end.
+
 - Like and dislike buttons (thumbs up and down) next to each song and in the player, shown by default. They replace the
   heart: songs you loved are now liked. Star ratings stay as they are.
 

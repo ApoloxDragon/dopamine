@@ -365,3 +365,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Like / dislike for songs (thumbs), replacing the heart
     - Same storage (Track.Love: 1 like, -1 dislike, 0 none; the heart already cycled through -1 as a 'broken heart'). Two buttons, each toggles its own state; Last.fm 'love' only for a like. showLove now defaults to true (new installs and users who never changed it). Not checked visually (screenshot tool has no songs).
+
+- **2026-11-24** · `Added` · Sleep timer
+    - SleepTimerService (presets, custom, +15, end of song, 24 h cap, re-checks after a late timer e.g. sleep); stops with PlaybackService.stopPlayback(10000) (new optional fade length). End of song: PlaybackService.stopAfterCurrentTrack, checked when a song finishes and in the gapless preloaded path (the next song is stopped at once). Moon button with countdown in the collection playback pane.

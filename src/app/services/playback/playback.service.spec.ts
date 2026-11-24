@@ -1321,6 +1321,38 @@ describe('PlaybackService', () => {
         test.todo('should write tests');
     });
 
+    describe('sleep timer support', () => {
+        async function playing(): Promise<PlaybackService> {
+            const service: PlaybackService = createService();
+            queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel1);
+            queueMock.setup((x) => x.getNextTrack(It.isAny(), It.isAny())).returns(() => trackModel2);
+            await service.enqueueAndPlayTracksAsync(trackModels);
+            return service;
+        }
+
+        it('should stop when the song ends instead of playing the next one, and only once', async () => {
+            const service = await playing();
+            service.stopAfterCurrentTrack = true;
+
+            playbackFinished.next();
+            await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+            expect(service.isPlaying).toBeFalsy();
+            expect(service.stopAfterCurrentTrack).toBe(false);
+            expect(service.currentTrack).toBe(trackModel1);
+        });
+
+        it('should fade out for the requested time, or stop at once for 0', async () => {
+            settingsStub.fadeOnPause = false;
+            const service = await playing();
+            audioPlayerMock.setup((x) => x.fadeAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve());
+
+            service.stopPlayback(10000);
+
+            audioPlayerMock.verify((x) => x.fadeAsync(0, 10000), Times.once());
+        });
+    });
+
     describe('songs that cannot be reached (network folder offline)', () => {
         const flush = (): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
@@ -1333,7 +1365,7 @@ describe('PlaybackService', () => {
         }
 
         it('should skip to the next song with a notice, instead of the error dialog', async () => {
-                        const service = await playing();
+            const service = await playing();
             // The share goes offline while playing.
             fileAccessMock.reset();
             fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => false);
@@ -1358,7 +1390,7 @@ describe('PlaybackService', () => {
         });
 
         it('should stop after too many songs in a row cannot be reached, instead of going through the whole queue', async () => {
-                        const service = await playing();
+            const service = await playing();
             // The share goes offline while playing.
             fileAccessMock.reset();
             fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => false);

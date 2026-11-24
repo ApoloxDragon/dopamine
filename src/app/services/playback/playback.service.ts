@@ -613,12 +613,24 @@ export class PlaybackService {
     /**
      * Fully stops playback and resets progress to the start, keeping the current track so that a subsequent resumeAsync() restarts it from the beginning.
      */
-    public stopPlayback(): void {
+    /**
+     * When set, playback stops when the current song ends (sleep timer "end of this song"). Cleared when it happens, and
+     * by any stop.
+     */
+    public stopAfterCurrentTrack: boolean = false;
+
+    /** Stops playback. fadeOutMs overrides the fade setting (the sleep timer fades out slowly); 0 stops at once. */
+    public stopPlayback(fadeOutMs?: number): void {
         if (this.currentTrack == undefined) {
             return;
         }
 
-        const durationMs: number = this.canPause ? this.fadeOutDurationMs() : 0;
+        this.stopAfterCurrentTrack = false;
+        const requestedMs: number | undefined =
+            fadeOutMs !== undefined && Number.isFinite(fadeOutMs)
+                ? Math.min(PlaybackService.maximumFadeMs, Math.max(0, fadeOutMs))
+                : undefined;
+        const durationMs: number = this.canPause ? (requestedMs ?? this.fadeOutDurationMs()) : 0;
 
         if (durationMs > 0) {
             // Fade out first; the state below changes at once, the audio stops when the fade ends.
@@ -652,6 +664,11 @@ export class PlaybackService {
         }
 
         this.increasePlayCountAndDateLastPlayedForCurrentTrack();
+
+        if (this.stopAfterCurrentTrack) {
+            this.stopPlayback(0);
+            return;
+        }
 
         if (this.loopMode === LoopMode.One) {
             if (this.currentTrack != undefined) {
@@ -728,6 +745,12 @@ export class PlaybackService {
 
     private async playingPreloadedTrackHandler(preloadedTrack: TrackModel): Promise<void> {
         this.increasePlayCountAndDateLastPlayedForCurrentTrack();
+
+        if (this.stopAfterCurrentTrack) {
+            // Gapless: the next song has just started. Stop it at once (the sleep timer asked to stop after the song).
+            this.stopPlayback(0);
+            return;
+        }
 
         if (this.loopMode === LoopMode.One && this.currentTrack != undefined) {
             await this.playAsync(this.currentTrack, false);
