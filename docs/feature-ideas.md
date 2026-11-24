@@ -44,7 +44,9 @@ Fits well (small or medium):
 5. **Album "Play from disc 2"** and grouping CD1/CD2 albums (see D17 in `cue-support/DRAFTS.md`).
 6. **Lyrics view** improvements: synced `.lrc` scrolling full screen (lyrics already supported).
 7. **ReplayGain / loudness normalisation** shown and toggled more clearly (already partly there).
-8. **Year in review** from the detailed statistics (top songs per year, like "Wrapped", but private).
+8. **Year in review** from the statistics, like "Wrapped" but private: top songs, albums, artists and genres of the
+   year, total listening time, longest streak, most played day, first and last song of the year. A few full-screen cards
+   on the Statistics page, from December; can be saved as an image. Nothing leaves the computer.
 9. **Keyboard shortcuts page** and a mini command palette (Ctrl+K: search songs, albums, actions).
 
 Fits, larger:
