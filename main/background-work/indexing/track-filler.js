@@ -14,8 +14,10 @@ class TrackFiller {
         dateTime,
         logger,
         cueSheetReader = undefined,
+        albumDetails = undefined,
     ) {
         this.cueSheetReader = cueSheetReader;
+        this.albumDetails = albumDetails;
         this.fileMetadataFactory = fileMetadataFactory;
         this.albumKeyGenerator = albumKeyGenerator;
         this.trackFieldCreator = trackFieldCreator;
@@ -90,6 +92,8 @@ class TrackFiller {
                 this.#applyCueSheet(track, fileMetadata, fillOnlyEssentialMetadata);
             }
 
+            this.#applyAlbumDetails(track, audioPath, fillOnlyEssentialMetadata);
+
             track.needsIndexing = 0;
             track.needsAlbumArtworkIndexing = 1;
             track.indexingSuccess = 1;
@@ -140,6 +144,58 @@ class TrackFiller {
      * tags of the album file are kept as fallback (e.g. a sheet without REM GENRE keeps the file's genre).
      * Throws when the track is no longer in the sheet, so the track is marked as failed instead of getting wrong data.
      */
+    /** dopamine.json in the album folder wins over the tags and the cue sheet (see AlbumDetails). */
+    #applyAlbumDetails(track, audioPath, fillOnlyEssentialMetadata) {
+        if (this.albumDetails === undefined) {
+            return;
+        }
+
+        const details = this.albumDetails.forFile(audioPath);
+
+        if (details !== undefined) {
+            if (details.albumTitle !== undefined) {
+                track.albumTitle = details.albumTitle;
+            }
+
+            if (details.albumArtists !== undefined) {
+                track.albumArtists = this.trackFieldCreator.createMultiTextField(details.albumArtists);
+            }
+
+            if (details.genres !== undefined) {
+                track.genres = this.trackFieldCreator.createMultiTextField(details.genres);
+            }
+
+            if (details.year !== undefined) {
+                track.year = details.year;
+            }
+
+            if (details.discNumber !== undefined) {
+                track.discNumber = details.discNumber;
+            }
+
+            if (details.discCount !== undefined) {
+                track.discCount = details.discCount;
+            }
+
+            if (details.albumTitle !== undefined || details.albumArtists !== undefined) {
+                const albumArtists = details.albumArtists ?? this.#albumArtistsOf(track);
+                track.albumKey = this.albumKeyGenerator.generateAlbumKey(track.albumTitle, albumArtists);
+                track.albumKey2 = this.albumKeyGenerator.generateAlbumKey2(track.albumTitle);
+            }
+        }
+
+        if (!fillOnlyEssentialMetadata) {
+            // Changing dopamine.json must make its songs out of date (TrackVerifier and IndexablePathFetcher do the same).
+            track.dateFileModified = Math.max(track.dateFileModified ?? 0, this.albumDetails.modifiedTicksForFile(audioPath));
+        }
+    }
+
+    #albumArtistsOf(track) {
+        return String(track.albumArtists ?? '')
+            .split(';')
+            .filter((x) => x.length > 0);
+    }
+
     #applyCueSheet(track, fileMetadata, fillOnlyEssentialMetadata) {
         if (this.cueSheetReader === undefined) {
             throw new Error('Cue sheet support is not available');

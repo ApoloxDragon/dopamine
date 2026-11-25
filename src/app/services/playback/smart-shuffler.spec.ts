@@ -102,4 +102,12 @@ describe('SmartShuffler', () => {
         expect(SmartShuffler.order(tracks).length).toEqual(20000);
         expect(Date.now() - started).toBeLessThan(2000);
     });
+
+    it('should put songs on disliked albums or by disliked artists last too', () => {
+        const tracks: TrackModel[] = [track(0, { albumKey: 'bad' }), track(1), track(2), track(3, { albumKey: 'bad' })];
+
+        const order: number[] = SmartShuffler.order(tracks, seeded(9), (t) => t.albumKey === 'bad');
+
+        expect(order.slice(2).sort()).toEqual([0, 3]);
+    });
 });

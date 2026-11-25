@@ -117,6 +117,7 @@ export const DEFAULT_SETTINGS = {
     showSquareImages: false,
     showAlbumShelves: true,
     useSmartShuffle: false,
+    useContinuousPlay: false,
     useCompactYearView: false,
     albumCoverSize: 130,
     playlistCoverSize: 130,

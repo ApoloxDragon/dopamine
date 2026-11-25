@@ -1,7 +1,12 @@
 import { Subject } from 'rxjs';
 import { IMock, It, Mock, Times } from 'typemoq';
 import { CollectionStatisticsComponent } from './collection-statistics.component';
-import { StatisticsService, StatisticsOverview, ListeningHistoryItem, DetailedStatistics } from '../../../../services/statistics/statistics.service';
+import {
+    StatisticsService,
+    StatisticsOverview,
+    ListeningHistoryItem,
+    DetailedStatistics,
+} from '../../../../services/statistics/statistics.service';
 import { PlaybackService } from '../../../../services/playback/playback.service';
 import { SettingsMock } from '../../../../testing/settings-mock';
 import { Logger } from '../../../../common/logger';
@@ -41,7 +46,10 @@ describe('CollectionStatisticsComponent', () => {
     }
 
     function create(): CollectionStatisticsComponent {
-        const playbackService = { playbackStarted$: started.asObservable(), playbackStopped$: stopped.asObservable() } as unknown as PlaybackService;
+        const playbackService = {
+            playbackStarted$: started.asObservable(),
+            playbackStopped$: stopped.asObservable(),
+        } as unknown as PlaybackService;
         return new CollectionStatisticsComponent(
             statisticsServiceMock.object,
             playbackService,

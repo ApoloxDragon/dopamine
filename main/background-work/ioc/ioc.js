@@ -28,6 +28,7 @@ const { TrackIndexer } = require('../indexing/track-indexer');
 const { CueParser } = require('../indexing/cue-parser');
 const { CueSheetReader } = require('../indexing/cue-sheet-reader');
 const { FolderReachability } = require('../indexing/folder-reachability');
+const { AlbumDetails } = require('../indexing/album-details');
 
 global.iocContainer = new Map();
 
@@ -47,7 +48,8 @@ class Ioc {
 
         global.iocContainer.set('CueParser', new CueParser());
         global.iocContainer.set('CueSheetReader', new CueSheetReader(Ioc.get('CueParser'), Ioc.get('Logger')));
-        global.iocContainer.set('TrackVerifier', new TrackVerifier(Ioc.get('FileAccess')));
+        global.iocContainer.set('AlbumDetails', new AlbumDetails(Ioc.get('FileAccess'), Ioc.get('Logger')));
+        global.iocContainer.set('TrackVerifier', new TrackVerifier(Ioc.get('FileAccess'), Ioc.get('AlbumDetails')));
         global.iocContainer.set('DirectoryWalker', new DirectoryWalker(Ioc.get('FileAccess')));
 
         global.iocContainer.set('ApplicationPaths', new ApplicationPaths(Ioc.get('FileAccess'), Ioc.get('WorkerProxy')));
@@ -57,7 +59,10 @@ class Ioc {
         global.iocContainer.set('FolderTrackRepository', new FolderTrackRepository(Ioc.get('DatabaseFactory')));
         global.iocContainer.set('RemovedTrackRepository', new RemovedTrackRepository(Ioc.get('DatabaseFactory')));
         global.iocContainer.set('TrackRepository', new TrackRepository(Ioc.get('DatabaseFactory')));
-        global.iocContainer.set('FolderReachability', new FolderReachability(Ioc.get('FolderRepository'), Ioc.get('Logger'), undefined, Ioc.get('WorkerProxy')));
+        global.iocContainer.set(
+            'FolderReachability',
+            new FolderReachability(Ioc.get('FolderRepository'), Ioc.get('Logger'), undefined, Ioc.get('WorkerProxy')),
+        );
 
         global.iocContainer.set('TrackFieldCreator', new TrackFieldCreator());
 
@@ -69,6 +74,7 @@ class Ioc {
                 Ioc.get('FileAccess'),
                 Ioc.get('Logger'),
                 Ioc.get('CueSheetReader'),
+                Ioc.get('AlbumDetails'),
             ),
         );
 
@@ -84,6 +90,7 @@ class Ioc {
                 Ioc.get('DateTime'),
                 Ioc.get('Logger'),
                 Ioc.get('CueSheetReader'),
+                Ioc.get('AlbumDetails'),
             ),
         );
 

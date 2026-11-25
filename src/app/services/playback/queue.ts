@@ -4,6 +4,7 @@ import { Shuffler } from '../../common/shuffler';
 import { TrackModel } from '../track/track-model';
 import { SettingsBase } from '../../common/settings/settings.base';
 import { SmartShuffler } from './smart-shuffler';
+import { LikeService } from '../like/like.service';
 
 @Injectable({ providedIn: 'root' })
 export class Queue {
@@ -14,6 +15,7 @@ export class Queue {
         private shuffler: Shuffler,
         private logger: Logger,
         private settings?: SettingsBase,
+        private likeService?: LikeService,
     ) {}
 
     public get tracks(): TrackModel[] {
@@ -189,7 +191,11 @@ export class Queue {
 
     private shufflePlaybackOrder(): void {
         if (this.settings?.useSmartShuffle === true && this.playbackOrder.length === this._tracks.length) {
-            this.playbackOrder = SmartShuffler.order(this._tracks);
+            this.playbackOrder = SmartShuffler.order(
+                this._tracks,
+                Math.random,
+                (track) => this.likeService?.isDislikedByAlbumOrArtist(track) === true,
+            );
             return;
         }
 

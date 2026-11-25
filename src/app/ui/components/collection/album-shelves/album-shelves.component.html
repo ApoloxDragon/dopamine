@@ -7,6 +7,7 @@
         <ng-container
             *ngFor="
                 let shelf of [
+                    { key: 'liked-albums', albums: this.liked },
                     { key: 'recently-added', albums: this.recentlyAdded },
                     { key: 'recently-played', albums: this.recentlyPlayed },
                 ]

@@ -99,6 +99,20 @@
         <button mat-menu-item (click)="onShuffleAndPlayAsync(album)">
             <span>{{ 'shuffle' | translate }}</span>
         </button>
+        <button mat-menu-item *ngIf="likeService" (click)="likeService.toggleAlbumLike(album.albumKey, 1)">
+            <i
+                class="mr-2"
+                [ngClass]="likeService.albumLike(album.albumKey) === 1 ? 'fas fa-thumbs-up accent-color' : 'far fa-thumbs-up'"
+            ></i>
+            <span>{{ 'like-album' | translate }}</span>
+        </button>
+        <button mat-menu-item *ngIf="likeService" (click)="likeService.toggleAlbumLike(album.albumKey, -1)">
+            <i
+                class="mr-2"
+                [ngClass]="likeService.albumLike(album.albumKey) === -1 ? 'fas fa-thumbs-down accent-color' : 'far fa-thumbs-down'"
+            ></i>
+            <span>{{ 'dislike-album' | translate }}</span>
+        </button>
         <mat-divider></mat-divider>
         <button mat-menu-item (click)="onEditAsync(album)">
             <span>{{ 'edit' | translate }}</span>

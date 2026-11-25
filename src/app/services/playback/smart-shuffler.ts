@@ -30,15 +30,20 @@ export class SmartShuffler {
     }
 
     /** Indexes of tracks in the order they should play. random() is Math.random in the app (replaceable for tests). */
-    public static order(tracks: TrackModel[], random: () => number = Math.random): number[] {
+    public static order(
+        tracks: TrackModel[],
+        random: () => number = Math.random,
+        isDisliked: (track: TrackModel) => boolean = () => false,
+    ): number[] {
         // Weighted random order (Efraimidis-Spirakis): sort by random^(1 / weight), largest first.
         const keyed = tracks.map((track, index) => ({
             index,
             track,
             key: Math.pow(Math.max(random(), 1e-12), 1 / SmartShuffler.weight(track)),
         }));
-        const liked = keyed.filter((x) => x.track.love !== -1).sort((a, b) => b.key - a.key);
-        const disliked = keyed.filter((x) => x.track.love === -1).sort((a, b) => b.key - a.key);
+        const dislikedSong = (track: TrackModel): boolean => track.love === -1 || isDisliked(track);
+        const liked = keyed.filter((x) => !dislikedSong(x.track)).sort((a, b) => b.key - a.key);
+        const disliked = keyed.filter((x) => dislikedSong(x.track)).sort((a, b) => b.key - a.key);
 
         return [...SmartShuffler.spreadOut(liked), ...SmartShuffler.spreadOut(disliked)].map((x) => x.index);
     }

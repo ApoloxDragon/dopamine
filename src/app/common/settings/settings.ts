@@ -1125,6 +1125,15 @@ export class Settings implements SettingsBase {
         this.set('rememberScrollPosition', v);
     }
 
+    // useContinuousPlay
+    public get useContinuousPlay(): boolean {
+        return this.get<boolean>('useContinuousPlay');
+    }
+
+    public set useContinuousPlay(v: boolean) {
+        this.set('useContinuousPlay', v);
+    }
+
     // useSmartShuffle
     public get useSmartShuffle(): boolean {
         return this.get<boolean>('useSmartShuffle');
