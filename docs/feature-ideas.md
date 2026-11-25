@@ -82,9 +82,7 @@ The upgrade itself comes first; these features follow it, each its own PR. All h
    of many songs at once. Optionally move files into `Artist/Year - Album/NN Title` (the alac2flac layout). Never changes
    files without a preview and a confirmation.
 
-Smaller ones that can ride along: a **search box in Settings** (type "fade", "network" or "equalizer" and jump to the
-setting; every setting gets a few search words, in every language), queue improvements ("play next", clear played songs),
-a Ctrl+K quick search, the
+Smaller ones that can ride along: queue improvements ("play next", clear played songs), a Ctrl+K quick search, the
 year in review as an image and with the first song's title, a duplicate finder (same song in two formats or folders).
 
 ## Planned for 3.5 (with the Electron security hardening)

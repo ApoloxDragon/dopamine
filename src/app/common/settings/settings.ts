@@ -1125,15 +1125,6 @@ export class Settings implements SettingsBase {
         this.set('rememberScrollPosition', v);
     }
 
-    // lookForNetworkDrives
-    public get lookForNetworkDrives(): boolean {
-        return this.get<boolean>('lookForNetworkDrives');
-    }
-
-    public set lookForNetworkDrives(v: boolean) {
-        this.set('lookForNetworkDrives', v);
-    }
-
     // useContinuousPlay
     public get useContinuousPlay(): boolean {
         return this.get<boolean>('useContinuousPlay');

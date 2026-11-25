@@ -52,12 +52,10 @@ export class Desktop implements DesktopBase, OnDestroy {
     public accentColorChanged$: Observable<void> = this.accentColorChanged.asObservable();
     public nativeThemeUpdated$: Observable<void> = this.nativeThemeUpdated.asObservable();
 
-    /** defaultPath: the folder the picker opens in (for example a network drive), when given. */
-    public async showSelectFolderDialogAsync(dialogTitle: string, defaultPath?: string): Promise<string> {
+    public async showSelectFolderDialogAsync(dialogTitle: string): Promise<string> {
         const openDialogReturnValue: OpenDialogReturnValue = await remote.dialog.showOpenDialog({
             title: dialogTitle,
             properties: ['openDirectory'],
-            ...(defaultPath !== undefined && defaultPath.length > 0 ? { defaultPath } : {}),
         });
 
         if (

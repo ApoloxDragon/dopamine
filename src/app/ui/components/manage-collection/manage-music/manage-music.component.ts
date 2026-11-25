@@ -1,5 +1,4 @@
-import { Component, Optional, ViewEncapsulation } from '@angular/core';
-import { SettingsBase } from '../../../../common/settings/settings.base';
+import { Component, ViewEncapsulation } from '@angular/core';
 
 @Component({
     selector: 'app-manage-music',
@@ -8,6 +7,4 @@ import { SettingsBase } from '../../../../common/settings/settings.base';
     styleUrls: ['./manage-music.component.scss'],
     encapsulation: ViewEncapsulation.None,
 })
-export class ManageMusicComponent {
-    public constructor(@Optional() public settings?: SettingsBase) {}
-}
+export class ManageMusicComponent {}
