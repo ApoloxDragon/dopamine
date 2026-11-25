@@ -1,5 +1,7 @@
 # Dependency upgrade plan
 
+The release plan that uses this, with target versions, is [3.4.0-plan.md](3.4.0-plan.md).
+
 A step-by-step plan to fix the remaining vulnerable dependencies (see [dependency-audit.md](dependency-audit.md)) over a long period,
 with testing between every step. Each phase is small enough to try, test, and throw away if it goes wrong.
 
@@ -145,6 +147,8 @@ Steps, each its own pull request:
   verifies it. Prefer nested overrides (`{ "<parent>": { "<name>": "<version>" } }`): range keys like `"name@^5"` are not always applied.
 - `scripts/dev/try-fix.sh`: all gates after a dependency change (install, unit and database tests, production build, lint against
   `scripts/dev/lint-baseline.txt`, advisory check), one line per gate.
+- `scripts/dev/upstream-diff.sh`: before merging an upstream release, what changed on each side and where conflicts will be
+  (see [upstream-sync-plan.md](upstream-sync-plan.md)).
 - `scripts/dev/build-linux.sh`: fast local Linux build to try changes (AppImage by default).
 - `scripts/check-appimage-permissions.sh`: fails when files or folders inside an AppImage are not usable by other users (runs after
   every AppImage repackaging, also on CI).

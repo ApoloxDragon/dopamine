@@ -58,6 +58,10 @@
     <div>
         <app-toggle-switch [(isChecked)]="this.settings.showLove"> {{ 'show-love' | translate }}</app-toggle-switch>
     </div>
+    <div class="mt-3">
+        <app-toggle-switch [(isChecked)]="this.settings.useSmartShuffle"> {{ 'smart-shuffle' | translate }}</app-toggle-switch>
+        <div class="secondary-text mt-1">{{ 'smart-shuffle-description' | translate }}</div>
+    </div>
     <mat-divider class="my-4"></mat-divider>
     <div class="title">{{ 'now-playing' | translate }}</div>
     <div>
@@ -78,9 +82,7 @@
     <mat-divider class="my-4"></mat-divider>
     <div class="title">{{ 'playback-controls' | translate }}</div>
     <div>
-        <app-toggle-switch [(isChecked)]="this.settings.showStopButton">
-            {{ 'show-stop-button' | translate }}</app-toggle-switch
-        >
+        <app-toggle-switch [(isChecked)]="this.settings.showStopButton"> {{ 'show-stop-button' | translate }}</app-toggle-switch>
     </div>
     <mat-divider class="my-4"></mat-divider>
     <div class="title">{{ 'playback-state' | translate }}</div>
@@ -133,7 +135,9 @@
                 [max]="this.maximumFadeMs"
                 step="1"
                 [value]="this.settings.fadeOnPauseDurationMs"
-                (change)="this.setFadeOutDuration($any($event.target).value); $any($event.target).value = this.settings.fadeOnPauseDurationMs"
+                (change)="
+                    this.setFadeOutDuration($any($event.target).value); $any($event.target).value = this.settings.fadeOnPauseDurationMs
+                "
             />
             <span class="secondary-text">ms ({{ this.formatSeconds(this.settings.fadeOnPauseDurationMs) }})</span>
         </label>
@@ -221,9 +225,7 @@
                 >{{ prefix }}</app-text-icon-secondary-button
             >
         </div>
-        <app-icon-text-button class="mt-3" icon="las la-plus" (click)="addSortPrefixAsync()">{{
-            'add' | translate
-        }}</app-icon-text-button>
+        <app-icon-text-button class="mt-3" icon="las la-plus" (click)="addSortPrefixAsync()">{{ 'add' | translate }}</app-icon-text-button>
     </div>
     <mat-divider class="my-4"></mat-divider>
     <div class="title">{{ 'split-artists' | translate }}</div>

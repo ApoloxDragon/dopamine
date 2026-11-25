@@ -9,6 +9,7 @@ import { DialogServiceBase } from '../../../services/dialog/dialog.service.base'
 import { IndexingService } from '../../../services/indexing/indexing.service';
 import { FolderModel } from '../../../services/folder/folder-model';
 import { Folder } from '../../../data/entities/folder';
+import { FileAccessBase } from '../../../common/io/file-access.base';
 
 describe('AddFolderComponent', () => {
     let desktopMock: IMock<DesktopBase>;
@@ -449,6 +450,86 @@ describe('AddFolderComponent', () => {
 
             // Assert
             folderServiceMock.verify((x) => x.setAllFoldersVisible(), Times.never());
+        });
+    });
+
+    describe('addNetworkFolderAsync', () => {
+        let fileAccessMock: IMock<FileAccessBase>;
+        let sut: AddFolderComponent;
+
+        beforeEach(() => {
+            fileAccessMock = Mock.ofType<FileAccessBase>();
+            translatorServiceMock.setup((x) => x.getAsync(It.isAnyString(), It.isAny())).returns((key: string) => Promise.resolve(key));
+            translatorServiceMock.setup((x) => x.getAsync(It.isAnyString())).returns((key: string) => Promise.resolve(key));
+            folderServiceMock.setup((x) => x.getFolders()).returns(() => []);
+            sut = new AddFolderComponent(
+                desktopMock.object,
+                translatorServiceMock.object,
+                folderServiceMock.object,
+                dialogServiceMock.object,
+                indexingServiceMock.object,
+                settingsMock.object,
+                loggerMock.object,
+                fileAccessMock.object,
+            );
+        });
+
+        const typed = (text: string): void => {
+            dialogServiceMock
+                .setup((x) => x.showInputDialogAsync(It.isAny(), It.isAny(), It.isAny(), It.isAny()))
+                .returns(() => Promise.resolve(text));
+        };
+
+        it('should add a reachable share, without a trailing backslash', async () => {
+            typed('\\\\192.168.10.183\\storage\\music\\');
+            fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => true);
+
+            await sut.addNetworkFolderAsync();
+
+            folderServiceMock.verify((x) => x.addFolderAsync('\\\\192.168.10.183\\storage\\music'), Times.once());
+            dialogServiceMock.verify((x) => x.showConfirmationDialogAsync(It.isAny(), It.isAny()), Times.never());
+        });
+
+        it('should ask before adding a share that cannot be reached now, and respect a no', async () => {
+            typed('Z:\\music');
+            fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => false);
+            dialogServiceMock.setup((x) => x.showConfirmationDialogAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve(false));
+
+            await sut.addNetworkFolderAsync();
+
+            folderServiceMock.verify((x) => x.addFolderAsync(It.isAny()), Times.never());
+        });
+
+        it('should add an unreachable share when confirmed', async () => {
+            typed('/mnt/nas/music');
+            fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns(() => false);
+            dialogServiceMock.setup((x) => x.showConfirmationDialogAsync(It.isAny(), It.isAny())).returns(() => Promise.resolve(true));
+
+            await sut.addNetworkFolderAsync();
+
+            folderServiceMock.verify((x) => x.addFolderAsync('/mnt/nas/music'), Times.once());
+        });
+
+        it.each([
+            ['smb://192.168.10.183/storage', 'network-folder-url'],
+            ['music', 'network-folder-not-a-path'],
+        ])('should explain why %j cannot be added', async (text: string, key: string) => {
+            typed(text);
+
+            await sut.addNetworkFolderAsync();
+
+            translatorServiceMock.verify((x) => x.getAsync(key), Times.once());
+            dialogServiceMock.verify((x) => x.showErrorDialog(It.isAny()), Times.once());
+            folderServiceMock.verify((x) => x.addFolderAsync(It.isAny()), Times.never());
+        });
+
+        it('should do nothing when the dialog is cancelled', async () => {
+            typed('');
+
+            await sut.addNetworkFolderAsync();
+
+            folderServiceMock.verify((x) => x.addFolderAsync(It.isAny()), Times.never());
+            dialogServiceMock.verify((x) => x.showErrorDialog(It.isAny()), Times.never());
         });
     });
 });

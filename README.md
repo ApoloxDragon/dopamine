@@ -1,6 +1,6 @@
 ![Dopamine](Dopamine.full.png)
 
-> **This is ApoloxDragon's version of Dopamine (3.3.0-apolox), an unofficial fork.**
+> **This is ApoloxDragon's fork of Dopamine (3.3.1-apolox), free and open source under the GPL-3.0 license, like Dopamine itself.**
 > It adds CUE sheet albums (single-file CD rips), a Statistics page, a parametric equalizer with AutoEQ import,
 > fade on pause, a Spotify-like Discord presence and lock screen covers. See the [change log](CHANGELOG.md).
 >

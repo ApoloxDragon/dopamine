@@ -1,0 +1,10 @@
+.albums-left-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.albums-left-pane__browser {
+    flex: 1;
+    min-height: 0;
+}

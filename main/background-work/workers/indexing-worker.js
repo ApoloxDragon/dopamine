@@ -14,6 +14,8 @@ async function performTaskAsync() {
     try {
         if (workerProxy.task() === 'outdated') {
             await indexer.indexCollectionIfOutdatedAsync();
+        } else if (workerProxy.task() === 'fast') {
+            await indexer.indexCollectionFastAsync();
         } else if (workerProxy.task() === 'always') {
             await indexer.indexCollectionAlwaysAsync();
         } else if (workerProxy.task() === 'replaygain') {

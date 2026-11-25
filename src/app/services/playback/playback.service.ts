@@ -16,6 +16,7 @@ import { Queue } from './queue';
 import { TrackServiceBase } from '../track/track.service.base';
 import { PlaylistServiceBase } from '../playlist/playlist.service.base';
 import { SettingsBase } from '../../common/settings/settings.base';
+import { StringUtils } from '../../common/utils/string-utils';
 import { NotificationServiceBase } from '../notification/notification.service.base';
 import { TrackSorter } from '../../common/sorting/track-sorter';
 import { QueuePersister } from './queue-persister';
@@ -612,12 +613,24 @@ export class PlaybackService {
     /**
      * Fully stops playback and resets progress to the start, keeping the current track so that a subsequent resumeAsync() restarts it from the beginning.
      */
-    public stopPlayback(): void {
+    /**
+     * When set, playback stops when the current song ends (sleep timer "end of this song"). Cleared when it happens, and
+     * by any stop.
+     */
+    public stopAfterCurrentTrack: boolean = false;
+
+    /** Stops playback. fadeOutMs overrides the fade setting (the sleep timer fades out slowly); 0 stops at once. */
+    public stopPlayback(fadeOutMs?: number): void {
         if (this.currentTrack == undefined) {
             return;
         }
 
-        const durationMs: number = this.canPause ? this.fadeOutDurationMs() : 0;
+        this.stopAfterCurrentTrack = false;
+        const requestedMs: number | undefined =
+            fadeOutMs !== undefined && Number.isFinite(fadeOutMs)
+                ? Math.min(PlaybackService.maximumFadeMs, Math.max(0, fadeOutMs))
+                : undefined;
+        const durationMs: number = this.canPause ? (requestedMs ?? this.fadeOutDurationMs()) : 0;
 
         if (durationMs > 0) {
             // Fade out first; the state below changes at once, the audio stops when the fade ends.
@@ -652,6 +665,11 @@ export class PlaybackService {
 
         this.increasePlayCountAndDateLastPlayedForCurrentTrack();
 
+        if (this.stopAfterCurrentTrack) {
+            this.stopPlayback(0);
+            return;
+        }
+
         if (this.loopMode === LoopMode.One) {
             if (this.currentTrack != undefined) {
                 await this.playAsync(this.currentTrack, false);
@@ -672,7 +690,18 @@ export class PlaybackService {
         this.stop();
     }
 
+    // Songs on a network share or a drive that cannot be reached are skipped. After this many in a row (each one quickly
+    // after the other) playback stops instead of going through the whole queue.
+    public static readonly maximumUnreachableSkips: number = 10;
+    private static readonly unreachableSkipWindowMs: number = 30000;
+    private _unreachableSkips: number = 0;
+    private _lastUnreachableSkipMs: number = 0;
+
     private async playbackFailedHandlerAsync(audioFilePath: string): Promise<void> {
+        if (await this.skipIfUnreachableAsync()) {
+            return;
+        }
+
         const extension: string = this.fileAccess.getFileExtension(audioFilePath);
 
         if (extension === FileFormats.m4a) {
@@ -684,8 +713,44 @@ export class PlaybackService {
         this.stop();
     }
 
+    /**
+     * When the song's file cannot be reached (network share offline, drive unplugged), shows a short notice and plays the
+     * next song instead of the "cannot play" dialog. Returns false when the file is there (then the file itself is the
+     * problem and the dialog is right).
+     */
+    private async skipIfUnreachableAsync(): Promise<boolean> {
+        const track: TrackModel | undefined = this.currentTrack;
+
+        if (track == undefined || StringUtils.isNullOrWhiteSpace(track.audioPath) || this.fileAccess.pathExists(track.audioPath)) {
+            return false;
+        }
+
+        const now: number = Date.now();
+        this._unreachableSkips =
+            now - this._lastUnreachableSkipMs < PlaybackService.unreachableSkipWindowMs ? this._unreachableSkips + 1 : 1;
+        this._lastUnreachableSkipMs = now;
+        this.logger.warn(`Cannot reach '${track.audioPath}': skipping it`, 'PlaybackService', 'skipIfUnreachableAsync');
+
+        if (this._unreachableSkips >= PlaybackService.maximumUnreachableSkips) {
+            this._unreachableSkips = 0;
+            this.stop();
+            await this.notificationService.songsUnreachableStoppedAsync();
+            return true;
+        }
+
+        void this.notificationService.songUnreachableSkippedAsync();
+        await this.playNextAsync();
+        return true;
+    }
+
     private async playingPreloadedTrackHandler(preloadedTrack: TrackModel): Promise<void> {
         this.increasePlayCountAndDateLastPlayedForCurrentTrack();
+
+        if (this.stopAfterCurrentTrack) {
+            // Gapless: the next song has just started. Stop it at once (the sleep timer asked to stop after the song).
+            this.stopPlayback(0);
+            return;
+        }
 
         if (this.loopMode === LoopMode.One && this.currentTrack != undefined) {
             await this.playAsync(this.currentTrack, false);

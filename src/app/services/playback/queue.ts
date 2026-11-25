@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { Logger } from '../../common/logger';
 import { Shuffler } from '../../common/shuffler';
 import { TrackModel } from '../track/track-model';
+import { SettingsBase } from '../../common/settings/settings.base';
+import { SmartShuffler } from './smart-shuffler';
 
 @Injectable({ providedIn: 'root' })
 export class Queue {
@@ -11,6 +13,7 @@ export class Queue {
     public constructor(
         private shuffler: Shuffler,
         private logger: Logger,
+        private settings?: SettingsBase,
     ) {}
 
     public get tracks(): TrackModel[] {
@@ -185,6 +188,11 @@ export class Queue {
     }
 
     private shufflePlaybackOrder(): void {
+        if (this.settings?.useSmartShuffle === true && this.playbackOrder.length === this._tracks.length) {
+            this.playbackOrder = SmartShuffler.order(this._tracks);
+            return;
+        }
+
         this.playbackOrder = this.shuffler.shuffle<number>(this.playbackOrder);
     }
 

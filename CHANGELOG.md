@@ -3,33 +3,70 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.3.0-apolox] - 2026-11-19
+## [3.3.1-apolox] - 2026-11-24
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo. Mostly fixes, many found by new
-"break it" tests and by checking a real library.
+A release for listening at home: music on a home server keeps working when the server is asleep, and some small
+favourites from other players. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
-- Discord: albums split into discs ("Album (CD1)", "Album [Disc 2]") now show the album cover; all discs share it
-- Album covers are also found in an Artwork, Scans or Covers subfolder ("Album/Artwork/Front.jpg"), as vinyl and boxed set rips often have them
+- Smart shuffle (Settings, Behavior): shuffle favours songs you like and rate highly, plays disliked songs last, and
+  avoids the same artist or album twice in a row. Off by default; every song still plays.
+- "Recently added" and "Recently played" rows of album covers at the top of the Albums page. Click a cover to see its
+  songs, double-click to play it. The rows can be folded away.
+- Sleep timer (the moon button in the player): stop the music after 15, 30, 45, 60 or 90 minutes, another time you
+  type, or at the end of the current song. The time left counts down in the player, you can add 15 minutes, and the music
+  fades out slowly at the end.
+- Like and dislike buttons (thumbs up and down) next to each song and in the player, shown by default. They replace the
+  heart: songs you loved are now liked. Star ratings stay as they are.
+- "Add a network folder" in Settings, Collection: type the path of a shared folder (for example \\\\192.168.1.10\\music on
+  Windows, or a mounted share such as /mnt/music on Linux). A share that is offline right now can still be added.
+- When a music folder can't be reached during a refresh, a short message says so. Its songs stay in your collection.
+- A song whose folder can't be reached is skipped with a short message, instead of stopping with an error. If many songs in
+  a row can't be reached, playback stops.
+- A small separate tool for the terminal, `tools/alac-to-flac`, turns Apple Lossless (.m4a) songs into FLAC without changing
+  the sound at all. It checks every song after converting it, and keeps the tags and the cover. See its README.
+- Two refresh buttons in Settings, Collection: "Fast refresh" only looks at songs that were added, changed or removed,
+  and "Full refresh" reads every song again (what "Refresh now" did before).
 
 ### Fixed
 
-- Fade out on pause and stop cut the sound almost at once after a fade in had happened (fade in worked)
-- A pause or stop is no longer lost (music playing on while shown as paused) when the fade fails, for example when the audio device disappears
-- CUE sheets with repeated, negative or nonsense track numbers no longer give two tracks the same identity; tracks that start where the next one starts are left out; a track can no longer end after the end of its file
-- Very large files named .cue (over 10 MB) are skipped instead of read into memory
-- Discord: empty, one-letter, very long or emoji-cut titles and broken timestamps no longer make Discord drop the whole status
-- CUE sheets with one FILE per track (EAC "multiple files", vinyl rips) showed every track as "track N of 1"; the count is now the whole sheet (re-index to update)
-- ALAC .m4a files showed a bit rate of 0; it is now worked out from the file size and length (re-index to update)
-- Playing more than about 1000 selected artists or genres at once failed ("Expression tree is too large")
-- Tags containing a NUL character broke the database query for that artist, album or genre
-- Artist, genre and smart playlist matching treated "%" and "_" in names as wildcards ("AC_DC" also matched "AC/DC")
-- Smart playlists with a limit like 1.5 or a huge number in a rule failed to load
+- Music on a network share or an external drive is no longer removed from your collection when the share or drive can't
+  be reached (server asleep, laptop away from home, drive unplugged). The songs stay, with their play counts and ratings,
+  and are checked again once the folder is back. Refreshing is also much faster while it is away.
+- The total size shown under your songs is right again. Albums ripped as one big file with a .cue sheet were counted once
+  for every song on them, so a library could show 177 GB when it was really 53 GB.
+
+## [3.3.0-apolox] - 2026-11-19
+
+A release full of fixes. Many were found by testing the app with deliberately silly input, and by checking a real music
+library. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
+
+### Added
+
+- Albums split into discs, like "Album (CD1)" and "Album (CD2)", now show their cover on Discord too.
+- Album covers kept in a subfolder such as "Artwork", "Scans" or "Covers" are now found (common with vinyl rips and box sets).
+
+### Fixed
+
+- Pausing with fade on now fades out smoothly every time. Before, it cut off almost at once after the first fade in.
+- If your audio device disappears during a fade, the music still pauses or stops instead of playing on while the app says it is paused.
+- Albums with a .cue sheet: songs no longer get mixed up when the sheet has odd or repeated track numbers, and every song
+  shows the right track count (vinyl rips showed "track 3 of 1").
+- Apple Lossless (.m4a) songs now show their bit rate instead of 0.
+- Playing a very large selection (more than about 1000 artists or genres at once) works again.
+- Artists, albums and genres with unusual characters in their names (like "AC_DC" or "100%") now find exactly the right songs.
+- Smart playlists with an unusual song limit or number no longer fail to open.
+- Discord no longer drops your status for songs with very short, very long or emoji-heavy titles.
+- A huge file that only pretends to be a .cue sheet is skipped instead of slowing the app down.
+
+### Good to know
+
+- After updating, press "Refresh now" once (Settings, Collection) so track counts, bit rates and covers are updated.
 
 ## [3.2.2-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
@@ -41,7 +78,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 
 ## [3.2.1-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Changed
 
@@ -54,7 +91,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 
 ## [3.2.0-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Security
 
@@ -75,7 +112,7 @@ Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digime
 
 ## [3.1.0-apolox] - 2026-11-19
 
-Unofficial build of Dopamine by ApoloxDragon, based on Dopamine 3.0.12 by Digimezzo.
+ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 

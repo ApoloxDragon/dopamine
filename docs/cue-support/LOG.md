@@ -320,3 +320,57 @@ None of this replaces trying it in the app with real albums: see "Testing in the
     - electron-jest.js never passed on Jest's exit code (failures looked green); fixed, and the database tests now run in the Linux CI job.
 
 - **2026-11-19** · `Note` · Version 3.3.0-apolox
+
+- **2026-11-19** · `Fixed` · Total file size counted CUE album files once per track
+    - Owner's library: 173.9 GB counted for CUE tracks whose 140 album files are 33.7 GB. TrackModels now counts each audio file once (the stored FileSize stays the whole file: TrackVerifier compares it with the file on disk).
+
+- **2026-11-19** · `Note` · Plans: docs/3.4.0-plan.md (everything up to date) and D19 (album details from a dopamine.json file)
+    - npm outdated: 47 direct packages a major behind (Angular 16→22, Electron 38→45, TypeScript 4.9, RxJS 6). npm audit: 88 advisories (high 41, critical 0).
+
+- **2026-11-20** · `Note` · Plan for following official Dopamine: docs/upstream-sync-plan.md, tool scripts/dev/upstream-diff.sh
+    - master stays an exact copy of upstream; each upstream release is merged through a sync/upstream-<version> branch. Biggest risk: migration numbers (ours are 15-17); upstream's new ones get the next free numbers and must be safe to re-run.
+
+- **2026-11-20** · `Tooling` · Release notes: change log section + GitHub's generated notes (pull requests, contributors, full changelog link)
+    - scripts/release-notes.js combines them; release.yml asks GitHub for its notes since the last published release. If that fails the change log alone is used, so a release never fails because of the notes.
+
+- **2026-11-20** · `Tooling` · Release notes in the fork's own format
+    - release-notes.js now writes one page: What's Changed, intro, New / Changed / Fixed / Good to know from CHANGELOG.md (written in plain words, rule in CLAUDE.md), then only the pull request lines and the Full Changelog link from GitHub's generated notes. 3.3.0 and Unreleased entries rewritten in plain words.
+
+- **2026-11-20** · `Added` · Fast refresh and Full refresh buttons (Settings, Collection)
+    - The manual 'Refresh now' was already a full refresh (task 'always', forceUpdateExistingTracks=true); only the startup refresh is fast, and it first guesses with isCollectionOutdatedAsync. New task 'fast' runs indexTracksAsync(false) without guessing. The planned migration to re-read affected tracks was dropped: a full refresh does it.
+
+- **2026-11-20** · `Tooling` · tools/alac-to-flac: bit-perfect ALAC to FLAC converter with a curses interface
+    - ffmpeg converts (tags, cover, bit depth kept); every file is verified by SHA-256 of the decoded samples at s32 (a 16-bit check would miss 24-bit differences; a test flips the lowest 24-bit bit). Written to a temp name, renamed only after verification; originals kept, moved or deleted only after it. AAC skipped.
+    - Tests: 25 (unittest, real files from ffmpeg). Driving the interface in a pty found a real bug: prompts used the main loop's 150 ms input timeout, so every y/n answer was read as no.
+
+- **2026-11-20** · `Fixed` · alac2flac: always opens the text interface, starting with a folder browser
+    - Started without a folder (or in one without .m4a files) it quit with 'No .m4a files found'. Now: browser (enter/←, s search here, g type a path), search runs in the background, b goes back from the file list. Batch mode only with --yes/--dry-run or without a terminal.
+
+- **2026-11-20** · `Added` · alac2flac: output folder and originals folder picked in the folder browser
+    - o opens the browser for the output folder (Use this folder / Next to the originals / m new folder); r -> move does the same for the originals. The music folder itself is refused for originals and means 'next to the originals' for output; a folder inside the music folder gets a warning (Dopamine would see both). Long paths show their end.
+
+- **2026-11-20** · `Added` · alac2flac: sort into Artist/Album (Year)/NN Title.flac from the tags (l key, --layout tags)
+    - Needs an output folder (asked for in the browser; cancelling switches back). Names are made safe: no path separators or '..', Windows-reserved names and characters, 180-byte limit cut on a character. Targets are planned before converting so equal names get (2), (3) (case-insensitive).
+    - Torture tests found: Arabic-Indic and superscript digits passed isdigit() as track numbers; 'com1.txt' is still reserved on Windows. Both fixed.
+
+- **2026-11-20** · `Changed` · alac2flac: Linux only for now; tag layout is Artist/Year - Album/NN Title.flac
+    - Names only lose what Linux forbids (/, control characters); Windows rules removed until a cross-platform version.
+
+- **2026-11-24** · `Fixed` · Offline network folders no longer empty the collection (LAN, part 1)
+    - TrackRemover deleted every song whose file was not found, so an offline share or unplugged drive removed the whole folder from the database (play counts, ratings, likes; ListeningSession survives). New FolderReachability: one readdir per collection folder per refresh; unreachable when it cannot be listed, or empty while it has songs (unmounted share on Linux). TrackRemover and TrackUpdater skip songs there (also avoids a network timeout per song).
+    - Spec folder-reachability.spec.js: offline/timeout/EACCES/missing, empty mount point, /music vs /music2, Windows case and slashes, UNC and mapped drives, CUE tracks, nested folders, broken folder list, 100k songs, real temp folders, remover and updater integration.
+
+- **2026-11-24** · `Added` · LAN part 2: offline notice, skip unreachable songs, add a network folder by path
+    - Worker posts foldersUnreachable (FolderReachability); IndexingService shows it after the refresh ends (the end of a refresh dismisses notices). PlaybackService: on a playback failure, if the song's audio file does not exist, notify and play next instead of the dialog; 10 quick misses in a row stop playback. AddFolderComponent: 'Add a network folder' (input dialog), NetworkFolderPath refuses URLs (smb://) and relative paths, strips quotes and trailing separators; unreachable paths need a confirmation.
+
+- **2026-11-24** · `Added` · Like / dislike for songs (thumbs), replacing the heart
+    - Same storage (Track.Love: 1 like, -1 dislike, 0 none; the heart already cycled through -1 as a 'broken heart'). Two buttons, each toggles its own state; Last.fm 'love' only for a like. showLove now defaults to true (new installs and users who never changed it). Not checked visually (screenshot tool has no songs).
+
+- **2026-11-24** · `Added` · Sleep timer
+    - SleepTimerService (presets, custom, +15, end of song, 24 h cap, re-checks after a late timer e.g. sleep); stops with PlaybackService.stopPlayback(10000) (new optional fade length). End of song: PlaybackService.stopAfterCurrentTrack, checked when a song finishes and in the gapless preloaded path (the next song is stopped at once). Moon button with countdown in the collection playback pane.
+
+- **2026-11-24** · `Added` · Recently added / recently played album rows
+    - AlbumShelvesComponent above the album browser (12 each, from AlbumModel dateAdded / dateLastPlayed; albums without a date left out). Click selects through AlbumsAlbumsPersister, double-click plays. Folded state in the new setting showAlbumShelves (default open).
+
+- **2026-11-24** · `Added` · Smart shuffle
+    - SmartShuffler: weighted random order (Efraimidis-Spirakis; like x3, rating 4-5 x2, 1-2 x0.5, skip ratio), disliked songs last, then a spread-out pass (look-ahead 8; when one artist has more left than all others, it is spread first). Queue uses it when the new setting useSmartShuffle is on.

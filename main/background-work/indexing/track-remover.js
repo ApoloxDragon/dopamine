@@ -3,8 +3,17 @@ const { RemovingTracksMessage } = require('./messages/removing-tracks-message');
 const { CueTrackPath } = require('./cue-track-path');
 
 class TrackRemover {
-    constructor(folderTrackRepository, trackRepository, fileAccess, workerProxy, logger, cueSheetReader = undefined) {
+    constructor(
+        folderTrackRepository,
+        trackRepository,
+        fileAccess,
+        workerProxy,
+        logger,
+        cueSheetReader = undefined,
+        folderReachability = undefined,
+    ) {
         this.cueSheetReader = cueSheetReader;
+        this.folderReachability = folderReachability;
         this.folderTrackRepository = folderTrackRepository;
         this.trackRepository = trackRepository;
         this.fileAccess = fileAccess;
@@ -70,7 +79,16 @@ class TrackRemover {
             // database (not from disk) so the album does not show twice. Only database rows are affected.
             const audioPathsCoveredByCueTracks = new Set(tracks.filter((x) => CueTrackPath.isCueTrack(x)).map((x) => x.audioPath));
 
+            // Songs in a folder that cannot be reached (network share offline, drive unplugged) are kept as they are.
+            const isUnreachable = this.folderReachability?.check(tracks) ?? (() => false);
+            let numberOfKeptTracks = 0;
+
             for (const track of tracks) {
+                if (isUnreachable(track)) {
+                    numberOfKeptTracks++;
+                    continue;
+                }
+
                 if (!this.#trackExists(track, audioPathsCoveredByCueTracks)) {
                     this.trackRepository.deleteTrack(track.trackId);
                     numberOfRemovedTracks++;
@@ -85,7 +103,7 @@ class TrackRemover {
             timer.stop();
 
             this.logger.info(
-                `Removed ${numberOfRemovedTracks} tracks. Time required: ${timer.getElapsedMilliseconds()} ms`,
+                `Removed ${numberOfRemovedTracks} tracks, kept ${numberOfKeptTracks} in folders that cannot be reached. Time required: ${timer.getElapsedMilliseconds()} ms`,
                 'TrackRemover',
                 'removeTracksThatAreNotFoundOnDiskAsync',
             );
@@ -111,7 +129,9 @@ class TrackRemover {
 
         // The track must still be in the sheet (a sheet can be edited to have fewer tracks).
         const parsedPath = CueTrackPath.parse(track.path);
-        return parsedPath !== undefined && this.cueSheetReader.getTrack(track.cuePath, track.audioPath, parsedPath.trackNumber) !== undefined;
+        return (
+            parsedPath !== undefined && this.cueSheetReader.getTrack(track.cuePath, track.audioPath, parsedPath.trackNumber) !== undefined
+        );
     }
 
     async removeFolderTracksForInexistingTracksAsync() {

@@ -1,7 +1,14 @@
-<div
-    class="pointer"
-    [ngClass]="this.loveClasses"
-    (click)="this.toggleLoveAsync()"
-    [style.font-size.px]="fontSize"
-    [style.line-height]="lineHeight"
-></div>
+<div class="like-dislike" [style.font-size.px]="fontSize" [style.line-height]="lineHeight">
+    <div
+        class="pointer"
+        [ngClass]="this.likeClasses"
+        (click)="this.likeAsync(); $event.stopPropagation()"
+        [title]="'like' | translate"
+    ></div>
+    <div
+        class="pointer"
+        [ngClass]="this.dislikeClasses"
+        (click)="this.dislikeAsync(); $event.stopPropagation()"
+        [title]="'dislike' | translate"
+    ></div>
+</div>

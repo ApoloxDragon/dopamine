@@ -1,0 +1,10 @@
+.app-sleep-timer {
+    display: flex;
+    align-items: center;
+    font-size: 1.3em;
+}
+
+.app-sleep-timer__countdown {
+    font-size: 0.75em;
+    font-variant-numeric: tabular-nums;
+}

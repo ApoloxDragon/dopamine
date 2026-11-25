@@ -1,0 +1,40 @@
+<div class="app-album-shelves">
+    <div class="app-album-shelves__toggle pointer secondary-text" (click)="this.toggle()">
+        <i class="las" [ngClass]="this.isOpen ? 'la-angle-down' : 'la-angle-right'"></i>
+        {{ 'recently-added-and-played' | translate }}
+    </div>
+    <ng-container *ngIf="this.isOpen">
+        <ng-container
+            *ngFor="
+                let shelf of [
+                    { key: 'recently-added', albums: this.recentlyAdded },
+                    { key: 'recently-played', albums: this.recentlyPlayed },
+                ]
+            "
+        >
+            <div class="app-album-shelves__shelf" *ngIf="shelf.albums.length > 0">
+                <div class="app-album-shelves__title">{{ shelf.key | translate }}</div>
+                <div class="app-album-shelves__row">
+                    <div
+                        class="app-album-shelves__album pointer"
+                        *ngFor="let album of shelf.albums"
+                        (click)="this.albumSelected.emit(album)"
+                        (dblclick)="this.albumPlayed.emit(album)"
+                        matTooltip="{{ album.albumTitle }} · {{ album.albumArtist }}"
+                    >
+                        <img
+                            class="app-album-shelves__cover"
+                            [ngClass]="{ rounded: !this.settings.showSquareImages }"
+                            [attr.src]="album.artworkPath"
+                            *ngIf="album.artworkPath"
+                            alt=""
+                        />
+                        <div class="app-album-shelves__cover app-album-shelves__cover--empty" *ngIf="!album.artworkPath">
+                            <i class="las la-compact-disc"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+    </ng-container>
+</div>

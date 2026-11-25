@@ -49,6 +49,39 @@ export class LoveComponent {
         }
     }
 
+    /** Thumbs up: liked (love 1). Shown filled when the song is liked. */
+    public get likeClasses(): string {
+        return this._track?.love === 1 ? 'fas fa-thumbs-up accent-color-important' : 'far fa-thumbs-up secondary-text';
+    }
+
+    /** Thumbs down: disliked (love -1). Shown filled when the song is disliked. */
+    public get dislikeClasses(): string {
+        return this._track?.love === -1 ? 'fas fa-thumbs-down accent-color-important' : 'far fa-thumbs-down secondary-text';
+    }
+
+    /** Likes the song, or clears the like when it is already liked. */
+    public async likeAsync(): Promise<void> {
+        await this.setLoveAsync(this._track.love === 1 ? 0 : 1);
+    }
+
+    /** Dislikes the song, or clears the dislike when it is already disliked. */
+    public async dislikeAsync(): Promise<void> {
+        await this.setLoveAsync(this._track.love === -1 ? 0 : -1);
+    }
+
+    private async setLoveAsync(love: number): Promise<void> {
+        this._track.love = love;
+
+        // Last.fm only knows "loved": a like is a love, anything else removes it.
+        await this.scrobblingService.sendTrackLoveAsync(this._track, love === 1);
+
+        try {
+            this.metadataService.saveTrackLove(this._track);
+        } catch (error) {
+            this.dialogService.showErrorDialog(await this.translatorService.getAsync('save-love-error'));
+        }
+    }
+
     public async toggleLoveAsync(): Promise<void> {
         switch (this._track.love) {
             case 0:

@@ -1,0 +1,22 @@
+<div
+    class="app-sleep-timer pointer"
+    [ngClass]="{ 'accent-color-important': this.sleepTimer.isActive }"
+    [matMenuTriggerFor]="sleepTimerMenu"
+    matTooltip="{{ (this.sleepTimer.mode === 'endOfTrack' ? 'sleep-timer-end-of-song-active' : 'sleep-timer') | translate }}"
+>
+    <i class="las la-moon"></i>
+    <span class="app-sleep-timer__countdown ml-1" *ngIf="this.countdown">{{ this.countdown }}</span>
+    <i class="las la-step-forward ml-1" *ngIf="this.sleepTimer.mode === 'endOfTrack'"></i>
+</div>
+<mat-menu #sleepTimerMenu="matMenu">
+    <div mat-menu-item class="inactive">{{ 'sleep-timer' | translate }}</div>
+    <button mat-menu-item *ngFor="let minutes of this.presets" (click)="this.start(minutes)">
+        {{ 'sleep-timer-minutes' | translate: { minutes: minutes } }}
+    </button>
+    <button mat-menu-item (click)="this.stopAtEndOfTrack()">{{ 'sleep-timer-end-of-song' | translate }}</button>
+    <button mat-menu-item (click)="this.customAsync()">{{ 'sleep-timer-custom' | translate }}</button>
+    <button mat-menu-item *ngIf="this.sleepTimer.mode === 'time'" (click)="this.addMinutes(15)">
+        {{ 'sleep-timer-add-15' | translate }}
+    </button>
+    <button mat-menu-item *ngIf="this.sleepTimer.isActive" (click)="this.turnOff()">{{ 'sleep-timer-off' | translate }}</button>
+</mat-menu>

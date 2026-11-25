@@ -134,6 +134,69 @@ describe('IndexingService', () => {
         });
     });
 
+    describe('folders that cannot be reached', () => {
+        const settle = async (): Promise<void> => {
+            for (let i = 0; i < 5; i++) {
+                await new Promise((resolve) => setTimeout(resolve, 0));
+            }
+        };
+
+        it('should show a notice about them once the refresh is done, and only once', async () => {
+            createSut();
+
+            onIndexingWorkerMessage.next({
+                type: 'foldersUnreachable',
+                folders: ['\\\\192.168.10.183\\storage\\music'],
+                numberOfKeptTracks: 969,
+            } as any);
+            onIndexingWorkerMessage.next({
+                type: 'foldersUnreachable',
+                folders: ['\\\\192.168.10.183\\storage\\music'],
+                numberOfKeptTracks: 969,
+            } as any);
+            notificationServiceMock.verify((x) => x.foldersUnreachableAsync(It.isAny(), It.isAny()), Times.never());
+
+            onIndexingWorkerExit.next();
+            await settle();
+            onIndexingWorkerExit.next();
+            await settle();
+
+            notificationServiceMock.verify((x) => x.foldersUnreachableAsync(['\\\\192.168.10.183\\storage\\music'], 969), Times.once());
+        });
+
+        it('should say nothing when every folder could be reached', async () => {
+            createSut();
+
+            onIndexingWorkerExit.next();
+            await settle();
+
+            notificationServiceMock.verify((x) => x.foldersUnreachableAsync(It.isAny(), It.isAny()), Times.never());
+        });
+    });
+
+    describe('fast and full refresh', () => {
+        it.each([
+            ['indexCollectionFastAsync', 'fast'],
+            ['indexCollectionAlwaysAsync', 'always'],
+        ])('%s should send the %s task to the indexing worker', async (method: string, task: string) => {
+            const sut: IndexingService = createSut();
+            settingsMock.setup((x) => x.skipRemovedFilesDuringRefresh).returns(() => false);
+            desktopMock.setup((x) => x.getApplicationDataDirectory()).returns(() => '/appData');
+
+            await (sut as any)[method]();
+
+            ipcProxyMock.verify(
+                (x) =>
+                    x.sendToMainProcess('indexing-worker', {
+                        task,
+                        skipRemovedFilesDuringRefresh: false,
+                        applicationDataDirectory: '/appData',
+                    }),
+                Times.once(),
+            );
+        });
+    });
+
     describe('reindexReplayGainForExistingTracks', () => {
         it('should return early when indexing is already running', () => {
             // Arrange

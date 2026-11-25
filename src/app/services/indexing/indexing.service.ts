@@ -8,6 +8,7 @@ import { NotificationServiceBase } from '../notification/notification.service.ba
 import { DesktopBase } from '../../common/io/desktop.base';
 import { IIndexingMessage } from './messages/i-indexing-message';
 import { AddingTracksMessage } from './messages/adding-tracks-message';
+import { FoldersUnreachableMessage } from './messages/folders-unreachable-message';
 import { AlbumArtworkIndexer } from './album-artwork-indexer';
 import { IpcProxyBase } from '../../common/io/ipc-proxy.base';
 import { TrackRepositoryBase } from '../../data/repositories/track-repository.base';
@@ -27,6 +28,8 @@ export class IndexingService implements OnDestroy {
     private foldersHaveChanged: boolean = false;
     private albumGroupingHasChanged: boolean = false;
     private currentIndexingTask: string = '';
+    // Folders the last refresh could not reach; shown once the refresh is done (the end of a refresh hides notices).
+    private unreachableFolders: FoldersUnreachableMessage | undefined;
 
     public constructor(
         private notificationService: NotificationServiceBase,
@@ -83,6 +86,13 @@ export class IndexingService implements OnDestroy {
         this.isIndexingCollection = false;
         this.currentIndexingTask = '';
         this.indexingFinished.next();
+
+        const unreachable: FoldersUnreachableMessage | undefined = this.unreachableFolders;
+        this.unreachableFolders = undefined;
+
+        if (unreachable != undefined && (unreachable.folders ?? []).length > 0) {
+            await this.notificationService.foldersUnreachableAsync(unreachable.folders, unreachable.numberOfKeptTracks ?? 0);
+        }
     }
 
     public async indexCollectionIfOutdatedAsync(): Promise<void> {
@@ -93,6 +103,14 @@ export class IndexingService implements OnDestroy {
         this.indexCollection('outdated');
     }
 
+    /** Fast refresh: only songs that were added, changed or removed. */
+    public async indexCollectionFastAsync(): Promise<void> {
+        await this.notificationService.refreshingAsync();
+        await this.scheduler.sleepAsync(1000); // Wait a bit to ensure user sees a refreshing notification
+        this.indexCollection('fast');
+    }
+
+    /** Full refresh: every song is read again. */
     public async indexCollectionAlwaysAsync(): Promise<void> {
         await this.notificationService.refreshingAsync();
         await this.scheduler.sleepAsync(1000); // Wait a bit to ensure user sees a refreshing notification
@@ -248,6 +266,10 @@ export class IndexingService implements OnDestroy {
             }
             case 'dismiss': {
                 this.notificationService.dismiss();
+                break;
+            }
+            case 'foldersUnreachable': {
+                this.unreachableFolders = <FoldersUnreachableMessage>message;
                 break;
             }
             default: {
