@@ -124,6 +124,7 @@ export abstract class SettingsBase {
     public abstract showAlbumShelves: boolean;
     public abstract useSmartShuffle: boolean;
     public abstract useContinuousPlay: boolean;
+    public abstract lookForNetworkDrives: boolean;
     public abstract useCompactYearView: boolean;
     public abstract albumCoverSize: number;
     public abstract playlistCoverSize: number;

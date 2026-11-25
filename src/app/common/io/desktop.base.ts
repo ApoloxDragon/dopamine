@@ -4,11 +4,15 @@ export abstract class DesktopBase {
     public abstract accentColorChanged$: Observable<void>;
     public abstract nativeThemeUpdated$: Observable<void>;
 
-    public abstract showSelectFolderDialogAsync(dialogTitle: string): Promise<string>;
+    public abstract showSelectFolderDialogAsync(dialogTitle: string, defaultPath?: string): Promise<string>;
     /** filters: file types to offer, e.g. [{ name: 'Text', extensions: ['txt'] }]. Without filters every file can be chosen. */
     public abstract showSelectFileDialogAsync(dialogTitle: string, filters?: { name: string; extensions: string[] }[]): Promise<string>;
     /** filters: file types to offer. Defaults to images (png, jpg) as before. */
-    public abstract showSaveFileDialogAsync(dialogTitle: string, defaultPath: string, filters?: { name: string; extensions: string[] }[]): Promise<string>;
+    public abstract showSaveFileDialogAsync(
+        dialogTitle: string,
+        defaultPath: string,
+        filters?: { name: string; extensions: string[] }[],
+    ): Promise<string>;
 
     public abstract openLinkAsync(url: string): Promise<void>;
     public abstract openPathAsync(path: string): Promise<void>;
