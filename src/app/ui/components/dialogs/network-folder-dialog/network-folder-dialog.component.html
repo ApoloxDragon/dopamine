@@ -1,0 +1,31 @@
+<app-dialog-header icon="las la-network-wired" [title]="'add-network-folder' | translate"></app-dialog-header>
+<mat-dialog-content>
+    <ng-container *ngIf="networkDrives.isAllowed; else notAllowed">
+        <div class="secondary-text mb-2">{{ 'network-drives-found' | translate }}</div>
+        <div class="network-folder__drive pointer" *ngFor="let drive of drives" (click)="pickInAsync(drive)" [matTooltip]="drive.path">
+            <i class="mr-2" [ngClass]="icon(drive)"></i>
+            <span class="ellipsis">{{ drive.label }}</span>
+        </div>
+        <div class="secondary-text network-folder__empty" *ngIf="drives.length === 0">
+            {{ 'no-network-drives-found' | translate }}
+            <span class="network-folder__link pointer accent-color" (click)="refresh()">{{ 'look-again' | translate }}</span>
+        </div>
+    </ng-container>
+    <ng-template #notAllowed>
+        <div class="secondary-text mb-2">{{ 'look-for-network-drives-description' | translate }}</div>
+        <app-transparent-button (click)="allow()">{{ 'look-for-network-drives' | translate }}</app-transparent-button>
+    </ng-template>
+
+    <div class="network-folder__or secondary-text">{{ 'or-type-a-path' | translate }}</div>
+    <mat-form-field class="network-folder__field">
+        <input matInput [(ngModel)]="typed" [placeholder]="'add-network-folder-placeholder' | translate" (keyup.enter)="useTypedAsync()" />
+    </mat-form-field>
+    <div class="network-folder__problem" *ngIf="problem">{{ problem }}</div>
+    <div class="secondary-text" *ngIf="isBusy">{{ 'connecting' | translate }}</div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <app-accent-button class="mr-2" [ngClass]="{ inactive: !typed.trim() || isBusy }" (click)="useTypedAsync()">{{
+        'ok' | translate
+    }}</app-accent-button>
+    <app-transparent-button (click)="cancel()">{{ 'cancel' | translate }}</app-transparent-button>
+</mat-dialog-actions>

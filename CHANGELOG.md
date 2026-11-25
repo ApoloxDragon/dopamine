@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- "Add a network folder" can list the network drives your computer is already connected to (for example a share opened
+  in your file manager on Linux), so you just pick the music folder on them. It also understands smb:// addresses: a
+  connected share is found, and one that isn't can be connected as a guest after asking. Looking for network drives is
+  off until you turn it on (Settings, Collection, or in that window).
 - The "Add a network folder" and sleep timer "Other time…" windows now explain what to type, with examples that fit on
   screen.
 

@@ -102,17 +102,7 @@ export class AddFolderComponent implements OnInit {
 
     /** Adds a folder by typing its path: a network share (for example \\\\server\\share\\music) or a mounted drive. */
     public async addNetworkFolderAsync(): Promise<void> {
-        const title: string = await this.translatorService.getAsync('add-network-folder');
-        const placeholder: string = await this.translatorService.getAsync('add-network-folder-placeholder');
-        const description: string = await this.translatorService.getAsync('add-network-folder-description');
-        const typed: string = await this.dialogService.showInputDialogAsync(
-            title,
-            placeholder,
-            '',
-            [],
-            description,
-            'las la-network-wired',
-        );
+        const typed: string = await this.dialogService.showNetworkFolderDialogAsync();
 
         if (StringUtils.isNullOrWhiteSpace(typed)) {
             return;
