@@ -65,6 +65,8 @@
     "welcome-screen": "Ecran d'accueil",
     "show-welcome-screen-on-next-restart": "Afficher l'écran d'accueil au prochain redémarrage",
     "online": "En ligne",
+    "search-settings": "Rechercher dans les paramètres",
+    "no-settings-found": "Aucun paramètre trouvé",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Activer Discord Rich Presence",

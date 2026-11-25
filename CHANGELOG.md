@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.3.3-apolox] - 2026-11-25
 
-Easier music from a home server. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
+Easier music from a home server, and a search box in Settings. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
@@ -13,6 +13,10 @@ Easier music from a home server. ApoloxDragon's fork of Dopamine, based on Dopam
   in your file manager on Linux), so you just pick the music folder on them. It also understands smb:// addresses: a
   connected share is found, and one that isn't can be connected as a guest after asking. Looking for network drives is
   off until you turn it on (Settings, Collection, or in that window).
+- A search box at the top of Settings: type what you are looking for ("fade", "tray", "network", "equalizer",
+  "scrobble"...) and pick a result to jump straight to that setting, which lights up for a moment. It searches in the
+  app's language and also knows common English words, and it covers Manage collection and the equalizer too. Use the
+  arrow keys and Enter, or Escape to clear it.
 
 ## [3.3.2-apolox] - 2026-11-25
 

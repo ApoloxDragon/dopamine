@@ -1,5 +1,5 @@
 <div class="p-4">
-    <div class="title">{{ 'updates' | translate }}</div>
+    <div class="title" data-settings-section="updates">{{ 'updates' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.checkForUpdates"> {{ 'check-for-updates' | translate }} </app-toggle-switch>
     </div>
@@ -9,14 +9,14 @@
         </app-toggle-switch>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'lyrics' | translate }}</div>
+    <div class="title" data-settings-section="lyrics">{{ 'lyrics' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.downloadLyricsOnline">
             {{ 'download-lyrics-online' | translate }}
         </app-toggle-switch>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'discord' | translate }}</div>
+    <div class="title" data-settings-section="discord">{{ 'discord' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.discordService.enableDiscordRichPresence">
             {{ 'enable-discord-rich-presence' | translate }}
@@ -29,7 +29,7 @@
         <div class="secondary-text mt-1">{{ 'show-album-cover-in-discord-description' | translate }}</div>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'last-fm' | translate }}</div>
+    <div class="title" data-settings-section="last-fm">{{ 'last-fm' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.settings.downloadArtistInformationFromLastFm">
             {{ 'download-artist-information-from-lastfm' | translate }}
@@ -63,7 +63,7 @@
         </div>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'listenbrainz' | translate }}</div>
+    <div class="title" data-settings-section="listenbrainz">{{ 'listenbrainz' | translate }}</div>
     <div>{{ 'listenbrainz-love-feedback-not-supported' | translate }}</div>
     <div class="mt-3">
         <app-toggle-switch [(isChecked)]="this.enableListenbrainzScrobbling">

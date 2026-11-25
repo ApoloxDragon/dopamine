@@ -397,3 +397,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-25** · `Note` · 3.3.3-apolox: network drives (PR 15)
     - 3.3.2 changelog section finalized; the network drives entry moved to a new 3.3.3 section; version 3.3.3.
+
+- **2026-11-25** · `Added` · 3.3.3: search box in Settings
+    - settings-search/: static index of 42 sections (Settings, Manage collection, equalizer) with label keys and English search words; titles got data-settings-section anchors; spec keeps the index in sync with the templates
+    - Matching: every typed word must appear (accent/case-insensitive) in the translated title, labels or the words; Manage collection jumps go through SettingsJump; 2 new i18n keys in 25 languages; app-screenshots.js now shows the search

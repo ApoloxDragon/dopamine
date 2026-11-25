@@ -65,6 +65,8 @@
     "welcome-screen": "מסך פתיחה",
     "show-welcome-screen-on-next-restart": "תמיד להציג את מסך הפתיחה בהפעלה הבאה",
     "online": "רשת",
+    "search-settings": "חיפוש בהגדרות",
+    "no-settings-found": "לא נמצאה הגדרה",
     "discord": "דיסקורד",
     "dock": "מעגן",
     "enable-discord-rich-presence": "הפעלת נוכחות עשירה ב־Discord",

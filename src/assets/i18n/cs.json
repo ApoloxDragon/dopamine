@@ -65,6 +65,8 @@
     "welcome-screen": "Uvítací obrazovka",
     "show-welcome-screen-on-next-restart": "Zobrazit při příštím spuštění uvítací obrazovku",
     "online": "Online",
+    "search-settings": "Hledat v nastavení",
+    "no-settings-found": "Žádné nastavení nenalezeno",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Povolit status na Discordu",

@@ -65,6 +65,8 @@
     "welcome-screen": "Hoş geldiniz ekranı",
     "show-welcome-screen-on-next-restart": "Bir sonraki yeniden başlatmada hoş geldiniz ekranını göster",
     "online": "Çevrimiçi",
+    "search-settings": "Ayarlarda ara",
+    "no-settings-found": "Ayar bulunamadı",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Discord Etkinliğini Etkinleştir",

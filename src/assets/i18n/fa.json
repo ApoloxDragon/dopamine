@@ -65,6 +65,8 @@
     "welcome-screen": "صفحه خوش آمدید",
     "show-welcome-screen-on-next-restart": "صفحه خوش آمد گویی را در راه اندازی مجدد بعدی نشان دهید",
     "online": "برخط",
+    "search-settings": "جستجو در تنظیمات",
+    "no-settings-found": "هیچ تنظیمی پیدا نشد",
     "discord": "اختلاف",
     "dock": "Dock",
     "enable-discord-rich-presence": "Discord Rich Presence را فعال کنید",

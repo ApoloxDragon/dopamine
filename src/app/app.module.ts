@@ -152,6 +152,7 @@ import { AdvancedSettingsComponent } from './ui/components/settings/advanced-set
 import { AppearanceSettingsComponent } from './ui/components/settings/appearance-settings/appearance-settings.component';
 import { BehaviorSettingsComponent } from './ui/components/settings/behavior-settings/behavior-settings.component';
 import { OnlineSettingsComponent } from './ui/components/settings/online-settings/online-settings.component';
+import { SettingsSearchComponent } from './ui/components/settings/settings-search/settings-search.component';
 import { SettingsComponent } from './ui/components/settings/settings.component';
 import { SliderComponent } from './ui/components/slider/slider.component';
 import { StepIndicatorComponent } from './ui/components/step-indicator/step-indicator.component';
@@ -407,6 +408,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         AppearanceSettingsComponent,
         AdvancedSettingsComponent,
         OnlineSettingsComponent,
+        SettingsSearchComponent,
         BehaviorSettingsComponent,
         AboutComponent,
         ComponentsComponent,

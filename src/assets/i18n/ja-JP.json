@@ -65,6 +65,8 @@
     "welcome-screen": "初期設定画面",
     "show-welcome-screen-on-next-restart": "次の再起動時に初期設定画面を表示する",
     "online": "オンライン",
+    "search-settings": "設定を検索",
+    "no-settings-found": "設定が見つかりません",
     "discord": "Discord",
     "dock": "ドック",
     "enable-discord-rich-presence": "Discord の Rich Presence機能を有効にする",

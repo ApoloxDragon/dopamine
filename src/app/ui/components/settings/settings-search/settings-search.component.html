@@ -1,0 +1,38 @@
+<div class="app-settings-search">
+    <div class="app-search-box" [ngClass]="{ 'app-search-box-highlight': this.hasQuery }">
+        <input
+            #settingsSearchInput
+            class="app-search-box__input p-1"
+            [placeholder]="'search-settings' | translate"
+            [attr.aria-label]="'search-settings' | translate"
+            maxlength="100"
+            [(ngModel)]="this.query"
+            (keydown)="this.onKeyDown($event)"
+            (focus)="this.open()"
+        />
+        <div class="app-search-box__icons">
+            <i class="las la-search app-search-box-icon" *ngIf="!this.hasQuery"></i>
+            <i class="las la-times app-search-box-icon pointer" *ngIf="this.hasQuery" (click)="this.clear()"></i>
+        </div>
+    </div>
+    <div class="app-settings-search__results theme-dialog-background" *ngIf="this.isOpen" role="listbox">
+        <div
+            *ngFor="let result of this.results; let i = index"
+            class="app-settings-search__result pointer"
+            [ngClass]="{ 'app-settings-search__result--selected': i === this.selectedIndex }"
+            role="option"
+            [attr.aria-selected]="i === this.selectedIndex"
+            (mouseenter)="this.selectedIndex = i"
+            (mousedown)="$event.preventDefault()"
+            (click)="this.choose(result)"
+        >
+            <div class="app-settings-search__title">{{ result.title }}</div>
+            <div class="app-settings-search__where secondary-text">
+                {{ result.where }}<span *ngIf="result.detail.length > 0"> · {{ result.detail }}</span>
+            </div>
+        </div>
+        <div *ngIf="this.results.length === 0" class="app-settings-search__nothing secondary-text">
+            {{ 'no-settings-found' | translate }}
+        </div>
+    </div>
+</div>

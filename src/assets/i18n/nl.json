@@ -65,6 +65,8 @@
     "welcome-screen": "Welkomstscherm",
     "show-welcome-screen-on-next-restart": "Toon het welkomstscherm bij de volgende herstart",
     "online": "Online",
+    "search-settings": "Instellingen doorzoeken",
+    "no-settings-found": "Geen instelling gevonden",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Schakel Discord Rich Presence in",

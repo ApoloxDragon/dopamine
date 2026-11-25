@@ -65,6 +65,8 @@
     "welcome-screen": "Schermata di benvenuto",
     "show-welcome-screen-on-next-restart": "Mostra la schermata di benvenuto al prossimo riavvio",
     "online": "Online",
+    "search-settings": "Cerca nelle impostazioni",
+    "no-settings-found": "Nessuna impostazione trovata",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Abilita Discord Rich Presence",
