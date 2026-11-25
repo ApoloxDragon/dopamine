@@ -377,3 +377,14 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-25** · `Tooling` · Nightly builds: no schedule any more (run by hand)
     - GitHub disabled workflows on the fork to reduce wasted compute; nightly.yml built every platform every night. pull-request.yml keeps its light weekly advisory check.
+- **2026-11-24** · `Added` · Continuous play (3.3.2)
+    - ContinuousPlay.pick: weighted random (0.2 base, +3 same artist, +2 same genre, +1 within 5 years of the last 10 songs, +2 liked, +1 rated 4-5), never disliked or already queued, each path once. PlaybackService adds 10 when the queue ends (not with repeat all), marks them (continuousPlayPaths, accent line in the queue), and plays the first. Setting useContinuousPlay (off).
+
+- **2026-11-24** · `Added` · dopamine.json album details (D19, 3.3.2)
+    - AlbumDetails (worker): one read per folder per refresh, 64 KB limit, strict fields (albumTitle, albumArtist, genre, year 1000-9999, discNumber/discCount 1-999, discNumber <= discCount), BOM accepted, bad values ignored and logged. TrackFiller applies it after tags and the cue sheet (new album key). Its mtime is part of dateFileModified in TrackFiller, TrackVerifier and IndexablePathFetcher, so editing it re-reads the folder.
+
+- **2026-11-24** · `Added` · Year in review (3.3.2)
+    - StatisticsService.getYearInReview (since 1 January, local): summary, top 5 lists, mostPlayedDay (ties to the earlier day, garbage ignored), longest streak counting only this year's days, first listen (reduce, not Math.min spread: 300 000 plays tested). Card section on the Statistics page, 'so far' before December. Not done: first song title (needs a new query) and saving as an image.
+
+- **2026-11-24** · `Added` · Album and artist like/dislike (3.3.2, migration 18)
+    - Migration18 adds table Liked (Kind, Key, Value, LikedAtMs; PK Kind+Key); nothing existing changes. LikedRepository (upsert / delete on 0), LikeService (cached, artist keys lower case, failures logged and the old value kept). Context menu items in the album and artist browsers, 'Liked albums' shelf row (memoised filter). SmartShuffler and ContinuousPlay take an isDisliked predicate fed by LikeService. Real-SQLite spec: migrates to 18, hostile keys kept exactly.

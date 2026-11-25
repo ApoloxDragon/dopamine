@@ -58,6 +58,55 @@ Fits, larger:
 Does not fit (left out on purpose): streaming services, social features, podcasts, video, cloud sync, online accounts
 beyond the existing optional Last.fm.
 
+## Done
+
+- 3.3.1: like/dislike songs, sleep timer, smart shuffle, recently added/played rows, network folders (LAN parts 1-2),
+  fast/full refresh.
+- 3.3.2: continuous play, album/artist like/dislike with a liked albums row, `dopamine.json`, year in review.
+
+## Planned for 3.4 (with the upgrade to current Angular and Electron, see `3.4.0-plan.md`)
+
+The upgrade itself comes first; these features follow it, each its own PR. All high effort.
+
+1. **Navidrome / Subsonic client (LAN part 3).** Play from a music server the proper way: browse its library and stream
+   from it, instead of a mounted share. Fits the home server (Navidrome is already planned there). A "server" source next
+   to the local folders; playback counts and likes stay local. Needs: Subsonic API client (token auth, no password stored
+   in plain text), streaming through the existing player, offline handling like the network folders.
+2. **Bit-perfect output on Linux, with optional EQ.** A native output path (ALSA directly, or PipeWire following the
+   file's sample rate) past Chromium's audio engine, which resamples and mixes in float. A "bit-perfect" switch: with the
+   EQ off (or flat) and volume at 100%, the samples pass untouched; with the EQ on, no resampling, 64-bit float EQ and
+   dither to the device's bit depth. The player shows which one is active. Windows (WASAPI exclusive) and macOS (CoreAudio
+   hog mode) later.
+3. **MusicBrainz auto-tagging, batch tag editor and file organiser.** Look up a CD rip or download on MusicBrainz (by
+   disc ID from the .cue/log, or by album and artist), show the differences, write tags only after confirming. Edit tags
+   of many songs at once. Optionally move files into `Artist/Year - Album/NN Title` (the alac2flac layout). Never changes
+   files without a preview and a confirmation.
+
+Smaller ones that can ride along: queue improvements ("play next", clear played songs), a Ctrl+K quick search, the
+year in review as an image and with the first song's title, a duplicate finder (same song in two formats or folders).
+
+## Planned for 3.5 (with the Electron security hardening)
+
+The hardening (contextIsolation, a preload with a narrow API, no `@electron/remote`, a Content Security Policy) comes
+first. These features open the app to the network or to devices, which is why they wait for it.
+
+1. **Phone remote.** Control playback from a phone on the home network: a small local web page (play/pause, next,
+   volume, queue, likes). Off by default, local network only, paired with a code shown in the app, no internet service.
+2. **CD ripping.** Secure ripping (AccurateRip check where possible) to FLAC + .cue + log, with MusicBrainz tags and the
+   cover, straight into the collection. Linux first (cdparanoia / libcdio).
+3. **Casting and device sync.** Play to DLNA/UPnP and Chromecast speakers; copy a playlist or albums to a phone or
+   player, converting when the device needs it.
+
+Not planned at any version: streaming services, social features, podcasts, video, cloud sync, accounts.
+
+## Planned for 3.3.2 (done)
+
+1. **Continuous play:** when the queue ends, keep going with similar songs from the library (same artist, genre or era,
+   liked first, disliked never), marked in the queue. Off by default.
+2. **Like / dislike for albums and artists**, and a **Liked** page (needs a database migration).
+3. **Album details from `dopamine.json`** in the album folder (D19).
+4. **Year in review** cards on the Statistics page.
+
 ## Order suggestion
 
 3.3.1: liking (albums, artists, Liked page), sleep timer, recently added/played.

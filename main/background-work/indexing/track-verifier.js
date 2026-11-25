@@ -1,8 +1,14 @@
 const { CueTrackPath } = require('./cue-track-path');
 
 class TrackVerifier {
-    constructor(fileAccess) {
+    constructor(fileAccess, albumDetails = undefined) {
         this.fileAccess = fileAccess;
+        this.albumDetails = albumDetails;
+    }
+
+    /** Ticks of the album folder's dopamine.json (0 without one). */
+    #albumDetailsTicks(audioPath) {
+        return this.albumDetails?.modifiedTicksForFile(audioPath) ?? 0;
     }
 
     isTrackOutOfDate(track) {
@@ -21,12 +27,13 @@ class TrackVerifier {
             const dateModified = Math.max(
                 this.fileAccess.getDateModifiedInTicks(audioPath),
                 this.fileAccess.getDateModifiedInTicks(track.cuePath),
+                this.#albumDetailsTicks(audioPath),
             );
 
             return track.dateFileModified !== dateModified;
         }
 
-        return track.dateFileModified !== this.fileAccess.getDateModifiedInTicks(audioPath);
+        return track.dateFileModified !== Math.max(this.fileAccess.getDateModifiedInTicks(audioPath), this.#albumDetailsTicks(audioPath));
     }
 
     doesTrackNeedIndexing(track) {

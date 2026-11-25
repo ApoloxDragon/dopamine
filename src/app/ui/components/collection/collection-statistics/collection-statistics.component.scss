@@ -143,7 +143,10 @@ $accent-faint: color-mix(in srgb, var(--theme-accent-color) 8%, transparent);
     width: 46px;
     height: 46px;
     border-radius: 50%;
-    background: conic-gradient(var(--theme-accent-color) calc(var(--percent) * 1%), color-mix(in srgb, var(--theme-secondary-text) 25%, transparent) 0);
+    background: conic-gradient(
+        var(--theme-accent-color) calc(var(--percent) * 1%),
+        color-mix(in srgb, var(--theme-secondary-text) 25%, transparent) 0
+    );
     display: flex;
     align-items: center;
     justify-content: center;
@@ -439,4 +442,13 @@ $accent-faint: color-mix(in srgb, var(--theme-accent-color) 8%, transparent);
 
 .statistics__clear {
     margin: 24px 0;
+}
+
+// Year in review: same cards as the rest of the page, set apart by an accent frame.
+.statistics__year {
+    margin-bottom: 28px;
+    padding: 14px 16px 4px;
+    border-radius: $radius;
+    border: 1px solid color-mix(in srgb, var(--theme-accent-color) 35%, transparent);
+    background: linear-gradient(135deg, $accent-faint, transparent 60%);
 }

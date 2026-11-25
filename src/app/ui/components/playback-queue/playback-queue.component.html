@@ -46,6 +46,8 @@
         <div *cdkVirtualFor="let track of this.filteredTracks" (mousedown)="setSelectedTracks($event, track)" cdkDrag [cdkDragData]="track">
             <app-track
                 [track]="track"
+                [ngClass]="{ 'continuous-play-track': this.playbackService.continuousPlayPaths.has(track.path) }"
+                [matTooltip]="this.playbackService.continuousPlayPaths.has(track.path) ? ('added-by-continuous-play' | translate) : ''"
                 (dblclick)="this.playbackService.playQueuedTrackAsync(track)"
                 (contextmenu)="onTrackContextMenu($event, track)"
             ></app-track>

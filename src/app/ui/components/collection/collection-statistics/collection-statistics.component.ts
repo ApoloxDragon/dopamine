@@ -11,6 +11,7 @@ import {
     ListeningHistoryItem,
     StatisticsOverview,
     StatisticsService,
+    YearInReview,
 } from '../../../../services/statistics/statistics.service';
 import { ListeningEndReason } from '../../../../data/entities/listening-end-reason';
 import { ListeningTrackerService } from '../../../../services/statistics/listening-tracker.service';
@@ -29,6 +30,8 @@ export class CollectionStatisticsComponent implements OnInit, OnDestroy {
     public periods: StatisticsPeriod[] = statisticsPeriods;
     public selectedPeriod: StatisticsPeriod = statisticsPeriods[3];
     public overview: StatisticsOverview | undefined;
+    public yearInReview: YearInReview | undefined;
+    public showYearInReview: boolean = true;
     public history: ListeningHistoryItem[] = [];
     public canLoadMoreHistory: boolean = false;
     /** Detailed statistics, only loaded when they are turned on. */
@@ -92,6 +95,7 @@ export class CollectionStatisticsComponent implements OnInit, OnDestroy {
     public refresh(): void {
         try {
             this.overview = this.statisticsService.getOverview(this.selectedPeriod);
+            this.yearInReview = this.statisticsService.getYearInReview();
             this.details = this.isDetailed ? this.statisticsService.getDetails(this.selectedPeriod) : undefined;
             this.history = this.statisticsService.getHistory(this.selectedPeriod, 0);
             this.canLoadMoreHistory = this.history.length === StatisticsService.historyPageSize;

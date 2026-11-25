@@ -3,6 +3,7 @@ import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@
 import { MatMenuTrigger } from '@angular/material/menu';
 import { Subscription } from 'rxjs';
 import { Constants } from '../../../../../common/application/constants';
+import { LikeService } from '../../../../../services/like/like.service';
 import { Logger } from '../../../../../common/logger';
 import { SemanticZoomHeaderAdder } from '../../../../../common/semantic-zoom-header-adder';
 import { PromiseUtils } from '../../../../../common/utils/promise-utils';
@@ -63,6 +64,7 @@ export class ArtistBrowserComponent extends BaseVirtualScrollBrowser implements 
         private logger: Logger,
         scrollPositionService: ScrollPositionService,
         searchService: SearchServiceBase,
+        public likeService?: LikeService,
     ) {
         super(scrollPositionService, searchService);
 

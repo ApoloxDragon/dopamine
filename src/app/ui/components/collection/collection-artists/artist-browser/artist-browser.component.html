@@ -66,6 +66,20 @@
         <button mat-menu-item (click)="onShuffleAndPlayAsync(artist)">
             <span>{{ 'shuffle' | translate }}</span>
         </button>
+        <button mat-menu-item *ngIf="likeService" (click)="likeService.toggleArtistLike(artist.name, 1)">
+            <i
+                class="mr-2"
+                [ngClass]="likeService.artistLike(artist.name) === 1 ? 'fas fa-thumbs-up accent-color' : 'far fa-thumbs-up'"
+            ></i>
+            <span>{{ 'like-artist' | translate }}</span>
+        </button>
+        <button mat-menu-item *ngIf="likeService" (click)="likeService.toggleArtistLike(artist.name, -1)">
+            <i
+                class="mr-2"
+                [ngClass]="likeService.artistLike(artist.name) === -1 ? 'fas fa-thumbs-down accent-color' : 'far fa-thumbs-down'"
+            ></i>
+            <span>{{ 'dislike-artist' | translate }}</span>
+        </button>
         <button mat-menu-item (click)="onEditArtistAsync(artist)" *ngIf="settings.showArtistImages">
             <span>{{ 'edit' | translate }}</span>
         </button>

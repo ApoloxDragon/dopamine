@@ -11,3 +11,9 @@
     width: 200px;
     max-width: 100%;
 }
+
+/* Songs added by continuous play: a thin accent line on the left. */
+.continuous-play-track {
+    display: block;
+    box-shadow: inset 3px 0 0 var(--theme-accent-color);
+}

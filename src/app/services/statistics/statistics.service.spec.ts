@@ -187,7 +187,12 @@ describe('StatisticsService', () => {
         });
 
         it('should cap all-time bars when the history starts decades ago', () => {
-            const bars = StatisticsService.bars([{ startedAtMs: local(1970, 1, 2), listenedMs: 1 }], 'month', undefined, local(2026, 11, 19));
+            const bars = StatisticsService.bars(
+                [{ startedAtMs: local(1970, 1, 2), listenedMs: 1 }],
+                'month',
+                undefined,
+                local(2026, 11, 19),
+            );
 
             expect(bars.length).toEqual(StatisticsService.maximumBars);
         });
@@ -202,7 +207,18 @@ describe('StatisticsService', () => {
 
         it('should ignore invalid, impossible, duplicate, unsorted and future days in streaks', () => {
             const now: number = local(2026, 11, 19);
-            const days: string[] = ['2026-11-18', 'garbage', '', '2026-02-30', '2026-13-01', '2026-11-17', '2026-11-18', '2026-11-17', '2027-01-01', '2026-11-19'];
+            const days: string[] = [
+                '2026-11-18',
+                'garbage',
+                '',
+                '2026-02-30',
+                '2026-13-01',
+                '2026-11-17',
+                '2026-11-18',
+                '2026-11-17',
+                '2027-01-01',
+                '2026-11-19',
+            ];
 
             expect(StatisticsService.streaks(days, now)).toEqual({ currentDays: 3, longestDays: 3 });
             expect(StatisticsService.streaks([], now)).toEqual({ currentDays: 0, longestDays: 0 });
@@ -223,14 +239,97 @@ describe('StatisticsService', () => {
         });
 
         it('should give no heard parts for tracks without a length, and keep parts within the track', () => {
-            const part = (fromMs: number, toMs: number): ListeningSegment => ({ listeningSegmentId: 0, listeningSessionId: 0, startedAtMs: 0, fromMs, toMs });
+            const part = (fromMs: number, toMs: number): ListeningSegment => ({
+                listeningSegmentId: 0,
+                listeningSessionId: 0,
+                startedAtMs: 0,
+                fromMs,
+                toMs,
+            });
 
             expect(StatisticsService.heardParts([part(0, 1000)], 0)).toEqual([]);
             expect(StatisticsService.heardParts([part(0, 1000)], NaN)).toEqual([]);
-            expect(StatisticsService.heardParts([part(-500, 500), part(900, 5000), part(NaN, 1), part(700, 600), part(2000, 3000)], 1000)).toEqual([
+            expect(
+                StatisticsService.heardParts([part(-500, 500), part(900, 5000), part(NaN, 1), part(700, 600), part(2000, 3000)], 1000),
+            ).toEqual([
                 { from: 0, to: 0.5 },
                 { from: 0.9, to: 1 },
             ]);
+        });
+    });
+
+    describe('year in review', () => {
+        const local = (y: number, m: number, d: number, h: number = 12): number => new Date(y, m - 1, d, h).getTime();
+
+        function serviceAt(nowMs: number): StatisticsService {
+            return new StatisticsService(repositoryMock.object, { now: (): number => nowMs } as DateProxy);
+        }
+
+        it('should sum up this year since January 1st, and call it complete only in December', () => {
+            repositoryMock
+                .setup((x) => x.getSummary(It.isAny()))
+                .returns(() => ({ listenedMs: 3600000, plays: 20, distinctTracks: 10, distinctAlbums: 3, activeDays: 4 }));
+            repositoryMock
+                .setup((x) => x.getListeningTimes(It.isAny()))
+                .returns(() => [
+                    { startedAtMs: local(2026, 3, 5, 20), listenedMs: 1000 },
+                    { startedAtMs: local(2026, 2, 1, 9), listenedMs: 5000 },
+                    { startedAtMs: local(2026, 3, 5, 21), listenedMs: 4500 },
+                ]);
+            repositoryMock
+                .setup((x) => x.getActiveDays(It.isAny()))
+                .returns(() => ['2025-12-30', '2025-12-31', '2026-01-01', '2026-03-04', '2026-03-05']);
+
+            const review = serviceAt(local(2026, 11, 24)).getYearInReview()!;
+
+            repositoryMock.verify((x) => x.getSummary(local(2026, 1, 1, 0)), Times.once());
+            expect(review.year).toEqual(2026);
+            expect(review.isYearEnd).toBe(false);
+            expect(review.mostPlayedDay).toEqual({ day: '2026-03-05', listenedMs: 5500 });
+            expect(review.longestStreakDays).toEqual(2); // last year's days do not count
+            expect(review.firstListenMs).toEqual(local(2026, 2, 1, 9));
+        });
+
+        it('should call the year complete from December', () => {
+            repositoryMock
+                .setup((x) => x.getSummary(It.isAny()))
+                .returns(() => ({ listenedMs: 1, plays: 1, distinctTracks: 1, distinctAlbums: 1, activeDays: 1 }));
+            repositoryMock.setup((x) => x.getListeningTimes(It.isAny())).returns(() => []);
+            repositoryMock.setup((x) => x.getActiveDays(It.isAny())).returns(() => []);
+
+            expect(serviceAt(local(2026, 12, 2)).getYearInReview()!.isYearEnd).toBe(true);
+        });
+
+        it('should show nothing when nothing was played this year', () => {
+            repositoryMock
+                .setup((x) => x.getSummary(It.isAny()))
+                .returns(() => ({ listenedMs: 0, plays: 0, distinctTracks: 0, distinctAlbums: 0, activeDays: 0 }));
+
+            expect(serviceAt(local(2026, 1, 1, 0)).getYearInReview()).toBeUndefined();
+        });
+
+        it('should pick the earlier day on a tie, and ignore garbage entries', () => {
+            const day = StatisticsService.mostPlayedDay([
+                { startedAtMs: local(2026, 5, 2), listenedMs: 100 },
+                { startedAtMs: local(2026, 5, 1), listenedMs: 100 },
+                { startedAtMs: NaN, listenedMs: 99999 },
+                { startedAtMs: local(2026, 5, 3), listenedMs: -50 },
+                null as any,
+            ]);
+
+            expect(day).toEqual({ day: '2026-05-01', listenedMs: 100 });
+            expect(StatisticsService.mostPlayedDay([])).toBeUndefined();
+        });
+
+        it('should handle a year with 300 000 plays without running out of stack', () => {
+            repositoryMock
+                .setup((x) => x.getSummary(It.isAny()))
+                .returns(() => ({ listenedMs: 1, plays: 1, distinctTracks: 1, distinctAlbums: 1, activeDays: 1 }));
+            const times = Array.from({ length: 300000 }, (_, i) => ({ startedAtMs: local(2026, 1, 1) + i * 60000, listenedMs: 1000 }));
+            repositoryMock.setup((x) => x.getListeningTimes(It.isAny())).returns(() => times);
+            repositoryMock.setup((x) => x.getActiveDays(It.isAny())).returns(() => []);
+
+            expect(serviceAt(local(2026, 11, 24)).getYearInReview()!.firstListenMs).toEqual(local(2026, 1, 1));
         });
     });
 });

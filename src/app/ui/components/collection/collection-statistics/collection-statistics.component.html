@@ -23,6 +23,65 @@
             <div>{{ 'no-listening-history' | translate }}</div>
         </div>
 
+        <div class="statistics__year" *ngIf="yearInReview as review">
+            <div class="statistics__section-title pointer" (click)="showYearInReview = !showYearInReview">
+                <i class="las la-gift statistics__section-icon"></i>
+                {{ (review.isYearEnd ? 'year-in-review-title' : 'year-in-review-title-so-far') | translate: { year: review.year } }}
+                <i class="las ml-1" [ngClass]="showYearInReview ? 'la-angle-down' : 'la-angle-right'"></i>
+            </div>
+            <ng-container *ngIf="showYearInReview">
+                <div class="statistics__summary">
+                    <div class="statistics__card statistics__card--hero">
+                        <i class="las la-headphones statistics__card-icon"></i>
+                        <div class="statistics__card-value">
+                            {{ review.summary.listenedMs | formatTotalDuration: settings.useCompactTotalDuration }}
+                        </div>
+                        <div class="statistics__card-label">{{ 'listening-time' | translate }}</div>
+                    </div>
+                    <ng-container
+                        *ngTemplateOutlet="card; context: { icon: 'la-play-circle', value: review.summary.plays, label: 'plays' }"
+                    ></ng-container>
+                    <ng-container
+                        *ngTemplateOutlet="
+                            card;
+                            context: { icon: 'la-fire', value: review.longestStreakDays, label: 'year-in-review-longest-streak' }
+                        "
+                    ></ng-container>
+                    <div class="statistics__card" *ngIf="review.mostPlayedDay as day">
+                        <i class="las la-calendar-day statistics__card-icon"></i>
+                        <div class="statistics__card-value">{{ day.day }}</div>
+                        <div class="statistics__card-label">{{ 'year-in-review-most-played-day' | translate }}</div>
+                    </div>
+                    <div class="statistics__card" *ngIf="review.firstListenMs">
+                        <i class="las la-seedling statistics__card-icon"></i>
+                        <div class="statistics__card-value">{{ review.firstListenMs | date: 'mediumDate' }}</div>
+                        <div class="statistics__card-label">{{ 'year-in-review-first-listen' | translate }}</div>
+                    </div>
+                </div>
+                <div class="statistics__tops">
+                    <div
+                        *ngFor="
+                            let list of [
+                                { key: 'top-tracks', items: review.topTracks },
+                                { key: 'top-albums', items: review.topAlbums },
+                                { key: 'top-artists', items: review.topArtists },
+                            ]
+                        "
+                    >
+                        <div class="statistics__section-title">{{ list.key | translate }}</div>
+                        <div class="statistics__top-row" *ngFor="let item of list.items; let i = index">
+                            <div class="statistics__rank" [ngClass]="{ 'statistics__rank--top': i === 0 }">{{ i + 1 }}</div>
+                            <div class="statistics__top-text">
+                                <div class="ellipsis">{{ item.title }}</div>
+                                <div class="ellipsis secondary-text">{{ item.subtitle }}</div>
+                            </div>
+                            <div class="statistics__top-numbers secondary-text">{{ item.plays }} ×</div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+
         <ng-container *ngIf="hasData && overview">
             <div class="statistics__summary">
                 <div class="statistics__card statistics__card--hero">

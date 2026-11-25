@@ -3,7 +3,8 @@ const { FileFormats } = require('../common/application/file-formats');
 const { CueTrackPath } = require('./cue-track-path');
 
 class IndexablePathFetcher {
-    constructor(folderRepository, directoryWalker, fileAccess, logger, cueSheetReader = undefined) {
+    constructor(folderRepository, directoryWalker, fileAccess, logger, cueSheetReader = undefined, albumDetails = undefined) {
+        this.albumDetails = albumDetails;
         this.folderRepository = folderRepository;
         this.directoryWalker = directoryWalker;
         this.fileAccess = fileAccess;
@@ -67,7 +68,10 @@ class IndexablePathFetcher {
                     const fileExtension = this.fileAccess.getFileExtension(filePath);
 
                     if (validFileExtensions.includes(fileExtension.toLowerCase()) && !audioPathsCoveredByCueSheets.has(filePath)) {
-                        const dateModifiedInTicks = this.fileAccess.getDateModifiedInTicks(filePath);
+                        const dateModifiedInTicks = Math.max(
+                            this.fileAccess.getDateModifiedInTicks(filePath),
+                            this.albumDetails?.modifiedTicksForFile(filePath) ?? 0,
+                        );
                         indexablePaths.push(new IndexablePath(filePath, dateModifiedInTicks, folder.folderId));
                     }
                 } catch (e) {
@@ -114,14 +118,20 @@ class IndexablePathFetcher {
                     const dateModifiedInTicks = Math.max(
                         this.fileAccess.getDateModifiedInTicks(audioFile.audioPath),
                         this.fileAccess.getDateModifiedInTicks(cuePath),
+                        this.albumDetails?.modifiedTicksForFile(audioFile.audioPath) ?? 0,
                     );
 
                     for (const track of audioFile.tracks) {
                         indexablePaths.push(
-                            new IndexablePath(CueTrackPath.create(audioFile.audioPath, track.number), dateModifiedInTicks, folder.folderId, {
-                                audioPath: audioFile.audioPath,
-                                cuePath: cuePath,
-                            }),
+                            new IndexablePath(
+                                CueTrackPath.create(audioFile.audioPath, track.number),
+                                dateModifiedInTicks,
+                                folder.folderId,
+                                {
+                                    audioPath: audioFile.audioPath,
+                                    cuePath: cuePath,
+                                },
+                            ),
                         );
                     }
                 }
