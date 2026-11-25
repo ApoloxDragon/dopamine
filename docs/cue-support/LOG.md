@@ -394,3 +394,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-25** · `Added` · Network drives in 'Add a network folder' (opt-in), smb:// addresses
     - NetworkDrives (renderer, Linux): GNOME gvfs (/run/user/<uid>/gvfs/smb-share:server=…,share=…), KDE kio-fuse, and cifs/nfs/sshfs/davfs from /proc/mounts (octal escapes decoded); each path once. smb://host/share/path -> the gvfs folder (case of server/share lowered like gvfs; .. and NUL refused). NetworkDrivesService: only with the new setting lookForNetworkDrives (off); guest connect via execFile('gio', ['mount','--anonymous', smb://host/share]) only after a confirmation. New NetworkFolderDialog lists drives (picker opens inside one: showSelectFolderDialogAsync got defaultPath) or takes a typed path/smb:// address.
+
+- **2026-11-25** · `Note` · 3.3.3-apolox: network drives (PR 15)
+    - 3.3.2 changelog section finalized; the network drives entry moved to a new 3.3.3 section; version 3.3.3.

@@ -3,6 +3,17 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.3-apolox] - 2026-11-25
+
+Easier music from a home server. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
+
+### Added
+
+- "Add a network folder" can list the network drives your computer is already connected to (for example a share opened
+  in your file manager on Linux), so you just pick the music folder on them. It also understands smb:// addresses: a
+  connected share is found, and one that isn't can be connected as a guest after asking. Looking for network drives is
+  off until you turn it on (Settings, Collection, or in that window).
+
 ## [3.3.2-apolox] - 2026-11-25
 
 More ways to enjoy what's already in your library. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
@@ -28,10 +39,6 @@ More ways to enjoy what's already in your library. ApoloxDragon's fork of Dopami
 
 ### Changed
 
-- "Add a network folder" can list the network drives your computer is already connected to (for example a share opened
-  in your file manager on Linux), so you just pick the music folder on them. It also understands smb:// addresses: a
-  connected share is found, and one that isn't can be connected as a guest after asking. Looking for network drives is
-  off until you turn it on (Settings, Collection, or in that window).
 - The "Add a network folder" and sleep timer "Other time…" windows now explain what to type, with examples that fit on
   screen.
 
