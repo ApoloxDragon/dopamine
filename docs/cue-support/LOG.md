@@ -375,6 +375,8 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-24** · `Added` · Smart shuffle
     - SmartShuffler: weighted random order (Efraimidis-Spirakis; like x3, rating 4-5 x2, 1-2 x0.5, skip ratio), disliked songs last, then a spread-out pass (look-ahead 8; when one artist has more left than all others, it is spread first). Queue uses it when the new setting useSmartShuffle is on.
 
+- **2026-11-25** · `Tooling` · Nightly builds: no schedule any more (run by hand)
+    - GitHub disabled workflows on the fork to reduce wasted compute; nightly.yml built every platform every night. pull-request.yml keeps its light weekly advisory check.
 - **2026-11-24** · `Added` · Continuous play (3.3.2)
     - ContinuousPlay.pick: weighted random (0.2 base, +3 same artist, +2 same genre, +1 within 5 years of the last 10 songs, +2 liked, +1 rated 4-5), never disliked or already queued, each path once. PlaybackService adds 10 when the queue ends (not with repeat all), marks them (continuousPlayPaths, accent line in the queue), and plays the first. Setting useContinuousPlay (off).
 

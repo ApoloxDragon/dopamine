@@ -3,8 +3,8 @@ env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 on:
     workflow_dispatch:
-    schedule:
-        - cron: '0 0 * * *'
+    # No schedule: builds of every platform each night (also when nothing changed) are wasted compute on a fork, and made
+    # GitHub turn workflows off. Run it by hand from the Actions tab when a test build is wanted.
 
 jobs:
     nightly_build_on_linux:
