@@ -1,0 +1,10 @@
+.input-dialog__description {
+    margin-bottom: 12px;
+    white-space: pre-line;
+    line-height: 1.4;
+}
+
+// Full width, so example paths in the placeholder are not cut off.
+.input-dialog__field {
+    width: 100%;
+}

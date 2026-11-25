@@ -10,6 +10,8 @@ export abstract class DialogServiceBase {
         placeHolderText: string,
         inputText: string,
         invalidCharacters: string[],
+        description?: string,
+        icon?: string,
     ): Promise<string>;
     public abstract showErrorDialog(errorText: string): void;
     public abstract showInfoDialog(infoText: string): void;
@@ -19,6 +21,8 @@ export abstract class DialogServiceBase {
     public abstract showCreateSmartPlaylistDialogAsync(): Promise<void>;
     public abstract showEditColumnsDialogAsync(): Promise<void>;
     public abstract showEqualizerDialogAsync(): Promise<void>;
+    /** Add a network folder: resolves to the chosen folder, or '' when cancelled. */
+    public abstract showNetworkFolderDialogAsync(): Promise<string>;
     public abstract showEditTracksAsync(tracks: TrackModel[]): Promise<boolean>;
     public abstract showEditAlbumsAsync(albums: AlbumModel[]): Promise<void>;
     public abstract showEditArtistAsync(artist: ArtistModel): Promise<void>;

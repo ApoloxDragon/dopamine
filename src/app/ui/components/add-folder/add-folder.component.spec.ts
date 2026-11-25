@@ -475,9 +475,7 @@ describe('AddFolderComponent', () => {
         });
 
         const typed = (text: string): void => {
-            dialogServiceMock
-                .setup((x) => x.showInputDialogAsync(It.isAny(), It.isAny(), It.isAny(), It.isAny()))
-                .returns(() => Promise.resolve(text));
+            dialogServiceMock.setup((x) => x.showNetworkFolderDialogAsync()).returns(() => Promise.resolve(text));
         };
 
         it('should add a reachable share, without a trailing backslash', async () => {

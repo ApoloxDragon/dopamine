@@ -1,6 +1,7 @@
-<app-dialog-header icon="las la-question" [title]="data?.dialogTitle"></app-dialog-header>
+<app-dialog-header [icon]="data?.icon || 'las la-question'" [title]="data?.dialogTitle"></app-dialog-header>
 <mat-dialog-content>
-    <mat-form-field>
+    <div class="input-dialog__description secondary-text" *ngIf="data?.description">{{ data.description }}</div>
+    <mat-form-field class="input-dialog__field">
         <input matInput [(ngModel)]="data.inputText" placeholder="{{ data?.placeHolderText }}" (keyup.enter)="closeDialog()" />
     </mat-form-field>
 </mat-dialog-content>

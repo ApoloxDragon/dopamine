@@ -1,3 +1,4 @@
+import { NetworkFolderDialogComponent } from '../../ui/components/dialogs/network-folder-dialog/network-folder-dialog.component';
 import { Injectable } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../../ui/components/dialogs/confirmation-dialog/confirmation-dialog.component';
@@ -50,8 +51,10 @@ export class DialogService implements DialogServiceBase {
         placeHolderText: string,
         inputText: string,
         invalidCharacters: string[],
+        description: string = '',
+        icon: string = 'las la-question',
     ): Promise<string> {
-        const inputData: InputData = new InputData(dialogTitle, inputText, placeHolderText, invalidCharacters);
+        const inputData: InputData = new InputData(dialogTitle, inputText, placeHolderText, invalidCharacters, description, icon);
         const dialogRef: MatDialogRef<InputDialogComponent> = this.dialog.open(InputDialogComponent, {
             width: '450px',
             data: inputData,
@@ -143,6 +146,15 @@ export class DialogService implements DialogServiceBase {
         });
 
         await dialogRef.afterClosed().toPromise();
+    }
+
+    public async showNetworkFolderDialogAsync(): Promise<string> {
+        const dialogRef: MatDialogRef<NetworkFolderDialogComponent> = this.dialog.open(NetworkFolderDialogComponent, {
+            width: '520px',
+        });
+        const chosen: unknown = await dialogRef.afterClosed().toPromise();
+
+        return typeof chosen === 'string' ? chosen : '';
     }
 
     public async showEditTracksAsync(tracks: TrackModel[]): Promise<boolean> {

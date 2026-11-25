@@ -388,3 +388,12 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Album and artist like/dislike (3.3.2, migration 18)
     - Migration18 adds table Liked (Kind, Key, Value, LikedAtMs; PK Kind+Key); nothing existing changes. LikedRepository (upsert / delete on 0), LikeService (cached, artist keys lower case, failures logged and the old value kept). Context menu items in the album and artist browsers, 'Liked albums' shelf row (memoised filter). SmartShuffler and ContinuousPlay take an isDisliked predicate fed by LikeService. Real-SQLite spec: migrates to 18, hostile keys kept exactly.
+
+- **2026-11-25** · `Changed` · Input dialogs can explain what to type
+    - InputData/showInputDialogAsync take an optional description (shown above the field, pre-line) and icon; the field is full width. Used by 'Add a network folder' (Windows/Linux paths, smb:// not openable) and the sleep timer's custom time; placeholders shortened in all languages.
+
+- **2026-11-25** · `Added` · Network drives in 'Add a network folder' (opt-in), smb:// addresses
+    - NetworkDrives (renderer, Linux): GNOME gvfs (/run/user/<uid>/gvfs/smb-share:server=…,share=…), KDE kio-fuse, and cifs/nfs/sshfs/davfs from /proc/mounts (octal escapes decoded); each path once. smb://host/share/path -> the gvfs folder (case of server/share lowered like gvfs; .. and NUL refused). NetworkDrivesService: only with the new setting lookForNetworkDrives (off); guest connect via execFile('gio', ['mount','--anonymous', smb://host/share]) only after a confirmation. New NetworkFolderDialog lists drives (picker opens inside one: showSelectFolderDialogAsync got defaultPath) or takes a typed path/smb:// address.
+
+- **2026-11-25** · `Note` · 3.3.3-apolox: network drives (PR 15)
+    - 3.3.2 changelog section finalized; the network drives entry moved to a new 3.3.3 section; version 3.3.3.

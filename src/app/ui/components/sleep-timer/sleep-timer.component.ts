@@ -55,7 +55,8 @@ export class SleepTimerComponent implements OnInit, OnDestroy {
     public async customAsync(): Promise<void> {
         const title: string = await this.translatorService.getAsync('sleep-timer-custom');
         const placeholder: string = await this.translatorService.getAsync('sleep-timer-custom-placeholder');
-        const typed: string = await this.dialogService.showInputDialogAsync(title, placeholder, '', []);
+        const description: string = await this.translatorService.getAsync('sleep-timer-custom-description');
+        const typed: string = await this.dialogService.showInputDialogAsync(title, placeholder, '', [], description, 'las la-moon');
         const minutes: number = SleepTimerComponent.parseMinutes(typed);
 
         if (minutes > 0) {
