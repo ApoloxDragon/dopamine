@@ -3,24 +3,28 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.3.2-apolox] - 2026-11-25
+
+More ways to enjoy what's already in your library. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
 
 ### Added
 
 - Like or dislike whole albums and artists (right-click an album or artist). Liked albums get their own row at the top
   of the Albums page. Smart shuffle and continuous play leave out disliked albums and artists.
-
 - Your year in music, at the top of the Statistics page: listening time and plays this year, your top 5 songs, albums and
   artists, your longest streak, your most played day and when you played your first song of the year. Like "Wrapped",
   but it stays on your computer.
-
 - Fix an album's title, artist, year, genre or disc numbers with a small `dopamine.json` file in its folder, without
   changing your music files. Two folders like "Album (CD1)" and "Album (CD2)" can become one album with two discs this way.
   See docs/album-details-file.md.
-
 - Continuous play (Settings, Behavior): when the queue ends, the music keeps going with similar songs from your library:
   the same artists, genres or years, liked songs first and disliked songs never. Added songs have a small mark in the
   queue. Off by default.
+
+### Good to know
+
+- The database is upgraded (one new table for album and artist likes). Nothing existing changes, and 3.3.1 can still
+  open it.
 
 ### Changed
 
