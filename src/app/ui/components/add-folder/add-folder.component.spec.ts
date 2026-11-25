@@ -476,7 +476,7 @@ describe('AddFolderComponent', () => {
 
         const typed = (text: string): void => {
             dialogServiceMock
-                .setup((x) => x.showInputDialogAsync(It.isAny(), It.isAny(), It.isAny(), It.isAny()))
+                .setup((x) => x.showInputDialogAsync(It.isAny(), It.isAny(), It.isAny(), It.isAny(), It.isAny(), It.isAny()))
                 .returns(() => Promise.resolve(text));
         };
 
@@ -521,6 +521,18 @@ describe('AddFolderComponent', () => {
             translatorServiceMock.verify((x) => x.getAsync(key), Times.once());
             dialogServiceMock.verify((x) => x.showErrorDialog(It.isAny()), Times.once());
             folderServiceMock.verify((x) => x.addFolderAsync(It.isAny()), Times.never());
+        });
+
+        it('should explain what to type, with a network icon', async () => {
+            typed('');
+
+            await sut.addNetworkFolderAsync();
+
+            dialogServiceMock.verify(
+                (x) => x.showInputDialogAsync(It.isAny(), It.isAny(), It.isAny(), It.isAny(), It.isAny(), 'las la-network-wired'),
+                Times.once(),
+            );
+            translatorServiceMock.verify((x) => x.getAsync('add-network-folder-description'), Times.once());
         });
 
         it('should do nothing when the dialog is cancelled', async () => {

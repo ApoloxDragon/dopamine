@@ -386,3 +386,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Album and artist like/dislike (3.3.2, migration 18)
     - Migration18 adds table Liked (Kind, Key, Value, LikedAtMs; PK Kind+Key); nothing existing changes. LikedRepository (upsert / delete on 0), LikeService (cached, artist keys lower case, failures logged and the old value kept). Context menu items in the album and artist browsers, 'Liked albums' shelf row (memoised filter). SmartShuffler and ContinuousPlay take an isDisliked predicate fed by LikeService. Real-SQLite spec: migrates to 18, hostile keys kept exactly.
+
+- **2026-11-25** · `Changed` · Input dialogs can explain what to type
+    - InputData/showInputDialogAsync take an optional description (shown above the field, pre-line) and icon; the field is full width. Used by 'Add a network folder' (Windows/Linux paths, smb:// not openable) and the sleep timer's custom time; placeholders shortened in all languages.

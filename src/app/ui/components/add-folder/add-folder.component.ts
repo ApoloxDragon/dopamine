@@ -104,7 +104,15 @@ export class AddFolderComponent implements OnInit {
     public async addNetworkFolderAsync(): Promise<void> {
         const title: string = await this.translatorService.getAsync('add-network-folder');
         const placeholder: string = await this.translatorService.getAsync('add-network-folder-placeholder');
-        const typed: string = await this.dialogService.showInputDialogAsync(title, placeholder, '', []);
+        const description: string = await this.translatorService.getAsync('add-network-folder-description');
+        const typed: string = await this.dialogService.showInputDialogAsync(
+            title,
+            placeholder,
+            '',
+            [],
+            description,
+            'las la-network-wired',
+        );
 
         if (StringUtils.isNullOrWhiteSpace(typed)) {
             return;

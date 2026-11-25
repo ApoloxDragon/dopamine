@@ -10,6 +10,8 @@ export abstract class DialogServiceBase {
         placeHolderText: string,
         inputText: string,
         invalidCharacters: string[],
+        description?: string,
+        icon?: string,
     ): Promise<string>;
     public abstract showErrorDialog(errorText: string): void;
     public abstract showInfoDialog(infoText: string): void;

@@ -23,6 +23,8 @@ describe('validate i18n', () => {
         'add-folder',
         'add-network-folder',
         'add-network-folder-placeholder',
+        'add-network-folder-description',
+        'sleep-timer-custom-description',
         'network-folder-url',
         'network-folder-not-a-path',
         'network-folder-unreachable-confirm',

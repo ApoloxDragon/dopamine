@@ -50,8 +50,10 @@ export class DialogService implements DialogServiceBase {
         placeHolderText: string,
         inputText: string,
         invalidCharacters: string[],
+        description: string = '',
+        icon: string = 'las la-question',
     ): Promise<string> {
-        const inputData: InputData = new InputData(dialogTitle, inputText, placeHolderText, invalidCharacters);
+        const inputData: InputData = new InputData(dialogTitle, inputText, placeHolderText, invalidCharacters, description, icon);
         const dialogRef: MatDialogRef<InputDialogComponent> = this.dialog.open(InputDialogComponent, {
             width: '450px',
             data: inputData,
