@@ -374,3 +374,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-24** · `Added` · Smart shuffle
     - SmartShuffler: weighted random order (Efraimidis-Spirakis; like x3, rating 4-5 x2, 1-2 x0.5, skip ratio), disliked songs last, then a spread-out pass (look-ahead 8; when one artist has more left than all others, it is spread first). Queue uses it when the new setting useSmartShuffle is on.
+
+- **2026-11-25** · `Tooling` · Nightly builds: no schedule any more (run by hand)
+    - GitHub disabled workflows on the fork to reduce wasted compute; nightly.yml built every platform every night. pull-request.yml keeps its light weekly advisory check.
