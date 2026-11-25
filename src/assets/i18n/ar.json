@@ -65,6 +65,8 @@
     "welcome-screen": "شاشة الترحيب",
     "show-welcome-screen-on-next-restart": "إظهار شاشة الترحيب في إعادة التشغيل التالية",
     "online": "متصل",
+    "search-settings": "البحث في الإعدادات",
+    "no-settings-found": "لم يتم العثور على أي إعداد",
     "discord": "ديسكورد",
     "dock": "Dock",
     "enable-discord-rich-presence": "تفعيل Discord Rich Presence",

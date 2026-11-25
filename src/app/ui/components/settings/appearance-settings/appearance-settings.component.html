@@ -1,5 +1,5 @@
 <div class="p-4">
-    <div class="title">{{ 'theme' | translate }}</div>
+    <div class="title" data-settings-section="theme">{{ 'theme' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.appearanceService.followSystemTheme">{{
             'follow-system-theme' | translate
@@ -15,7 +15,7 @@
         >
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'color' | translate }}</div>
+    <div class="title" data-settings-section="color">{{ 'color' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="appearanceService.followSystemColor"> {{ 'follow-system-color' | translate }}</app-toggle-switch>
     </div>
@@ -34,12 +34,12 @@
         }}</app-icon-text-button>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'images' | translate }}</div>
+    <div class="title" data-settings-section="images">{{ 'images' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.settings.showSquareImages"> {{ 'i-prefer-square-images' | translate }}</app-toggle-switch>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'tracklist' | translate }}</div>
+    <div class="title" data-settings-section="tracklist">{{ 'tracklist' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.settings.useCompactTrackListView">
             {{ 'compact-tracklist-view' | translate }}</app-toggle-switch
@@ -51,10 +51,10 @@
         >
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'title-bar' | translate }}</div>
+    <div class="title" data-settings-section="title-bar">{{ 'title-bar' | translate }}</div>
     <app-toggle-switch [(isChecked)]="settings.useSystemTitleBar"> {{ 'use-system-title-bar' | translate }}</app-toggle-switch>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'language' | translate }}</div>
+    <div class="title" data-settings-section="language">{{ 'language' | translate }}</div>
     <div>{{ 'choose-language' | translate }}</div>
     <mat-form-field class="mt-2">
         <mat-select [(ngModel)]="translatorService.selectedLanguage" [compareWith]="translatorService.compareLanguages" (openedChange)="translatorService.refreshLanguages()">
@@ -70,7 +70,7 @@
         }}</app-icon-text-button>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'text-size' | translate }}</div>
+    <div class="title" data-settings-section="text-size">{{ 'text-size' | translate }}</div>
     <div>{{ 'choose-text-size' | translate }}</div>
     <mat-form-field class="mt-2">
         <mat-select [(ngModel)]="appearanceService.selectedFontSize">
@@ -78,7 +78,7 @@
         </mat-select>
     </mat-form-field>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'pages' | translate }}</div>
+    <div class="title" data-settings-section="pages">{{ 'pages' | translate }}</div>
     <div>{{ 'which-pages-should-be-visible' | translate }}</div>
     <div>
         <app-toggle-switch class="mt-3" [(isChecked)]="settings.showArtistsPage"> {{ 'artists' | translate }}</app-toggle-switch>
@@ -102,7 +102,7 @@
         <app-toggle-switch class="mt-3" [(isChecked)]="settings.showStatisticsPage"> {{ 'statistics' | translate }}</app-toggle-switch>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'progress-bar' | translate }}</div>
+    <div class="title" data-settings-section="progress-bar">{{ 'progress-bar' | translate }}</div>
     <div>
         <app-toggle-switch [isChecked]="this.settings.showWaveProgress" (isCheckedChange)="this.onShowWaveProgressChanged($event)">
             {{ 'show-wave-progress' | translate }}</app-toggle-switch
@@ -114,7 +114,7 @@
         >
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'audio-visualizer' | translate }}</div>
+    <div class="title" data-settings-section="audio-visualizer">{{ 'audio-visualizer' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="this.audioVisualizerService.showAudioVisualizer">
             {{ 'show-audio-visualizer' | translate }}</app-toggle-switch
@@ -145,7 +145,7 @@
         </mat-form-field>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'lyrics' | translate }}</div>
+    <div class="title" data-settings-section="lyrics">{{ 'lyrics' | translate }}</div>
     <div class="mt-3">{{ 'rich-lyric-size' | translate }}</div>
     <div class="mt-2">
         <mat-form-field>

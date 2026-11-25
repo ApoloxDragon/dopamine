@@ -1,6 +1,7 @@
 import { IMock, Mock } from 'typemoq';
 import { ManageCollectionComponent } from './manage-collection.component';
 import { AppearanceServiceBase } from '../../../services/appearance/appearance.service.base';
+import { SettingsJump } from '../settings/settings-search/settings-search';
 
 describe('ManageRefreshComponent', () => {
     let appearanceServiceMock: IMock<AppearanceServiceBase>;
@@ -30,6 +31,25 @@ describe('ManageRefreshComponent', () => {
 
             // Assert
             expect(component.appearanceService).toBeDefined();
+        });
+    });
+
+    describe('ngOnInit', () => {
+        it('should open the page the settings search asked for, once', () => {
+            SettingsJump.request(2, 'grouping');
+
+            component.ngOnInit();
+
+            expect(component.page).toBe(2);
+            expect(SettingsJump.take()).toBeUndefined();
+        });
+
+        it('should open the first page when nothing was asked', () => {
+            SettingsJump.take();
+
+            component.ngOnInit();
+
+            expect(component.page).toBe(0);
         });
     });
 });

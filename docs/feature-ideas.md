@@ -63,6 +63,7 @@ beyond the existing optional Last.fm.
 - 3.3.1: like/dislike songs, sleep timer, smart shuffle, recently added/played rows, network folders (LAN parts 1-2),
   fast/full refresh.
 - 3.3.2: continuous play, album/artist like/dislike with a liked albums row, `dopamine.json`, year in review.
+- 3.3.3: connected network drives in "Add a network folder" (opt-in), search box in Settings.
 
 ## Planned for 3.4 (with the upgrade to current Angular and Electron, see `3.4.0-plan.md`)
 
@@ -82,8 +83,7 @@ The upgrade itself comes first; these features follow it, each its own PR. All h
    of many songs at once. Optionally move files into `Artist/Year - Album/NN Title` (the alac2flac layout). Never changes
    files without a preview and a confirmation.
 
-Smaller ones that can ride along: a **search box in Settings** (type "fade", "network" or "equalizer" and jump to the
-setting; every setting gets a few search words, in every language), queue improvements ("play next", clear played songs),
+Smaller ones that can ride along (the Settings search box shipped in 3.3.3): queue improvements ("play next", clear played songs),
 a Ctrl+K quick search, the
 year in review as an image and with the first song's title, a duplicate finder (same song in two formats or folders).
 

@@ -65,6 +65,8 @@
     "welcome-screen": "歡迎頁面",
     "show-welcome-screen-on-next-restart": "下次重新啟動時展示歡迎頁面",
     "online": "線上",
+    "search-settings": "搜尋設定",
+    "no-settings-found": "找不到設定",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "啟用 Discord Rich Presence",

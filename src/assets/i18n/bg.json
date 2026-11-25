@@ -65,6 +65,8 @@
     "welcome-screen": "Начален екран",
     "show-welcome-screen-on-next-restart": "Покажете началния екран при следващото рестартиране",
     "online": "Online",
+    "search-settings": "Търсене в настройките",
+    "no-settings-found": "Няма намерена настройка",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Активирайте Discord Rich Presence",

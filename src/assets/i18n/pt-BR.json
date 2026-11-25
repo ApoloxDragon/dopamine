@@ -65,6 +65,8 @@
     "welcome-screen": "Tela de boas-vindas",
     "show-welcome-screen-on-next-restart": "Mostrar a tela de boas-vindas no próximo reinício",
     "online": "Online",
+    "search-settings": "Pesquisar configurações",
+    "no-settings-found": "Nenhuma configuração encontrada",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Ativar a presença avançada do Discord",

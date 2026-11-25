@@ -65,6 +65,8 @@
     "welcome-screen": "Màn hình chào mừng",
     "show-welcome-screen-on-next-restart": "Hiện màn hình chào mừng trong lần tới",
     "online": "Trực tuyến",
+    "search-settings": "Tìm trong cài đặt",
+    "no-settings-found": "Không tìm thấy cài đặt nào",
     "discord": "Discord",
     "dock": "Dock",
     "enable-discord-rich-presence": "Bật Discord Rich Presence",

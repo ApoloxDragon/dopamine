@@ -65,6 +65,8 @@
     "welcome-screen": "Экран приветствия",
     "show-welcome-screen-on-next-restart": "Показать экран приветствия при следующем запуске",
     "online": "Интернет",
+    "search-settings": "Поиск по настройкам",
+    "no-settings-found": "Настройка не найдена",
     "discord": "Discord",
     "dock": "Док-панель",
     "enable-discord-rich-presence": "Включить статус активности для Discord",

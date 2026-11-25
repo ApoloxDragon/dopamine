@@ -272,6 +272,8 @@ describe('validate i18n', () => {
         'number',
         'ok',
         'online',
+        'search-settings',
+        'no-settings-found',
         'online-lyrics',
         'online-preferences',
         'open-folder',

@@ -1,5 +1,5 @@
 <div class="d-flex flex-column p-4">
-    <div class="title">{{ 'welcome-screen' | translate }}</div>
+    <div class="title" data-settings-section="welcome-screen">{{ 'welcome-screen' | translate }}</div>
     <div>
         <app-toggle-switch [(isChecked)]="settings.showWelcome"> {{ 'show-welcome-screen-on-next-restart' | translate }}</app-toggle-switch>
     </div>
@@ -9,7 +9,7 @@
         </app-transparent-button>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'ratings-backup' | translate }}</div>
+    <div class="title" data-settings-section="ratings-backup">{{ 'ratings-backup' | translate }}</div>
     <div>{{ 'restore-ratings-from-backup-description' | translate }}</div>
     <div class="mt-4">
         <app-transparent-button (click)="this.restoreRatingsAsync()">
@@ -17,7 +17,7 @@
         </app-transparent-button>
     </div>
     <mat-divider class="my-4"></mat-divider>
-    <div class="title">{{ 'log-file' | translate }}</div>
+    <div class="title" data-settings-section="log-file">{{ 'log-file' | translate }}</div>
     <div>{{ 'something-wrong-look-in-log-file' | translate }}</div>
     <div class="mt-4">
         <app-transparent-button (click)="this.viewLog()">

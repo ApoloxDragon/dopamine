@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Launches the real app (Electron, built with `npm run build:prod`) with a fresh profile and takes screenshots of
-// the equalizer dialog (parametric and graphic) and the Statistics page.
+// the equalizer dialog (parametric and graphic), the Statistics page and the settings search.
 // Usage: xvfb-run -a -s "-screen 0 1400x900x24" node scripts/dev/app-screenshots.js <output-dir>
 const path = require('path');
 const fs = require('fs');
@@ -92,10 +92,16 @@ async function main() {
     await app.evaluate(({ dialog }, file) => {
         dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] });
     }, graphicEqFile);
-    await page.locator('app-icon-text-button', { hasText: /import/i }).first().click();
+    await page
+        .locator('app-icon-text-button', { hasText: /import/i })
+        .first()
+        .click();
     await page.waitForTimeout(1500);
     await page.screenshot({ path: path.join(out, '4b-equalizer-graphiceq-imported.png') });
-    const importMessage = await page.locator('.equalizer__message').textContent().catch(() => '');
+    const importMessage = await page
+        .locator('.equalizer__message')
+        .textContent()
+        .catch(() => '');
 
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
@@ -120,6 +126,23 @@ async function main() {
             await page.waitForTimeout(300);
             await page.screenshot({ path: path.join(out, `5-statistics-${i}.png`) });
         }
+    }
+
+    // Settings search: type, see the list, press Enter and land on the setting.
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.evaluate(() => (window.location.hash = '#/settings'));
+    const settingsSearch = page.locator('app-settings-search input');
+    if ((await page.waitForSelector('app-settings-search input', { timeout: 10000 }).catch(() => null)) !== null) {
+        await settingsSearch.fill('fade');
+        await page.waitForTimeout(300);
+        await page.screenshot({ path: path.join(out, '6-settings-search.png') });
+        await settingsSearch.press('Enter');
+        await page.waitForTimeout(700);
+        await page.screenshot({ path: path.join(out, '7-settings-search-found.png') });
+        await settingsSearch.fill('samba');
+        await settingsSearch.press('Enter');
+        await page.waitForTimeout(1500);
+        await page.screenshot({ path: path.join(out, '8-settings-search-manage-collection.png') });
     }
 
     const config = JSON.parse(fs.readFileSync(path.join(userData, 'config.json'), 'utf8'));
