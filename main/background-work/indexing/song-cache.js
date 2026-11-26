@@ -269,14 +269,18 @@ class SongCache {
         let data;
 
         try {
-            const stats = this.fileSystem.statSync(file);
-
-            if (!stats.isFile()) {
+            // Only a real file in a real Dopamine folder: links are never followed (nor deleted).
+            if (!this.#isRealCacheFolder(folder) || this.#kindOf(file) !== 'file') {
+                if (this.#kindOf(file) === 'other') {
+                    warn('is a link or not a file, ignored');
+                }
                 return;
             }
 
+            const stats = this.fileSystem.lstatSync(file);
+
             if (stats.size > SongCache.maximumFileBytes) {
-                this.#discard(file, `too big (${stats.size} bytes)`);
+                this.#discard(folder, `too big (${stats.size} bytes)`);
                 return;
             }
 
@@ -300,7 +304,7 @@ class SongCache {
 
         if (entries === undefined) {
             // The contents are broken: start over. The next refresh that reads songs (a full refresh reads all) writes a new one.
-            this.#discard(file, 'broken or of an unknown kind');
+            this.#discard(folder, 'broken or of an unknown kind');
             return;
         }
 
@@ -309,18 +313,21 @@ class SongCache {
     }
 
     /** Deletes a cache file that cannot be used. Never throws. */
-    #discard(file, reason) {
-        try {
-            this.fileSystem.rmSync(file, { force: true });
+    #discard(folder, reason) {
+        const file = this.#cacheFile(folder);
+
+        if (this.#safeUnlink(folder, SongCache.fileName)) {
             this.logger.warn(`'${file}' was ${reason}: deleted, it will be built again`, 'SongCache', 'load');
-        } catch (e) {
-            this.logger.warn(`'${file}' was ${reason} and could not be deleted: ${e?.message ?? e}`, 'SongCache', 'load');
+        } else {
+            this.logger.warn(`'${file}' was ${reason}: ignored (not deleted)`, 'SongCache', 'load');
         }
     }
 
     #write(folder) {
         const file = this.#cacheFile(folder);
-        const temporary = `${file}.${process.pid}.tmp`;
+        // A random name, so a file or link someone placed in advance cannot be in the way (and 'wx' below refuses it anyway).
+        const temporaryName = `${SongCache.fileName}.${require('crypto').randomInt(1, 1000000000)}.tmp`;
+        const temporary = path.join(path.dirname(file), temporaryName);
 
         try {
             // Only into folders that are there right now (an offline share is left alone).
@@ -332,18 +339,72 @@ class SongCache {
             const data = zlib.gzipSync(JSON.stringify({ version: SongCache.version, writtenAtMs: Date.now(), songs }));
 
             this.fileSystem.mkdirSync(path.dirname(file), { recursive: true });
-            this.fileSystem.writeFileSync(temporary, data);
+
+            // Never write through a link: the Dopamine folder must be a real folder, and the cache a real file (or absent).
+            if (!this.#isRealCacheFolder(folder) || this.#kindOf(file) === 'other') {
+                this.logger.warn(`'${file}' or its folder is a link or not a file: the song cache was not saved`, 'SongCache', 'write');
+                return;
+            }
+
+            this.#safeUnlink(folder, temporaryName);
+            // 'wx': fails when anything (also a link someone placed) has the temporary name, instead of writing through it.
+            this.fileSystem.writeFileSync(temporary, data, { flag: 'wx', mode: 0o644 });
             this.fileSystem.renameSync(temporary, file);
             folder.changed = false;
             this.logger.info(`Saved ${folder.entries.size} songs to '${file}'`, 'SongCache', 'write');
         } catch (e) {
             this.logger.warn(`Could not save the song cache '${file}': ${e?.message ?? e}`, 'SongCache', 'write');
+            this.#safeUnlink(folder, temporaryName);
+        }
+    }
 
-            try {
-                this.fileSystem.rmSync(temporary, { force: true });
-            } catch (ignored) {
-                // Nothing more to do.
+    /**
+     * The only way this class deletes anything: one regular file, directly in <music folder>/Dopamine, named
+     * cache.json.gz or cache.json.gz.<number>.tmp. Never a folder, never a link (nor what it points to), never recursive,
+     * never a path taken from the cache's contents. Returns whether it deleted the file. Never throws.
+     */
+    #safeUnlink(folder, name) {
+        try {
+            if (!SongCache.isCacheFileName(name) || !this.#isRealCacheFolder(folder)) {
+                return false;
             }
+
+            const cacheFolder = path.join(folder.path, SongCache.folderName);
+            const target = path.join(cacheFolder, name);
+
+            if (path.dirname(target) !== cacheFolder || this.#kindOf(target) !== 'file') {
+                return false;
+            }
+
+            this.fileSystem.unlinkSync(target);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /** cache.json.gz, or its temporary file cache.json.gz.<random number>.tmp. Nothing else. */
+    static isCacheFileName(name) {
+        return typeof name === 'string' && (name === SongCache.fileName || /^cache\.json\.gz\.\d{1,10}\.tmp$/.test(name));
+    }
+
+    /** <music folder>/Dopamine is a real folder (not a link to somewhere else). */
+    #isRealCacheFolder(folder) {
+        try {
+            const stats = this.fileSystem.lstatSync(path.join(folder.path, SongCache.folderName));
+            return stats.isDirectory() && !stats.isSymbolicLink();
+        } catch (e) {
+            return false;
+        }
+    }
+
+    /** 'none' when there is nothing, 'file' for a regular file, 'other' for a link, a folder or anything else. */
+    #kindOf(target) {
+        try {
+            const stats = this.fileSystem.lstatSync(target);
+            return stats.isFile() && !stats.isSymbolicLink() ? 'file' : 'other';
+        } catch (e) {
+            return e?.code === 'ENOENT' ? 'none' : 'other';
         }
     }
 

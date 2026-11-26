@@ -408,3 +408,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-26** · `Changed` · 3.3.4: a broken song cache is deleted and rebuilt
     - Too big / not gzip / not JSON / unknown version -> deleted; I/O errors (EIO, EACCES) leave it. Rebuilt by the next refresh that reads songs (Full refresh: all).
+
+- **2026-11-26** · `Changed` · 3.3.4: song cache deletes and writes only its own file
+    - safeUnlink: name allow-list, lstat regular file, real (non-link) Dopamine folder, unlinkSync only; reads ignore links; temp file random name + 'wx'; tests with planted symlinks, a folder named like the cache, a symlinked Dopamine folder.
