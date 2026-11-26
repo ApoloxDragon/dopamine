@@ -261,6 +261,100 @@ describe('SongCache', () => {
         }
     });
 
+    describe('never deletes or overwrites anything but its own cache file', () => {
+        let victim;
+
+        beforeEach(() => {
+            victim = path.join(root, 'victim');
+            fs.mkdirSync(victim);
+            fs.writeFileSync(path.join(victim, 'precious.txt'), 'do not touch');
+            fs.writeFileSync(path.join(victim, 'cache.json.gz'), "not a cache, but someone else's file");
+        });
+
+        const untouched = () => {
+            expect(fs.readFileSync(path.join(victim, 'precious.txt'), 'utf8')).toBe('do not touch');
+            expect(fs.readFileSync(path.join(victim, 'cache.json.gz'), 'utf8')).toBe("not a cache, but someone else's file");
+        };
+
+        it('should not follow a cache file that is a link (to read, delete or overwrite)', () => {
+            const a = song('a.flac');
+            fs.mkdirSync(path.join(music, 'Dopamine'));
+            fs.symlinkSync(path.join(victim, 'precious.txt'), cacheFile());
+            const cache = newCache();
+
+            cache.put(a, tags('a'));
+            cache.save([a]);
+
+            untouched();
+            expect(fs.lstatSync(cacheFile()).isSymbolicLink()).toBe(true);
+        });
+
+        it('should not use a Dopamine folder that is a link to somewhere else', () => {
+            const a = song('a.flac');
+            fs.symlinkSync(victim, path.join(music, 'Dopamine'));
+            const cache = newCache();
+
+            cache.put(a, tags('a'));
+            cache.save([a]);
+
+            untouched();
+            expect(fs.readdirSync(victim).sort()).toEqual(['cache.json.gz', 'precious.txt']);
+        });
+
+        it('should not write through a link planted with a temporary file name, and still save', () => {
+            const a = song('a.flac');
+            fs.mkdirSync(path.join(music, 'Dopamine'));
+            fs.symlinkSync(path.join(victim, 'precious.txt'), path.join(music, 'Dopamine', `cache.json.gz.${process.pid}.tmp`));
+            const cache = newCache();
+
+            cache.put(a, tags('a'));
+            cache.save([a]);
+
+            untouched();
+            expect(readCacheFile().songs['a.flac']).toBeDefined();
+        });
+
+        it('should not delete a folder that has the cache file name', () => {
+            const a = song('a.flac');
+            fs.mkdirSync(path.join(cacheFile(), 'inside'), { recursive: true });
+            fs.writeFileSync(path.join(cacheFile(), 'inside', 'keep.txt'), 'keep');
+            const cache = newCache();
+
+            cache.put(a, tags('a'));
+            cache.save([a]);
+
+            expect(fs.readFileSync(path.join(cacheFile(), 'inside', 'keep.txt'), 'utf8')).toBe('keep');
+        });
+
+        it.each([
+            [''],
+            ['..'],
+            ['../precious.txt'],
+            ['cache.json.gz/../../precious.txt'],
+            ['cache.json.gz.1.tmp/..'],
+            ['cache.json'],
+            ['cache.json.gz.tmp'],
+            ['cache.json.gz.12345678901.tmp'],
+            ['/etc/passwd'],
+            ['song.flac'],
+            [undefined],
+        ])('should only ever accept its own file names, not %p', (name) => {
+            expect(SongCache.isCacheFileName(name)).toBe(false);
+        });
+
+        it('should accept its own file names', () => {
+            expect(SongCache.isCacheFileName('cache.json.gz')).toBe(true);
+            expect(SongCache.isCacheFileName('cache.json.gz.4242.tmp')).toBe(true);
+        });
+
+        it('should never call anything but unlink on one file (no recursive delete exists in the code)', () => {
+            const source = fs.readFileSync(path.join(__dirname, 'song-cache.js'), 'utf8');
+
+            expect(source).not.toMatch(/rmSync|rmdirSync|recursive:\s*true\s*,?\s*force|rimraf|fs-extra|\.remove\(/);
+            expect((source.match(/unlinkSync\(/g) ?? []).length).toBe(1);
+        });
+    });
+
     it('should not cache a song that could not be read', () => {
         const a = song('a.flac');
         const reader = {
