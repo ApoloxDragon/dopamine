@@ -1,3 +1,4 @@
+import { NetworkShareGuardService, ShareReachResult } from '../network-drives/network-share-guard.service';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { ExpectedCallType, IMock, It, Mock, Times } from 'typemoq';
 import { DateTime } from '../../common/date-time';
@@ -186,7 +187,7 @@ describe('PlaybackService', () => {
         return new ArtistModel(artistName, 'artist-artworkId', translatorServiceMock.object, applicationPathsMock.object);
     }
 
-    function createService(): PlaybackService {
+    function createService(networkShareGuard?: NetworkShareGuardService): PlaybackService {
         return new PlaybackService(
             audioPlayerFactoryMock.object,
             trackServiceMock.object,
@@ -201,6 +202,8 @@ describe('PlaybackService', () => {
             mathExtensionsMock.object,
             settingsStub,
             loggerMock.object,
+            undefined,
+            networkShareGuard,
         );
     }
 
@@ -1442,6 +1445,98 @@ describe('PlaybackService', () => {
 
             notificationServiceMock.verify((x) => x.songsUnreachableStoppedAsync(), Times.once());
             expect(service.isPlaying).toBeFalsy();
+        });
+    });
+
+    describe('songs on a network share that moved or is not connected', () => {
+        const flush = (): Promise<void> => new Promise<void>((resolve) => setTimeout(resolve, 0));
+        const oldShare = '/run/user/1000/gvfs/smb-share:server=nas,share=storage';
+        const newShare = '/run/user/1000/gvfs/smb-share:server=nas,share=storage,user=me';
+        let guardMock: IMock<NetworkShareGuardService>;
+        let existing: Set<string>;
+
+        async function playing(result: ShareReachResult): Promise<PlaybackService> {
+            track1.path = `${oldShare}/music/a.flac`;
+            track2.path = `${oldShare}/music/b.flac`;
+            guardMock = Mock.ofType<NetworkShareGuardService>();
+            guardMock.setup((x) => x.tryToReachAsync(It.isAny())).returns(() => Promise.resolve(result));
+            existing = new Set<string>([track1.path, track2.path]);
+            fileAccessMock.reset();
+            fileAccessMock.setup((x) => x.pathExists(It.isAny())).returns((p: string) => existing.has(p));
+            const service: PlaybackService = createService(guardMock.object);
+            queueMock.setup((x) => x.getFirstTrack()).returns(() => trackModel1);
+            queueMock.setup((x) => x.getNextTrack(It.isAny(), It.isAny())).returns(() => trackModel2);
+            queueMock.setup((x) => x.tracks).returns(() => [trackModel1, trackModel2]);
+            await service.enqueueAndPlayTracksAsync(trackModels);
+            return service;
+        }
+
+        it('the regular customer: the share is now under another name, so the song plays from there and the queue follows', async () => {
+            const service = await playing({ reachable: true, move: { from: oldShare, to: newShare } });
+            existing = new Set<string>([`${newShare}/music/a.flac`, `${newShare}/music/b.flac`]);
+
+            playbackFailed.next(track1.path);
+            await flush();
+
+            expect(service.currentTrack).toBe(trackModel1);
+            expect(trackModel1.path).toBe(`${newShare}/music/a.flac`);
+            expect(trackModel2.path).toBe(`${newShare}/music/b.flac`);
+            notificationServiceMock.verify((x) => x.songUnreachableSkippedAsync(), Times.never());
+            dialogServiceMock.verify((x) => x.cannotPlayAudioFileAsync(), Times.never());
+        });
+
+        it('should play the song again once the share is connected', async () => {
+            const service = await playing({ reachable: true });
+            // Not there when it failed; there again after connecting.
+            existing = new Set<string>();
+            guardMock.reset();
+            guardMock
+                .setup((x) => x.tryToReachAsync(It.isAny()))
+                .returns(() => {
+                    existing.add(track1.path);
+                    return Promise.resolve({ reachable: true });
+                });
+
+            playbackFailed.next(track1.path);
+            await flush();
+
+            expect(service.currentTrack).toBe(trackModel1);
+            notificationServiceMock.verify((x) => x.songUnreachableSkippedAsync(), Times.never());
+        });
+
+        it('should skip as before when the share cannot be reached (or connecting was declined)', async () => {
+            const service = await playing({ reachable: false });
+            existing = new Set<string>();
+
+            playbackFailed.next(track1.path);
+            await flush();
+
+            notificationServiceMock.verify((x) => x.songUnreachableSkippedAsync(), Times.once());
+            expect(service.currentTrack).toBe(trackModel2);
+        });
+
+        // Trying to break it.
+
+        it('should not ask about songs that are not on a share', async () => {
+            await playing({ reachable: true });
+            track1.path = '/media/usb/a.flac';
+            existing = new Set<string>();
+
+            playbackFailed.next(track1.path);
+            await flush();
+
+            guardMock.verify((x) => x.tryToReachAsync(It.isAny()), Times.never());
+        });
+
+        it('should not loop when the guard says yes but the file is still not there', async () => {
+            const service = await playing({ reachable: true });
+            existing = new Set<string>();
+
+            playbackFailed.next(track1.path);
+            await flush();
+
+            expect(service.currentTrack).toBe(trackModel2);
+            notificationServiceMock.verify((x) => x.songUnreachableSkippedAsync(), Times.once());
         });
     });
 

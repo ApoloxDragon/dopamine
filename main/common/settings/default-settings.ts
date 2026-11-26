@@ -119,6 +119,8 @@ export const DEFAULT_SETTINGS = {
     useSmartShuffle: false,
     useContinuousPlay: false,
     lookForNetworkDrives: false,
+    useSongCache: true,
+    reconnectNetworkDrives: false,
     useCompactYearView: false,
     albumCoverSize: 130,
     playlistCoverSize: 130,

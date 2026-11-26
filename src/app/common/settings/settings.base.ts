@@ -125,6 +125,8 @@ export abstract class SettingsBase {
     public abstract useSmartShuffle: boolean;
     public abstract useContinuousPlay: boolean;
     public abstract lookForNetworkDrives: boolean;
+    public abstract useSongCache: boolean;
+    public abstract reconnectNetworkDrives: boolean;
     public abstract useCompactYearView: boolean;
     public abstract albumCoverSize: number;
     public abstract playlistCoverSize: number;

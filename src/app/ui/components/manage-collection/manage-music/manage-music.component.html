@@ -5,5 +5,9 @@
     <div class="mt-4" *ngIf="settings">
         <app-toggle-switch [(isChecked)]="settings.lookForNetworkDrives">{{ 'look-for-network-drives' | translate }}</app-toggle-switch>
         <div class="secondary-text mt-1">{{ 'look-for-network-drives-description' | translate }}</div>
+        <app-toggle-switch class="mt-3" [(isChecked)]="settings.reconnectNetworkDrives">{{
+            'reconnect-network-drives' | translate
+        }}</app-toggle-switch>
+        <div class="secondary-text mt-1">{{ 'reconnect-network-drives-description' | translate }}</div>
     </div>
 </div>

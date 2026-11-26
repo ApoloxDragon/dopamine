@@ -16,6 +16,10 @@ class WorkerProxy {
     skipRemovedFilesDuringRefresh() {
         return workerData.arg.skipRemovedFilesDuringRefresh;
     }
+
+    useSongCache() {
+        return workerData.arg.useSongCache === true;
+    }
 }
 
 exports.WorkerProxy = WorkerProxy;

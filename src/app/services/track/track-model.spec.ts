@@ -1281,4 +1281,44 @@ describe('TrackModel', () => {
             expect(genres).toEqual('genre 1, genre 3');
         });
     });
+
+    describe('relocate (a network share under another name)', () => {
+        const from = '/run/user/1000/gvfs/smb-share:server=nas,share=music';
+        const to = '/run/user/1000/gvfs/smb-share:server=nas,share=music,user=me';
+
+        it('should move the path, the audio file, the sheet and the folder album key', () => {
+            track = new Track(`${from}/Live/Live.flac|2`);
+            track.audioPath = `${from}/Live/Live.flac`;
+            track.cuePath = `${from}/Live/Live.cue`;
+            track.albumKey3 = `;${from}/Live;`;
+            const model = createTrackModel('');
+
+            expect(model.relocate(from, to)).toBe(true);
+            expect([model.path, model.audioPath, track.cuePath, track.albumKey3]).toEqual([
+                `${to}/Live/Live.flac|2`,
+                `${to}/Live/Live.flac`,
+                `${to}/Live/Live.cue`,
+                `;${to}/Live;`,
+            ]);
+        });
+
+        it('should leave songs elsewhere alone, including a folder with a similar name', () => {
+            track = new Track(`${from}-old/a.flac`);
+            track.albumKey3 = `;${from}-old;`;
+            const model = createTrackModel('');
+
+            expect(model.relocate(from, to)).toBe(false);
+            expect([model.path, track.albumKey3]).toEqual([`${from}-old/a.flac`, `;${from}-old;`]);
+        });
+
+        it('should cope with songs without an audio path or album key', () => {
+            track = new Track(`${from}/a.flac`);
+            track.audioPath = undefined;
+            track.cuePath = undefined;
+            track.albumKey3 = undefined;
+
+            expect(createTrackModel('').relocate(from, to)).toBe(true);
+            expect(track.audioPath).toBeUndefined();
+        });
+    });
 });

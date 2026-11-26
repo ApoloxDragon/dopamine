@@ -204,3 +204,25 @@ Proposal: an optional `dopamine.json` in the album folder (or next to a .cue she
 - `discNumber`/`discCount` would also give a simple answer to D17 (CD1/CD2 albums) without merging logic.
 - Open question: JSON only, or also a simple `key = value` text format (easier to type)? JSON is stricter and easier to check.
 Effort: medium to high (indexer, refresh detection, tests).
+
+## D20. Network share under another name, reconnecting, song cache (3.3.4): `implemented`, risky parts noted
+
+Cause seen in the 2026-11-25 log: the share was open in Files, but not at
+`/run/user/1000/gvfs/smb-share:server=192.168.10.183,share=storage` (ENOENT). Most likely it was opened with a user name
+this time, so GNOME named it `...,share=storage,user=<name>`. A missing gvfs-fuse would look the same; the log now says
+which one it is (`describeMissing`).
+
+Risky parts, and what limits them:
+- **Stored paths are rewritten** when the same share (same server and share, any user or capitals, also KDE or a system
+  mount) has the folder: Folder, Track (Path, SafePath, AudioPath, CuePath, AlbumKey3), RemovedTrack, QueuedTrack,
+  TrackStatistic, PlaylistSessionTrack, ListeningSession (TrackPath, AlbumKey) and album likes. One transaction; whole
+  folder names only; refused when the new place is already a music folder (no duplicate songs). Moves back the same way
+  when the share returns under its first name.
+- **`gio mount`** runs without a shell or terminal (arguments passed as a list, stdin closed, 20 s limit), as a guest
+  when the stored path had no user, otherwise with the same user (GNOME uses its saved password). Automatic only with
+  "Reconnect network drives" (off by default); otherwise Dopamine asks once per share per minute.
+- **Writing into music folders**: `Dopamine/cache.json.gz` in each music folder, only when something changed, only into
+  folders that are there, atomically (temporary file + rename). Read with limits (64 MB file, 512 MB unpacked), version
+  check, known fields and types only, no paths leaving the folder. On by default; can be turned off.
+Open: the cache trusts size + modification time, like the fast refresh. A tag edit that keeps both (very rare) needs the
+cache turned off for one full refresh.

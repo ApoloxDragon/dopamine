@@ -106,3 +106,139 @@ describe('NetworkDrives', () => {
         expect(new NetworkDrives(fileSystem({}), 1000, 'linux').find()).toEqual([]);
     });
 });
+
+describe('NetworkDrives: a share that moved', () => {
+    const gvfs = '/run/user/1000/gvfs';
+    const guest = `${gvfs}/smb-share:server=192.168.10.183,share=storage`;
+    const withUser = `${gvfs}/smb-share:server=192.168.10.183,share=storage,user=apolox`;
+    const song = `${guest}/music/Band/01 Song.flac`;
+
+    it('the regular customer: opened in Files with a user name, found under its new name', () => {
+        const drives = new NetworkDrives(
+            fileSystem({ [gvfs]: [withUser.slice(gvfs.length + 1)] }, '', [`${withUser}/music/Band/01 Song.flac`]),
+            1000,
+            'linux',
+        );
+
+        expect(drives.findMovedShare(song)).toEqual({ from: guest, to: withUser });
+    });
+
+    it('should find it the other way round, and with other capitals', () => {
+        const upper = `${gvfs}/smb-share:server=192.168.10.183,share=Storage`;
+        const drives = new NetworkDrives(fileSystem({ [gvfs]: [upper.slice(gvfs.length + 1)] }, '', [`${upper}/music`]), 1000, 'linux');
+
+        expect(drives.findMovedShare(`${withUser}/music`)).toEqual({ from: withUser, to: upper });
+    });
+
+    it('should find it mounted by the system or in KDE', () => {
+        const mounts = '//192.168.10.183/storage /mnt/storage cifs rw 0 0';
+        const system = new NetworkDrives(fileSystem({}, mounts, ['/mnt/storage/music']), 1000, 'linux');
+        expect(system.findMovedShare(`${guest}/music`)).toEqual({ from: guest, to: '/mnt/storage' });
+
+        const runtime = '/run/user/1000';
+        const kde = new NetworkDrives(
+            fileSystem(
+                {
+                    [runtime]: ['kio-fuse-AbCd'],
+                    [`${runtime}/kio-fuse-AbCd/smb`]: ['apolox@192.168.10.183'],
+                    [`${runtime}/kio-fuse-AbCd/smb/apolox@192.168.10.183`]: ['storage'],
+                },
+                '',
+                [`${runtime}/kio-fuse-AbCd/smb/apolox@192.168.10.183/storage/music`],
+            ),
+            1000,
+            'linux',
+        );
+        expect(kde.findMovedShare(`${guest}/music`)).toEqual({
+            from: guest,
+            to: `${runtime}/kio-fuse-AbCd/smb/apolox@192.168.10.183/storage`,
+        });
+    });
+
+    it('should read the share of a stored path', () => {
+        expect(NetworkDrives.sharePathOf(`${gvfs}/smb-share:domain=HOME,server=nas,share=Music%20Files,user=me/a/b.flac`)).toEqual({
+            host: 'nas',
+            share: 'Music Files',
+            root: `${gvfs}/smb-share:domain=HOME,server=nas,share=Music%20Files,user=me`,
+            rest: 'a/b.flac',
+            user: 'me',
+            domain: 'HOME',
+        });
+        expect(NetworkDrives.sharePathOf(guest)?.rest).toBe('');
+    });
+
+    it('should build the address to connect again with the same name', () => {
+        expect(NetworkDrives.smbUrlOf(NetworkDrives.sharePathOf(guest)!)).toBe('smb://192.168.10.183/storage');
+        expect(NetworkDrives.smbUrlOf(NetworkDrives.sharePathOf(`${withUser}/x`)!)).toBe('smb://apolox@192.168.10.183/storage');
+        expect(NetworkDrives.smbUrlOf({ host: 'nas', share: 'a b', root: '', rest: '', user: 'me', domain: 'HOME' })).toBe(
+            'smb://HOME;me@nas/a%20b',
+        );
+    });
+
+    it('should say what is there instead, for the log', () => {
+        expect(new NetworkDrives(fileSystem({}), 1000, 'linux').describeMissing(song)).toContain('gvfs-fuse is not running');
+        expect(new NetworkDrives(fileSystem({ [gvfs]: [] }), 1000, 'linux').describeMissing(song)).toContain('is empty');
+        expect(new NetworkDrives(fileSystem({ [gvfs]: ['smb-share:server=x,share=y'] }), 1000, 'linux').describeMissing(song)).toContain(
+            'smb-share:server=x,share=y',
+        );
+        expect(new NetworkDrives(fileSystem({}), 1000, 'linux').describeMissing('/home/a/b.flac')).toBe(
+            'not on a share mounted by the desktop',
+        );
+    });
+
+    // Trying to break it.
+
+    it('should not move anything when the path is there, or the share is nowhere else', () => {
+        const there = new NetworkDrives(fileSystem({ [gvfs]: [guest.slice(gvfs.length + 1)] }, '', [song]), 1000, 'linux');
+        expect(there.findMovedShare(song)).toBeUndefined();
+
+        const nowhere = new NetworkDrives(fileSystem({ [gvfs]: [] }), 1000, 'linux');
+        expect(nowhere.findMovedShare(song)).toBeUndefined();
+    });
+
+    it('should not take another share of the same server, or the same share name on another server', () => {
+        const other = new NetworkDrives(
+            fileSystem({ [gvfs]: ['smb-share:server=192.168.10.183,share=backup', 'smb-share:server=192.168.10.99,share=storage'] }, '', [
+                `${gvfs}/smb-share:server=192.168.10.183,share=backup/music`,
+                `${gvfs}/smb-share:server=192.168.10.99,share=storage/music`,
+            ]),
+            1000,
+            'linux',
+        );
+
+        expect(other.findMovedShare(`${guest}/music`)).toBeUndefined();
+    });
+
+    it('should not take the share when the folder is not on it there', () => {
+        const drives = new NetworkDrives(fileSystem({ [gvfs]: [withUser.slice(gvfs.length + 1)] }), 1000, 'linux');
+
+        expect(drives.findMovedShare(`${guest}/music`)).toBeUndefined();
+    });
+
+    it.each([
+        ['a local path', '/home/apolox/Music/a.flac'],
+        ['nothing', undefined as unknown as string],
+        ['an SFTP mount', `${gvfs}/sftp:host=box/a.flac`],
+        ['a share without a server', `${gvfs}/smb-share:share=storage/a`],
+        ['a share with an empty name', `${gvfs}/smb-share:server=nas,share=/a`],
+        ['a sneaky path', `/home/x${gvfs}/smb-share:server=nas,share=s/a`],
+    ])('should not see a share in %s', (_, path) => {
+        expect(NetworkDrives.sharePathOf(path)).toBeUndefined();
+        expect(new NetworkDrives(fileSystem({}), 1000, 'linux').findMovedShare(path)).toBeUndefined();
+    });
+
+    it('should do nothing on Windows and macOS, or without a user id', () => {
+        expect(
+            new NetworkDrives(fileSystem({ [gvfs]: [withUser.slice(gvfs.length + 1)] }), 1000, 'win32').findShareRoots(
+                '192.168.10.183',
+                'storage',
+            ),
+        ).toEqual([]);
+        expect(
+            new NetworkDrives(fileSystem({ [gvfs]: [withUser.slice(gvfs.length + 1)] }), undefined, 'linux').findShareRoots(
+                '192.168.10.183',
+                'storage',
+            ),
+        ).toEqual([]);
+    });
+});

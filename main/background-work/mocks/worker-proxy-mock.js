@@ -5,6 +5,7 @@ class WorkerProxyMock {
     downloadMissingAlbumCoversReturnValue = false;
     postMessageCalls = [];
     skipRemovedFilesDuringRefreshReturnValue = false;
+    useSongCacheReturnValue = false;
     albumKeyIndexReturnValue = '';
 
     task() {
@@ -25,6 +26,10 @@ class WorkerProxyMock {
 
     skipRemovedFilesDuringRefresh() {
         return this.skipRemovedFilesDuringRefreshReturnValue;
+    }
+
+    useSongCache() {
+        return this.useSongCacheReturnValue;
     }
 
     albumKeyIndex() {

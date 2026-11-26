@@ -181,6 +181,7 @@ describe('IndexingService', () => {
         ])('%s should send the %s task to the indexing worker', async (method: string, task: string) => {
             const sut: IndexingService = createSut();
             settingsMock.setup((x) => x.skipRemovedFilesDuringRefresh).returns(() => false);
+            settingsMock.setup((x) => x.useSongCache).returns(() => true);
             desktopMock.setup((x) => x.getApplicationDataDirectory()).returns(() => '/appData');
 
             await (sut as any)[method]();
@@ -190,6 +191,7 @@ describe('IndexingService', () => {
                     x.sendToMainProcess('indexing-worker', {
                         task,
                         skipRemovedFilesDuringRefresh: false,
+                        useSongCache: true,
                         applicationDataDirectory: '/appData',
                     }),
                 Times.once(),
@@ -214,6 +216,7 @@ describe('IndexingService', () => {
             // Arrange
             const sut: IndexingService = createSut();
             settingsMock.setup((x) => x.skipRemovedFilesDuringRefresh).returns(() => true);
+            settingsMock.setup((x) => x.useSongCache).returns(() => true);
             desktopMock.setup((x) => x.getApplicationDataDirectory()).returns(() => '/appData');
 
             // Act
@@ -225,6 +228,7 @@ describe('IndexingService', () => {
                     x.sendToMainProcess('indexing-worker', {
                         task: 'replaygain',
                         skipRemovedFilesDuringRefresh: true,
+                        useSongCache: true,
                         applicationDataDirectory: '/appData',
                     }),
                 Times.once(),
@@ -239,6 +243,8 @@ describe('IndexingService', () => {
             const tracks: Track[] = [track1, track2];
 
             settingsMock.setup((x) => x.skipRemovedFilesDuringRefresh).returns(() => true);
+
+            settingsMock.setup((x) => x.useSongCache).returns(() => true);
             desktopMock.setup((x) => x.getApplicationDataDirectory()).returns(() => '/appData');
             trackRepositoryMock.setup((x) => x.getVisibleTracks()).returns(() => tracks);
 

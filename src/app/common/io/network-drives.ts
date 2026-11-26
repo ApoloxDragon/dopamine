@@ -19,6 +19,24 @@ export interface NetworkDrive {
     path: string;
 }
 
+/** A Samba share that a stored path is on, as the desktop shows it. */
+export interface SharePath {
+    host: string;
+    share: string;
+    /** Folder where the share itself is (for example /run/user/1000/gvfs/smb-share:server=nas,share=music). */
+    root: string;
+    /** The rest of the path inside the share ('' for the share itself). */
+    rest: string;
+    user?: string;
+    domain?: string;
+}
+
+/** Where a share that moved now is: replace `from` by `to` at the start of the stored paths. */
+export interface ShareMove {
+    from: string;
+    to: string;
+}
+
 export interface NetworkDrivesFileSystem {
     readFileSync(path: string, encoding: 'utf8'): string;
     readdirSync(path: string): string[];
@@ -59,6 +77,139 @@ export class NetworkDrives {
         const folder: string = parsed.rest.length > 0 ? `${root}/${parsed.rest}` : root;
 
         return this.safeExists(folder) ? folder : undefined;
+    }
+
+    /**
+     * The Samba share a path is on, when it is on one the desktop mounted (GNOME's gvfs folder or KDE's kio-fuse folder).
+     * Shares mounted by the system (/mnt, /media) are not recognised: they keep their path.
+     */
+    public static sharePathOf(path: string): SharePath | undefined {
+        const text: string = path ?? '';
+        const gvfs: RegExpExecArray | null = /^(\/run\/user\/\d+\/gvfs\/(smb-share:[^/]+))(?:\/(.*))?$/.exec(text);
+
+        if (gvfs !== null) {
+            const keys: Map<string, string> = NetworkDrives.gvfsKeys(gvfs[2]);
+            const host: string | undefined = keys.get('server');
+            const share: string | undefined = keys.get('share');
+
+            if (host === undefined || share === undefined || host.length === 0 || share.length === 0) {
+                return undefined;
+            }
+
+            return { host, share, root: gvfs[1], rest: gvfs[3] ?? '', user: keys.get('user'), domain: keys.get('domain') };
+        }
+
+        const kio: RegExpExecArray | null = /^(\/run\/user\/\d+\/kio-fuse-[^/]+\/smb\/([^/]+)\/([^/]+))(?:\/(.*))?$/.exec(text);
+
+        if (kio !== null) {
+            const at: number = kio[2].lastIndexOf('@');
+            return {
+                host: at >= 0 ? kio[2].slice(at + 1) : kio[2],
+                share: kio[3],
+                root: kio[1],
+                rest: kio[4] ?? '',
+                user: at >= 0 ? kio[2].slice(0, at) : undefined,
+            };
+        }
+
+        return undefined;
+    }
+
+    /** Folders where the share is mounted right now (any user, any desktop, or by the system), best first. Never throws. */
+    public findShareRoots(host: string, share: string): string[] {
+        const same = (a: string | undefined, b: string): boolean => (a ?? '').toLowerCase() === b.toLowerCase();
+        const roots: string[] = [];
+
+        if (this.platform !== 'linux') {
+            return roots;
+        }
+
+        if (this.userId !== undefined) {
+            for (const name of this.safeList(this.gvfsRoot()).filter((x) => x.startsWith('smb-share:'))) {
+                const keys: Map<string, string> = NetworkDrives.gvfsKeys(name);
+
+                if (same(keys.get('server'), host) && same(keys.get('share'), share)) {
+                    roots.push(`${this.gvfsRoot()}/${name}`);
+                }
+            }
+
+            const runtime: string = `/run/user/${this.userId}`;
+
+            for (const kio of this.safeList(runtime).filter((x) => x.startsWith('kio-fuse-'))) {
+                for (const hostFolder of this.safeList(`${runtime}/${kio}/smb`)) {
+                    const hostName: string = hostFolder.slice(hostFolder.lastIndexOf('@') + 1);
+
+                    for (const shareFolder of this.safeList(`${runtime}/${kio}/smb/${hostFolder}`)) {
+                        if (same(hostName, host) && same(shareFolder, share)) {
+                            roots.push(`${runtime}/${kio}/smb/${hostFolder}/${shareFolder}`);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (const drive of this.fromMounts().filter((x) => x.kind === 'samba')) {
+            // The label starts with the source, for example "//192.168.10.183/storage (/mnt/storage)".
+            const source: RegExpExecArray | null = /^[\\/]{2}([^\\/]+)[\\/]([^\\/ ]+)/.exec(drive.label);
+
+            if (source !== null && same(source[1], host) && same(source[2], share)) {
+                roots.push(drive.path);
+            }
+        }
+
+        return roots;
+    }
+
+    /**
+     * For a path that is not there: the same share mounted under another name (for example opened in Files with a user
+     * name, which adds ",user=..." to GNOME's folder name), where the same folder exists. Undefined when the path is there,
+     * is not on a share, or the share is not mounted anywhere else.
+     */
+    public findMovedShare(path: string): ShareMove | undefined {
+        if (this.safeExists(path)) {
+            return undefined;
+        }
+
+        const share: SharePath | undefined = NetworkDrives.sharePathOf(path);
+
+        if (share === undefined) {
+            return undefined;
+        }
+
+        for (const root of this.findShareRoots(share.host, share.share)) {
+            if (root !== share.root && this.safeExists(share.rest.length > 0 ? `${root}/${share.rest}` : root)) {
+                return { from: share.root, to: root };
+            }
+        }
+
+        return undefined;
+    }
+
+    /** What is there instead, for the log when a share folder is missing. */
+    public describeMissing(path: string): string {
+        const share: SharePath | undefined = NetworkDrives.sharePathOf(path);
+
+        if (share === undefined || this.userId === undefined) {
+            return 'not on a share mounted by the desktop';
+        }
+
+        if (!this.safeExists(this.gvfsRoot())) {
+            return `${this.gvfsRoot()} does not exist (GNOME's gvfs-fuse is not running, so shares opened in Files are not visible to other apps)`;
+        }
+
+        const names: string[] = this.safeList(this.gvfsRoot());
+        return names.length === 0
+            ? `${this.gvfsRoot()} is empty (no share is open in Files)`
+            : `${this.gvfsRoot()} has: ${names.join(', ')}`;
+    }
+
+    /** The address to connect a share again with the same name as before: smb://[domain;][user@]host/share. */
+    public static smbUrlOf(share: SharePath): string {
+        const user: string =
+            share.user !== undefined
+                ? `${share.domain !== undefined ? `${encodeURIComponent(share.domain)};` : ''}${encodeURIComponent(share.user)}@`
+                : '';
+        return `smb://${user}${encodeURIComponent(share.host)}/${encodeURIComponent(share.share)}`;
     }
 
     /** smb://host/share/rest -> its parts, or undefined. Percent-encoded characters are decoded. */
@@ -146,6 +297,18 @@ export class NetworkDrives {
         }
 
         return drives;
+    }
+
+    /** "smb-share:server=nas,share=music,user=me" -> its keys (values unescaped, keys lower case). */
+    private static gvfsKeys(name: string): Map<string, string> {
+        const rest: string = name.slice(name.indexOf(':') + 1);
+        return new Map(
+            rest
+                .split(',')
+                .map((pair) => pair.split('='))
+                .filter((pair) => pair.length === 2 && pair[0].length > 0)
+                .map(([key, value]) => [key.toLowerCase(), NetworkDrives.unescapeGvfs(value)]),
+        );
     }
 
     private fromGvfs(): NetworkDrive[] {
