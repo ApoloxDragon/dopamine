@@ -129,6 +129,8 @@ export class SettingsMock implements SettingsBase {
     public useSmartShuffle: boolean = false;
     public useContinuousPlay: boolean = false;
     public lookForNetworkDrives: boolean = false;
+    public useSongCache: boolean = true;
+    public reconnectNetworkDrives: boolean = false;
     public useCompactYearView: boolean;
     public albumCoverSize: number = 130;
     public playlistCoverSize: number = 130;

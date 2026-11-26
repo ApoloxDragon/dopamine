@@ -3,6 +3,34 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.4-apolox] - 2026-11-26
+
+Music on a home server keeps playing, even after a restart. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.
+
+### Added
+
+- Dopamine can connect your network share again by itself when it isn't connected, at startup and when you play a
+  song from it, as a guest or with the same user name as before. Turn it on in Settings, Collection, "Reconnect
+  network drives". When it is off, playing a song from a share that isn't connected asks "Connect it now?" instead of
+  skipping through your songs.
+- A song cache: Dopamine saves the details of every song in a small `Dopamine/cache.json.gz` file inside each music
+  folder. A full refresh, a new computer or a fresh library then reads that one file instead of opening every song
+  again, which is much faster for music on a network share. On by default (Settings, Collection, Refresh); your music
+  files are never changed.
+
+### Fixed
+
+- Songs on a network share no longer go missing when the share comes back under a slightly different name (for example
+  after opening it in Files with your user name). Dopamine finds the share and moves your songs over, keeping play
+  counts, likes and listening history.
+- When a music folder can't be reached, the log now says what is there instead, which makes it easier to tell what
+  went wrong.
+
+### Good to know
+
+- The song cache fills up as songs are read: run a Full refresh once (Settings, Collection, Refresh) to fill it with
+  every song.
+
 ## [3.3.3-apolox] - 2026-11-25
 
 Easier music from a home server, and a search box in Settings. ApoloxDragon's fork of Dopamine, based on Dopamine 3.0.12 by Digimezzo.

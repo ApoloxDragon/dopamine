@@ -15,6 +15,10 @@
             {{ 'skip-previously-removed-files' | translate }}</app-toggle-switch
         >
     </div>
+    <div>
+        <app-toggle-switch class="mt-3" [(isChecked)]="settings.useSongCache"> {{ 'use-song-cache' | translate }}</app-toggle-switch>
+        <div class="secondary-text mt-1">{{ 'use-song-cache-description' | translate }}</div>
+    </div>
     <mat-divider class="my-4"></mat-divider>
     <div class="title" data-settings-section="manual-refresh">{{ 'manual-refresh' | translate }}</div>
     <div>{{ 'fast-refresh-description' | translate }}</div>

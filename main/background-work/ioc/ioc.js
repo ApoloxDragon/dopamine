@@ -29,6 +29,7 @@ const { CueParser } = require('../indexing/cue-parser');
 const { CueSheetReader } = require('../indexing/cue-sheet-reader');
 const { FolderReachability } = require('../indexing/folder-reachability');
 const { AlbumDetails } = require('../indexing/album-details');
+const { SongCache, CachingFileMetadataFactory } = require('../indexing/song-cache');
 
 global.iocContainer = new Map();
 
@@ -65,6 +66,14 @@ class Ioc {
         );
 
         global.iocContainer.set('TrackFieldCreator', new TrackFieldCreator());
+        global.iocContainer.set(
+            'SongCache',
+            new SongCache(Ioc.get('FolderRepository'), Ioc.get('Logger'), () => Ioc.get('WorkerProxy').useSongCache() === true),
+        );
+        global.iocContainer.set(
+            'CachingFileMetadataFactory',
+            new CachingFileMetadataFactory(Ioc.get('FileMetadataFactory'), Ioc.get('SongCache')),
+        );
 
         global.iocContainer.set(
             'IndexablePathFetcher',
@@ -81,7 +90,7 @@ class Ioc {
         global.iocContainer.set(
             'TrackFiller',
             new TrackFiller(
-                Ioc.get('FileMetadataFactory'),
+                Ioc.get('CachingFileMetadataFactory'),
                 Ioc.get('AlbumKeyGenerator'),
                 Ioc.get('TrackFieldCreator'),
                 Ioc.get('MetadataPatcher'),
@@ -145,6 +154,8 @@ class Ioc {
                 Ioc.get('TrackRemover'),
                 Ioc.get('WorkerProxy'),
                 Ioc.get('Logger'),
+                Ioc.get('SongCache'),
+                Ioc.get('TrackRepository'),
             ),
         );
 

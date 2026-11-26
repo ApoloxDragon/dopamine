@@ -219,6 +219,29 @@ export class TrackModel implements ISelectable {
         return CueTrackPath.isCueTrack(this.track);
     }
 
+    /**
+     * Moves the song's paths from one folder to another (a network share that is now mounted under another name), the
+     * same way the database was changed. Returns whether anything changed.
+     */
+    public relocate(from: string, to: string): boolean {
+        const move = (value: string | undefined): string | undefined =>
+            value !== undefined && value !== null && (value === from || value.startsWith(`${from}/`))
+                ? to + value.slice(from.length)
+                : value;
+        const moveKey = (value: string | undefined): string | undefined =>
+            value !== undefined && value !== null && (value.startsWith(`;${from}/`) || value.startsWith(`;${from};`))
+                ? `;${to}${value.slice(from.length + 1)}`
+                : value;
+        const before: string = this.track.path;
+
+        this.track.path = move(this.track.path) ?? this.track.path;
+        this.track.audioPath = move(this.track.audioPath);
+        this.track.cuePath = move(this.track.cuePath);
+        this.track.albumKey3 = moveKey(this.track.albumKey3);
+
+        return this.track.path !== before;
+    }
+
     /** The file that holds the audio: the album file for CUE tracks, the same as path otherwise. */
     public get audioPath(): string {
         return CueTrackPath.getAudioPath(this.track);

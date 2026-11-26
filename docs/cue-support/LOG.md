@@ -401,3 +401,7 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-25** · `Added` · 3.3.3: search box in Settings
     - settings-search/: static index of 42 sections (Settings, Manage collection, equalizer) with label keys and English search words; titles got data-settings-section anchors; spec keeps the index in sync with the templates
     - Matching: every typed word must appear (accent/case-insensitive) in the translated title, labels or the words; Manage collection jumps go through SettingsJump; 2 new i18n keys in 25 languages; app-screenshots.js now shows the search
+
+- **2026-11-26** · `Added` · 3.3.4: network share under another name, reconnect, song cache
+    - NetworkDrives.sharePathOf/findShareRoots/findMovedShare/describeMissing/smbUrlOf; PathRelocationRepository moves stored paths in one transaction (11 columns); NetworkShareGuardService: relocate at startup (before the queue is restored), optional gio mount at startup, ask/connect at play time (PlaybackService.skipIfUnreachableAsync, TrackModel.relocate for the queue)
+    - SongCache (worker): <folder>/Dopamine/cache.json.gz, used when size+mtime match, wraps FileMetadataFactory for TrackFiller only, saved after indexing and pruned to the DB's songs; settings useSongCache (on) and reconnectNetworkDrives (off); index-sandbox.js --song-cache --full. See D20.

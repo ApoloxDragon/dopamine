@@ -24,6 +24,7 @@ import { TrackRepositoryBase } from './data/repositories/track-repository.base';
 import { IndexingService } from './services/indexing/indexing.service';
 import { FolderServiceBase } from './services/folder/folder.service.base';
 import { Track } from './data/entities/track';
+import { NetworkShareGuardService } from './services/network-drives/network-share-guard.service';
 
 describe('AppComponent', () => {
     let databaseMigratorMock: IMock<DatabaseMigratorBase>;
@@ -50,6 +51,7 @@ describe('AppComponent', () => {
     let trackRepositoryMock: IMock<TrackRepositoryBase>;
     let indexingServiceMock: IMock<IndexingService>;
     let folderServiceMock: IMock<FolderServiceBase>;
+    let networkShareGuardMock: IMock<NetworkShareGuardService>;
 
     let showNowPlayingRequestedMock: Subject<void>;
     let showNowPlayingRequestedMock$: Observable<void>;
@@ -81,6 +83,7 @@ describe('AppComponent', () => {
             trackRepositoryMock.object,
             indexingServiceMock.object,
             folderServiceMock.object,
+            networkShareGuardMock.object,
         );
     }
 
@@ -107,6 +110,8 @@ describe('AppComponent', () => {
         trackRepositoryMock = Mock.ofType<TrackRepositoryBase>();
         indexingServiceMock = Mock.ofType<IndexingService>();
         folderServiceMock = Mock.ofType<FolderServiceBase>();
+        networkShareGuardMock = Mock.ofType<NetworkShareGuardService>();
+        networkShareGuardMock.setup((x) => x.reconnectMissingSharesAsync()).returns(() => Promise.resolve());
 
         ratingBackupServiceMock.setup((x) => x.createInitialBackupFromTracksAsync(It.isAny())).returns(async () => {});
         ratingBackupServiceMock.setup((x) => x.tryAutoRestoreOnStartupAsync(It.isAny())).returns(async () => 0);

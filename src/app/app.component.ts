@@ -1,3 +1,4 @@
+import { NetworkShareGuardService } from './services/network-drives/network-share-guard.service';
 import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { MatDrawer } from '@angular/material/sidenav';
 import log from 'electron-log';
@@ -59,6 +60,7 @@ export class AppComponent implements OnInit {
         private trackRepository: TrackRepositoryBase,
         private indexingService: IndexingService,
         private folderService: FolderServiceBase,
+        private networkShareGuard: NetworkShareGuardService,
     ) {
         log.create('renderer');
         log.transports.file.resolvePath = () => path.join(this.desktop.getApplicationDataDirectory(), 'logs', 'Dopamine.log');
@@ -86,11 +88,7 @@ export class AppComponent implements OnInit {
             'ngOnInit',
         );
 
-        this.logger.info(
-            `Operating system: ${os.type()} ${os.release()} (${os.platform()} ${os.arch()})`,
-            'AppComponent',
-            'ngOnInit',
-        );
+        this.logger.info(`Operating system: ${os.type()} ${os.release()} (${os.platform()} ${os.arch()})`, 'AppComponent', 'ngOnInit');
 
         this.subscription.add(
             this.navigationService.showPlaybackQueueRequested$.subscribe(() => {
@@ -115,6 +113,9 @@ export class AppComponent implements OnInit {
         );
 
         this.databaseMigrator.migrate();
+        // Before the queue is restored: a network share that is now under another folder name keeps its songs.
+        this.networkShareGuard.relocateMovedShares();
+        PromiseUtils.noAwait(this.networkShareGuard.reconnectMissingSharesAsync());
 
         this.audioVisualizer.initialize();
         await this.addToPlaylistMenu.initializeAsync();

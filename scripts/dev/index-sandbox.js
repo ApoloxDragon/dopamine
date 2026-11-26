@@ -2,7 +2,8 @@
 // Runs the real indexing worker pipeline (TrackIndexer with its adder, updater and remover) on a music folder,
 // against a SQLite database built from the real migrations. Prints the resulting tracks.
 //
-// Usage: node scripts/dev/index-sandbox.js <music-folder> [db-file] [--quiet]
+// Usage: node scripts/dev/index-sandbox.js <music-folder> [db-file] [--quiet] [--song-cache] [--full]
+//   --song-cache: use <music-folder>/Dopamine/cache.json.gz like the app. --full: read every song again (Full refresh).
 //   Pass a db-file to keep the database between runs (to test re-indexing, changed sheets, removed files...).
 // Needs better-sqlite3 built for Node: npm rebuild better-sqlite3
 const path = require('path');
@@ -32,8 +33,9 @@ const { TrackAdder } = req('indexing/track-adder');
 const { TrackIndexer } = req('indexing/track-indexer');
 const { CueParser } = req('indexing/cue-parser');
 const { CueSheetReader } = req('indexing/cue-sheet-reader');
+const { SongCache, CachingFileMetadataFactory } = req('indexing/song-cache');
 
-async function indexFolder(musicFolder, dbFile = ':memory:', quiet = false) {
+async function indexFolder(musicFolder, dbFile = ':memory:', quiet = false, options = {}) {
     const db = createSandboxDatabase(dbFile);
     const databaseFactory = { create: () => db };
     const log = (level) => (...args) => {
@@ -53,8 +55,10 @@ async function indexFolder(musicFolder, dbFile = ':memory:', quiet = false) {
     const trackRepository = new TrackRepository(databaseFactory);
     const cueSheetReader = new CueSheetReader(new CueParser(), logger);
     const fetcher = new IndexablePathFetcher(folderRepository, new DirectoryWalker(fileAccess), fileAccess, logger, cueSheetReader);
+    // --song-cache: read and write <folder>/Dopamine/cache.json.gz like the app does.
+    const songCache = new SongCache(folderRepository, logger, () => options.songCache === true);
     const filler = new TrackFiller(
-        new FileMetadataFactory(),
+        new CachingFileMetadataFactory(new FileMetadataFactory(), songCache),
         new AlbumKeyGenerator(),
         new TrackFieldCreator(),
         new MetadataPatcher(),
@@ -70,6 +74,8 @@ async function indexFolder(musicFolder, dbFile = ':memory:', quiet = false) {
         new TrackRemover(folderTrackRepository, trackRepository, fileAccess, workerProxy, logger, cueSheetReader),
         workerProxy,
         logger,
+        songCache,
+        trackRepository,
     );
 
     const folderPath = path.resolve(musicFolder);
@@ -77,7 +83,8 @@ async function indexFolder(musicFolder, dbFile = ':memory:', quiet = false) {
         db.prepare('INSERT INTO Folder (Path, SafePath, ShowInCollection) VALUES (?, ?, 1)').run(folderPath, folderPath.toLowerCase());
     }
 
-    await indexer.indexTracksAsync(false);
+    // --full: like 'Full refresh' (every song read again).
+    await indexer.indexTracksAsync(options.full === true);
 
     return { db, tracks: trackRepository.getAllTracks() };
 }
@@ -87,14 +94,17 @@ module.exports = { indexFolder };
 if (require.main === module) {
     const args = process.argv.slice(2);
     const quiet = args.includes('--quiet');
-    const [folder, dbFile] = args.filter((a) => a !== '--quiet');
+    const options = { songCache: args.includes('--song-cache'), full: args.includes('--full') };
+    const [folder, dbFile] = args.filter((a) => !a.startsWith('--'));
 
     if (!folder) {
-        console.error('usage: index-sandbox.js <music-folder> [db-file] [--quiet]');
+        console.error('usage: index-sandbox.js <music-folder> [db-file] [--quiet] [--song-cache] [--full]');
         process.exit(1);
     }
 
-    indexFolder(folder, dbFile, quiet).then(({ tracks }) => {
+    const started = Date.now();
+    indexFolder(folder, dbFile, quiet, options).then(({ tracks }) => {
+        console.log(`Indexed in ${Date.now() - started} ms`);
         console.log(`\n${tracks.length} tracks:`);
         console.table(
             tracks.map((t) => ({

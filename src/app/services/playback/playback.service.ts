@@ -1,3 +1,5 @@
+import { NetworkDrives } from '../../common/io/network-drives';
+import { NetworkShareGuardService, ShareReachResult } from '../network-drives/network-share-guard.service';
 import { Injectable } from '@angular/core';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { Logger } from '../../common/logger';
@@ -71,6 +73,7 @@ export class PlaybackService {
         private settings: SettingsBase,
         private logger: Logger,
         private likeService?: LikeService,
+        private networkShareGuard?: NetworkShareGuardService,
     ) {
         this._audioPlayer = this.audioPlayerFactory.create();
         this.initializeSubscriptions();
@@ -730,6 +733,25 @@ export class PlaybackService {
 
         if (track == undefined || StringUtils.isNullOrWhiteSpace(track.audioPath) || this.fileAccess.pathExists(track.audioPath)) {
             return false;
+        }
+
+        // A song on a network share: the share may be open under another name, or can be connected again.
+        if (this.networkShareGuard !== undefined && NetworkDrives.sharePathOf(track.audioPath) !== undefined) {
+            const result: ShareReachResult = await this.networkShareGuard.tryToReachAsync(track.audioPath);
+
+            if (result.move !== undefined) {
+                for (const queued of this.queue.tracks) {
+                    queued.relocate(result.move.from, result.move.to);
+                }
+
+                track.relocate(result.move.from, result.move.to);
+            }
+
+            if (result.reachable && this.fileAccess.pathExists(track.audioPath)) {
+                this.logger.info(`'${track.audioPath}' can be reached again: playing it`, 'PlaybackService', 'skipIfUnreachableAsync');
+                await this.playAsync(track, false);
+                return true;
+            }
         }
 
         const now: number = Date.now();

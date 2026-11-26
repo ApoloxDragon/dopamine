@@ -1125,6 +1125,24 @@ export class Settings implements SettingsBase {
         this.set('rememberScrollPosition', v);
     }
 
+    // useSongCache
+    public get useSongCache(): boolean {
+        return this.get<boolean>('useSongCache');
+    }
+
+    public set useSongCache(v: boolean) {
+        this.set('useSongCache', v);
+    }
+
+    // reconnectNetworkDrives
+    public get reconnectNetworkDrives(): boolean {
+        return this.get<boolean>('reconnectNetworkDrives');
+    }
+
+    public set reconnectNetworkDrives(v: boolean) {
+        this.set('reconnectNetworkDrives', v);
+    }
+
     // lookForNetworkDrives
     public get lookForNetworkDrives(): boolean {
         return this.get<boolean>('lookForNetworkDrives');

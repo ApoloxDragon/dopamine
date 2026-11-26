@@ -1,3 +1,5 @@
+import { PathRelocationRepositoryBase } from './data/repositories/path-relocation-repository.base';
+import { PathRelocationRepository } from './data/repositories/path-relocation-repository';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
@@ -630,6 +632,7 @@ export function settingsInitializerFactory(settings: SettingsBase) {
         { provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: CustomTooltipDefaults },
         { provide: FileAccessBase, useClass: FileAccess },
         { provide: TrackRepositoryBase, useClass: TrackRepository },
+        { provide: PathRelocationRepositoryBase, useClass: PathRelocationRepository },
         { provide: FolderRepositoryBase, useClass: FolderRepository },
         { provide: AlbumArtworkRepositoryBase, useClass: AlbumArtworkRepository },
         { provide: ArtistArtworkRepositoryBase, useClass: ArtistArtworkRepository },
