@@ -180,6 +180,37 @@ describe('SongCache', () => {
 
         expect(new CachingFileMetadataFactory(reader, newCache()).create(a).title).toBe('real');
         expect(reader.create).toHaveBeenCalledTimes(1);
+        expect(fs.existsSync(cacheFile())).toBe(false);
+    });
+
+    it('should build a new cache after a broken one was deleted', () => {
+        const a = song('a.flac');
+        fs.mkdirSync(path.join(music, 'Dopamine'));
+        fs.writeFileSync(cacheFile(), 'garbage');
+        const factory = new CachingFileMetadataFactory({ create: () => tags('real') }, newCache());
+
+        factory.create(a);
+        factory.songCache.save([a]);
+
+        expect(readCacheFile().songs['a.flac'].tags.title).toBe('real');
+    });
+
+    it('should keep the cache file when the share fails while reading it (it may be fine)', () => {
+        const a = song('a.flac');
+        const cache = newCache();
+        cache.put(a, tags('a'));
+        cache.save([a]);
+        const flaky = {
+            ...fs,
+            readFileSync: () => {
+                throw Object.assign(new Error('I/O error'), { code: 'EIO' });
+            },
+        };
+
+        new SongCache(folders(music), log, () => true, flaky).get(a);
+
+        expect(fs.existsSync(cacheFile())).toBe(true);
+        expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('ignored for now'), 'SongCache', 'load');
     });
 
     it('should drop entries that are odd, and keep the good ones', () => {
@@ -223,7 +254,8 @@ describe('SongCache', () => {
 
         try {
             expect(new CachingFileMetadataFactory(reader, newCache()).create(a).title).toBe('real');
-            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('could not be read'), 'SongCache', 'load');
+            expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('deleted, it will be built again'), 'SongCache', 'load');
+            expect(fs.existsSync(cacheFile())).toBe(false);
         } finally {
             SongCache.maximumJsonBytes = limit;
         }
