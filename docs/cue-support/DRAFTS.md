@@ -224,6 +224,5 @@ Risky parts, and what limits them:
 - **Writing into music folders**: `Dopamine/cache.json.gz` in each music folder, only when something changed, only into
   folders that are there, atomically (temporary file + rename). Read with limits (64 MB file, 512 MB unpacked), version
   check, known fields and types only, no paths leaving the folder. On by default; can be turned off.
-A cache with broken contents is deleted and built again by the next refresh that reads songs; a read error (share hiccup) leaves it in place.
 Open: the cache trusts size + modification time, like the fast refresh. A tag edit that keeps both (very rare) needs the
 cache turned off for one full refresh.
