@@ -130,6 +130,7 @@ export class SettingsMock implements SettingsBase {
     public useContinuousPlay: boolean = false;
     public lookForNetworkDrives: boolean = false;
     public useSongCache: boolean = true;
+    public networkDriveNicknames: string = '{}';
     public reconnectNetworkDrives: boolean = false;
     public useCompactYearView: boolean;
     public albumCoverSize: number = 130;

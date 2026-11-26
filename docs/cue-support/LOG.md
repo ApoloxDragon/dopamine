@@ -411,3 +411,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-26** · `Changed` · 3.3.4: song cache deletes and writes only its own file
     - safeUnlink: name allow-list, lstat regular file, real (non-link) Dopamine folder, unlinkSync only; reads ignore links; temp file random name + 'wx'; tests with planted symlinks, a folder named like the cache, a symlinked Dopamine folder.
+
+- **2026-11-26** · `Added` · 3.3.4: nicknames for network drives
+    - NetworkDriveNicknames (settings JSON keyed by host/share, so it survives a renamed gvfs folder); pencil in the folder list, used in the network-drives list and the connect question.

@@ -30,8 +30,15 @@
                 >
                     <div class="d-flex flex-row flex-grow" [ngClass]="{ inactive: showCheckBoxes && !folder.showInCollection }">
                         <i class="folder__icon m-1 lar la-folder"></i>
-                        <div class="folder__path ellipsis m-1" matTooltip="{{ folder.path }}">{{ folder.path }}</div>
+                        <div class="folder__path ellipsis m-1" matTooltip="{{ folder.path }}">{{ displayNameOf(folder.path) }}</div>
                     </div>
+                    <i
+                        class="folder__action m-1 las la-pen"
+                        *ngIf="canHaveNickname(folder.path)"
+                        [ngStyle]="{ display: folder === selectedFolder ? 'block' : 'none' }"
+                        matTooltip="{{ 'network-drive-nickname' | translate }}"
+                        (click)="setNicknameAsync(folder)"
+                    ></i>
                     <i
                         class="folder__action m-1 las la-times"
                         [ngStyle]="{ display: folder === selectedFolder ? 'block' : 'none' }"

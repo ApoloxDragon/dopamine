@@ -17,12 +17,16 @@ Music on a home server keeps playing, even after a restart. ApoloxDragon's fork 
   folder. A full refresh, a new computer or a fresh library then reads that one file instead of opening every song
   again, which is much faster for music on a network share. On by default (Settings, Collection, Refresh); your music
   files are never changed.
+- Nicknames for network drives: select a network folder in Settings, Collection and click the pencil to call it, for
+  example, "Home server". The nickname is shown instead of the long folder path, also when Dopamine asks to connect it.
 
 ### Fixed
 
 - Songs on a network share no longer go missing when the share comes back under a slightly different name (for example
   after opening it in Files with your user name). Dopamine finds the share and moves your songs over, keeping play
   counts, likes and listening history.
+- The song cache is checked more strictly: a broken cache is deleted and built again by the next refresh, and Dopamine
+  only ever deletes or writes that one cache file, never anything else in your music folders.
 - When a music folder can't be reached, the log now says what is there instead, which makes it easier to tell what
   went wrong.
 

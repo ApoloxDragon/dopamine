@@ -1,3 +1,4 @@
+import { NetworkDrivesService } from '../../../services/network-drives/network-drives.service';
 import { FileAccessBase } from '../../../common/io/file-access.base';
 import { NetworkFolderPath, NetworkFolderCheck } from '../../../common/io/network-folder-path';
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
@@ -29,7 +30,42 @@ export class AddFolderComponent implements OnInit {
         private settings: SettingsBase,
         private logger: Logger,
         private fileAccess?: FileAccessBase,
+        private networkDrivesService?: NetworkDrivesService,
     ) {}
+
+    /** "Home server › music" for a folder on a network share with a nickname, the path otherwise. */
+    public displayNameOf(path: string): string {
+        return this.networkDrivesService?.displayNameOf(path) ?? path;
+    }
+
+    public canHaveNickname(path: string): boolean {
+        return this.networkDrivesService?.nicknames.canHaveNickname(path) === true;
+    }
+
+    /** Asks for a nickname for the network share the folder is on (empty removes it). */
+    public async setNicknameAsync(folder: FolderModel): Promise<void> {
+        const nicknames = this.networkDrivesService?.nicknames;
+
+        if (nicknames === undefined || !nicknames.canHaveNickname(folder.path)) {
+            return;
+        }
+
+        const nickname: string = await this.dialogService.showInputDialogAsync(
+            this.translatorService.get('network-drive-nickname'),
+            this.translatorService.get('network-drive-nickname-placeholder'),
+            nicknames.get(folder.path) ?? '',
+            [],
+            this.translatorService.get('network-drive-nickname-description'),
+            'las la-pen',
+        );
+
+        // The dialog gives undefined or '' when cancelled; only an explicit save changes the nickname.
+        if (nickname === undefined || nickname === null) {
+            return;
+        }
+
+        nicknames.set(folder.path, nickname);
+    }
 
     @Input() public showCheckBoxes: boolean = false;
 
