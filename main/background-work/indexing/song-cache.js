@@ -266,6 +266,7 @@ class SongCache {
         folder.loaded = true;
         const file = this.#cacheFile(folder);
         const warn = (message) => this.logger.warn(`'${file}': ${message}`, 'SongCache', 'load');
+        let data;
 
         try {
             const stats = this.fileSystem.statSync(file);
@@ -275,20 +276,45 @@ class SongCache {
             }
 
             if (stats.size > SongCache.maximumFileBytes) {
-                warn(`too big (${stats.size} bytes), ignored`);
+                this.#discard(file, `too big (${stats.size} bytes)`);
                 return;
             }
 
-            const json = zlib
-                .gunzipSync(this.fileSystem.readFileSync(file), { maxOutputLength: SongCache.maximumJsonBytes })
-                .toString('utf8');
-            folder.entries = SongCache.parse(json, warn) ?? new Map();
-            this.logger.info(`Loaded ${folder.entries.size} cached songs from '${file}'`, 'SongCache', 'load');
+            data = this.fileSystem.readFileSync(file);
         } catch (e) {
-            // No cache yet (the usual first time), or one that cannot be read: songs are read from their files.
+            // No cache yet (the usual first time), or the share failed while reading: the file may be fine, so it stays.
             if (e?.code !== 'ENOENT' && e?.code !== 'ENOTDIR') {
-                warn(`could not be read (${e?.message ?? e}), ignored`);
+                warn(`could not be read (${e?.message ?? e}), ignored for now`);
             }
+            return;
+        }
+
+        let entries;
+
+        try {
+            const json = zlib.gunzipSync(data, { maxOutputLength: SongCache.maximumJsonBytes }).toString('utf8');
+            entries = SongCache.parse(json, warn);
+        } catch (e) {
+            entries = undefined;
+        }
+
+        if (entries === undefined) {
+            // The contents are broken: start over. The next refresh that reads songs (a full refresh reads all) writes a new one.
+            this.#discard(file, 'broken or of an unknown kind');
+            return;
+        }
+
+        folder.entries = entries;
+        this.logger.info(`Loaded ${folder.entries.size} cached songs from '${file}'`, 'SongCache', 'load');
+    }
+
+    /** Deletes a cache file that cannot be used. Never throws. */
+    #discard(file, reason) {
+        try {
+            this.fileSystem.rmSync(file, { force: true });
+            this.logger.warn(`'${file}' was ${reason}: deleted, it will be built again`, 'SongCache', 'load');
+        } catch (e) {
+            this.logger.warn(`'${file}' was ${reason} and could not be deleted: ${e?.message ?? e}`, 'SongCache', 'load');
         }
     }
 
