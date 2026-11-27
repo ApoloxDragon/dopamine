@@ -414,3 +414,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-26** · `Added` · 3.3.4: nicknames for network drives
     - NetworkDriveNicknames (settings JSON keyed by host/share, so it survives a renamed gvfs folder); pencil in the folder list, used in the network-drives list and the connect question.
+
+- **2026-11-27** · `Note` · Project overview: docs/PROJECT-OVERVIEW.md; upstream checked (3 commits since 19bd0ab8: patches/ folder, node-taglib-sharp ^1.0.5)
+    - Claude branches collapsed into claude/beautiful-faraday-hdjqhv (everything from PRs 1-19).
