@@ -40,8 +40,11 @@ export class Constants {
     public static readonly itemMarginInPixels: number = 8;
     public static readonly screenEaseMarginPixels: number = 50;
     public static readonly screenEaseSpeedMilliseconds: number = 350;
-    public static readonly longListLoadDelayMilliseconds: number = 500;
-    public static readonly shortListLoadDelayMilliseconds: number = 50;
+    // Collection tabs wait this long before filling their lists, so the tab can appear first. Was 500 + 50 per list
+    // (about 0.65 s on every tab switch, while loading the data takes under 20 ms); 0 between lists still lets the
+    // window draw in between.
+    public static readonly longListLoadDelayMilliseconds: number = 100;
+    public static readonly shortListLoadDelayMilliseconds: number = 0;
     public static readonly albumsRedrawDelayMilliseconds: number = 150;
     public static readonly playlistsRedrawDelayMilliseconds: number = 150;
     public static readonly searchDelayMilliseconds: number = 500;

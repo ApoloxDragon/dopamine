@@ -38,6 +38,9 @@ Music on a home server keeps playing, even after a restart. ApoloxDragon's fork 
 - Pressing Cancel in a text box (a nickname, the sleep timer's own time, sort words, artist separators, playlist
   folders) now really cancels; before, what you had typed was used anyway. A nickname can be removed by saving it empty.
 
+- Switching between Artists, Albums, Songs and the other tabs is quicker: each tab waited more than half a second
+  before showing your music, now it fills in almost at once.
+
 ### Good to know
 
 - The song cache fills up as songs are read: run a Full refresh once (Settings, Collection, Refresh) to fill it with

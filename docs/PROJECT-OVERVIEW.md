@@ -155,6 +155,10 @@ Fixed (PR 21):
   apart from an empty answer.
 - A nickname could not be removed (OK was off with an empty field): `InputData.allowEmpty`.
 
+- Tab switches felt like reloading the whole library: each collection tab waited 500 ms + 50 ms per list before
+  filling (`Constants.longListLoadDelayMilliseconds` / `shortListLoadDelayMilliseconds`, from upstream), while the data
+  loads in under 20 ms (owner's log). Now 100 ms + 0.
+
 Still to do, each small and on its own (in this order):
 1. **Song cache vs. "Full refresh" after a reader update.** With the cache on, a full refresh reuses cached tags, so an
    update that reads tags better (like taglib 1.0.5) is not applied. Fix: write a `reader` field in the cache file
@@ -168,3 +172,7 @@ Still to do, each small and on its own (in this order):
    early when there is no entry, then stat.
 4. **Translations.** The 3.3.4 texts (reconnect, song cache, share not connected, nicknames: 12 keys) are English in the
    other 24 languages. Use the same approach as the Settings search keys (one node script over `src/assets/i18n`).
+5. **Tabs rebuilt on every switch.** Each tab is an `*ngIf` in `collection.component.html`, so switching destroys it
+   and reloads lists and covers. Bigger fix: keep the last lists per tab in their services (or keep visited tabs alive,
+   hidden) and only reload when the collection changed (`IndexingService` finished, folders changed). Medium effort.
+   If the shorter delay makes the slide animation stutter on slow machines, raise `longListLoadDelayMilliseconds`.
