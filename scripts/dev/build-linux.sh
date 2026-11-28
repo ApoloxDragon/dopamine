@@ -18,8 +18,7 @@ fi
 
 echo "== better-sqlite3 for Electron"
 npm run rebuild-sqlite >/dev/null
-node patch-discord-rpc.js >/dev/null
-node patch-taglib-sharp.js >/dev/null
+node patches/patch-discord-rpc.js >/dev/null
 
 echo "== Angular production build"
 npm run build:prod >/dev/null

@@ -21,8 +21,13 @@ export class InputDialogComponent {
         return !StringUtils.isNullOrWhiteSpace(this.data.inputText);
     }
 
+    /** OK can be pressed: there is text, or an empty answer is allowed. */
+    public get canConfirm(): boolean {
+        return this.data.allowEmpty === true || this.hasInputText;
+    }
+
     public closeDialog(): void {
-        if (this.hasInputText) {
+        if (this.canConfirm) {
             this.dialogRef.close(true); // Force return "true"
         }
     }

@@ -6,7 +6,7 @@
     </mat-form-field>
 </mat-dialog-content>
 <mat-dialog-actions>
-    <app-accent-button class="mr-2" [ngClass]="{ inactive: !this.hasInputText }" [mat-dialog-close]="true">{{
+    <app-accent-button class="mr-2" [ngClass]="{ inactive: !this.canConfirm }" [mat-dialog-close]="true">{{
         'ok' | translate
     }}</app-accent-button>
     <app-transparent-button [mat-dialog-close]="false">{{ 'cancel' | translate }}</app-transparent-button>

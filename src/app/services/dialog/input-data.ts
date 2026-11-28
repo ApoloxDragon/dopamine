@@ -8,5 +8,7 @@ export class InputData {
         public description: string = '',
         /** Optional icon for the header (default: a question mark). */
         public icon: string = 'las la-question',
+        /** OK also works with an empty field (for example to remove a nickname). */
+        public allowEmpty: boolean = false,
     ) {}
 }

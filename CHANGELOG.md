@@ -20,6 +20,11 @@ Music on a home server keeps playing, even after a restart. ApoloxDragon's fork 
 - Nicknames for network drives: select a network folder in Settings, Collection and click the pencil to call it, for
   example, "Home server". The nickname is shown instead of the long folder path, also when Dopamine asks to connect it.
 
+### Changed
+
+- Brought in the latest changes from official Dopamine: the part that reads your songs' details (tags) is updated to
+  its newest version.
+
 ### Fixed
 
 - Songs on a network share no longer go missing when the share comes back under a slightly different name (for example
@@ -29,6 +34,12 @@ Music on a home server keeps playing, even after a restart. ApoloxDragon's fork 
   only ever deletes or writes that one cache file, never anything else in your music folders.
 - When a music folder can't be reached, the log now says what is there instead, which makes it easier to tell what
   went wrong.
+
+- Pressing Cancel in a text box (a nickname, the sleep timer's own time, sort words, artist separators, playlist
+  folders) now really cancels; before, what you had typed was used anyway. A nickname can be removed by saving it empty.
+
+- Switching between Artists, Albums, Songs and the other tabs is quicker: each tab waited more than half a second
+  before showing your music, now it fills in almost at once.
 
 ### Good to know
 

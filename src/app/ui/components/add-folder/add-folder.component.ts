@@ -50,17 +50,25 @@ export class AddFolderComponent implements OnInit {
             return;
         }
 
-        const nickname: string = await this.dialogService.showInputDialogAsync(
-            this.translatorService.get('network-drive-nickname'),
-            this.translatorService.get('network-drive-nickname-placeholder'),
-            nicknames.get(folder.path) ?? '',
-            [],
-            this.translatorService.get('network-drive-nickname-description'),
-            'las la-pen',
-        );
+        let nickname: string | undefined;
 
-        // The dialog gives undefined or '' when cancelled; only an explicit save changes the nickname.
-        if (nickname === undefined || nickname === null) {
+        try {
+            nickname = await this.dialogService.showInputDialogOrCancelAsync(
+                this.translatorService.get('network-drive-nickname'),
+                this.translatorService.get('network-drive-nickname-placeholder'),
+                nicknames.get(folder.path) ?? '',
+                [],
+                this.translatorService.get('network-drive-nickname-description'),
+                'las la-pen',
+                true,
+            );
+        } catch (e: unknown) {
+            this.logger.error(e, 'Could not ask for a nickname', 'AddFolderComponent', 'setNicknameAsync');
+            return;
+        }
+
+        // Cancel changes nothing; OK with an empty field removes the nickname.
+        if (nickname === undefined) {
             return;
         }
 

@@ -22,7 +22,7 @@ step() {
 step install npm install --ignore-scripts --no-audit --no-fund
 step electron-binary node node_modules/electron/install.js
 step sqlite-for-node npm rebuild better-sqlite3
-step install-patches bash -c 'node patch-discord-rpc.js && node patch-taglib-sharp.js'
+step install-patches bash -c 'node patches/patch-discord-rpc.js'
 step unit-tests npx jest --silent --noStackTrace
 step database-tests npx jest --silent --noStackTrace --config jest.database.integration.config.js
 [ "${1:-}" = "--skip-build" ] || step production-build npm run build:prod

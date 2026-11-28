@@ -46,6 +46,7 @@ export class DialogService implements DialogServiceBase {
         return result != undefined && result;
     }
 
+    /** The text typed, or '' when cancelled (callers treat an empty answer as "do nothing"). */
     public async showInputDialogAsync(
         dialogTitle: string,
         placeHolderText: string,
@@ -54,15 +55,38 @@ export class DialogService implements DialogServiceBase {
         description: string = '',
         icon: string = 'las la-question',
     ): Promise<string> {
-        const inputData: InputData = new InputData(dialogTitle, inputText, placeHolderText, invalidCharacters, description, icon);
+        return (
+            (await this.showInputDialogOrCancelAsync(dialogTitle, placeHolderText, inputText, invalidCharacters, description, icon)) ?? ''
+        );
+    }
+
+    public async showInputDialogOrCancelAsync(
+        dialogTitle: string,
+        placeHolderText: string,
+        inputText: string,
+        invalidCharacters: string[],
+        description: string = '',
+        icon: string = 'las la-question',
+        allowEmpty: boolean = false,
+    ): Promise<string | undefined> {
+        const inputData: InputData = new InputData(
+            dialogTitle,
+            inputText,
+            placeHolderText,
+            invalidCharacters,
+            description,
+            icon,
+            allowEmpty,
+        );
         const dialogRef: MatDialogRef<InputDialogComponent> = this.dialog.open(InputDialogComponent, {
             width: '450px',
             data: inputData,
         });
 
-        await dialogRef.afterClosed().toPromise();
+        // OK and Enter close with true; Cancel closes with false. Before, Cancel still gave back what was typed.
+        const confirmed: unknown = await dialogRef.afterClosed().toPromise();
 
-        return inputData.inputText;
+        return confirmed === true ? (inputData.inputText ?? '') : undefined;
     }
 
     public showErrorDialog(errorText: string): void {
