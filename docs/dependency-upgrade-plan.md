@@ -7,7 +7,7 @@ with testing between every step. Each phase is small enough to try, test, and th
 
 ## Ground rules (for every phase)
 
-1. **One upgrade per branch and pull request.** Never combine two risky upgrades. Branch from `apolox-master`, name it `deps/<what>`
+1. **One upgrade per branch and pull request.** Never combine two risky upgrades. Branch from `apolox-dev`, name it `deps/<what>`
    (for example `deps/electron-39`).
 2. **One major version at a time.** Electron 38 → 39 → 40, not 38 → 42. Angular 16 → 17 → 18 → 19. Each step gets its own build and test.
 3. **Gates before merging** (all must pass):

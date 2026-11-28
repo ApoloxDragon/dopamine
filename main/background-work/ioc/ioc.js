@@ -40,6 +40,7 @@ class Ioc {
         global.iocContainer.set('LastfmApi', new LastfmApi());
         global.iocContainer.set('GuidFactory', new GuidFactory());
         global.iocContainer.set('Logger', new Logger());
+        Logger.extraLogging = Ioc.get('WorkerProxy').extraLogging();
         global.iocContainer.set('MimeTypes', new MimeTypes());
         global.iocContainer.set('MetadataPatcher', new MetadataPatcher());
         global.iocContainer.set('FileMetadataFactory', new FileMetadataFactory());

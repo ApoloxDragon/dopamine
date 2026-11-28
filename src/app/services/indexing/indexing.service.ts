@@ -235,6 +235,7 @@ export class IndexingService implements OnDestroy {
             task: task,
             skipRemovedFilesDuringRefresh: this.settings.skipRemovedFilesDuringRefresh,
             useSongCache: this.settings.useSongCache,
+            extraLogging: Logger.extraLogging,
             applicationDataDirectory: this.desktop.getApplicationDataDirectory(),
         };
     }

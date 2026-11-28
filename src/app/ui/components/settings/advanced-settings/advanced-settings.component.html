@@ -24,4 +24,14 @@
             {{ 'view-log' | translate }}
         </app-transparent-button>
     </div>
+    <!-- Development builds only (DevBuild.isActive): never shown in a release build. -->
+    <ng-container *ngIf="this.devBuildService?.isDevBuild === true">
+        <mat-divider class="my-4"></mat-divider>
+        <div class="title" data-settings-section="developer-options">{{ 'developer-options' | translate }}</div>
+        <div class="secondary-text">{{ 'developer-options-description' | translate }}</div>
+        <div class="mt-3">
+            <app-toggle-switch [(isChecked)]="this.devBuildService!.extraLogging">{{ 'extra-logging' | translate }}</app-toggle-switch>
+            <div class="secondary-text mt-1">{{ 'extra-logging-description' | translate }}</div>
+        </div>
+    </ng-container>
 </div>

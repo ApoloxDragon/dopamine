@@ -423,3 +423,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-28** · `Changed` · 3.3.4: quicker tab switches
     - longListLoadDelayMilliseconds 500 -> 100, shortListLoadDelayMilliseconds 50 -> 0 (data loads in <20 ms per the owner's log). Keeping tabs alive is listed in PROJECT-OVERVIEW section 8.
+
+- **2026-11-28** · `Tooling` · Workflow: apolox-dev for development, apolox-master for releases; dev builds
+    - apoloxChannel in package.json (dev unless release.yml sets release); DevBuild.isActive gates the startup warning, About label, developer options (extra logging: Logger.debug, worker flag). Safeguards: check-release-channel.js before and after building, release only from apolox-master, tests. docs/dev-builds.md.

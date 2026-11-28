@@ -17,6 +17,10 @@ class WorkerProxy {
         return workerData.arg.skipRemovedFilesDuringRefresh;
     }
 
+    extraLogging() {
+        return workerData.arg.extraLogging === true;
+    }
+
     useSongCache() {
         return workerData.arg.useSongCache === true;
     }

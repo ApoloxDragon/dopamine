@@ -1,3 +1,4 @@
+import { DevBuildService } from '../../../../services/dev-build/dev-build.service';
 import { Component, ViewEncapsulation } from '@angular/core';
 import { LogViewer } from '../../../../common/io/log-viewer';
 import { SettingsBase } from '../../../../common/settings/settings.base';
@@ -21,6 +22,7 @@ export class AdvancedSettingsComponent {
         private ratingBackupService: RatingBackupService,
         private dialogService: DialogServiceBase,
         private translatorService: TranslatorServiceBase,
+        public devBuildService?: DevBuildService,
     ) {}
 
     public viewLog(): void {

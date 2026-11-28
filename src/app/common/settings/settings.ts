@@ -1134,6 +1134,24 @@ export class Settings implements SettingsBase {
         this.set('networkDriveNicknames', v);
     }
 
+    // devExtraLogging
+    public get devExtraLogging(): boolean {
+        return this.get<boolean>('devExtraLogging');
+    }
+
+    public set devExtraLogging(v: boolean) {
+        this.set('devExtraLogging', v);
+    }
+
+    // devWarningShownForVersion
+    public get devWarningShownForVersion(): string {
+        return this.get<string>('devWarningShownForVersion');
+    }
+
+    public set devWarningShownForVersion(v: string) {
+        this.set('devWarningShownForVersion', v);
+    }
+
     // useSongCache
     public get useSongCache(): boolean {
         return this.get<boolean>('useSongCache');

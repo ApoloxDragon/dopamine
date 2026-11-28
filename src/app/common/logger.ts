@@ -1,8 +1,19 @@
 import { Injectable } from '@angular/core';
 import log from 'electron-log';
+import { DevBuild } from './application/dev-build';
 
 @Injectable()
 export class Logger {
+    /** Extra logging for development (developer options in dev builds). Off unless turned on there. */
+    public static extraLogging: boolean = false;
+
+    /** Detail for finding bugs: only written when extra logging is on. */
+    public debug(message: string, callerClass: string, callerMethod: string): void {
+        if (Logger.extraLogging && DevBuild.isActive) {
+            log.info(`[debug] ${this.formattedMessage(message, callerClass, callerMethod)}`);
+        }
+    }
+
     public info(message: string, callerClass: string, callerMethod: string): void {
         log.info(this.formattedMessage(message, callerClass, callerMethod));
     }

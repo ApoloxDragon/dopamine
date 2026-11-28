@@ -106,7 +106,10 @@ FILE "13. Molested,Digested.flac" WAVE
 
             const result = reader.read('/music/homovore/Homovore.cue');
 
-            expect(result.map((x) => x.audioPath)).toEqual([n('/music/homovore/12. Bodily Abuse.flac'), n('/music/homovore/13. Molested, Digested.flac')]);
+            expect(result.map((x) => x.audioPath)).toEqual([
+                n('/music/homovore/12. Bodily Abuse.flac'),
+                n('/music/homovore/13. Molested, Digested.flac'),
+            ]);
             expect(logger.warn).not.toHaveBeenCalled();
         });
 

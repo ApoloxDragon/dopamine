@@ -54,11 +54,13 @@ export class CollectionTracksComponent implements OnInit, OnDestroy {
     }
 
     private async fillListsAsync(): Promise<void> {
+        const started: number = Date.now();
         await this.scheduler.sleepAsync(Constants.longListLoadDelayMilliseconds);
 
         try {
             await this.scheduler.sleepAsync(Constants.shortListLoadDelayMilliseconds);
             this.getTracks();
+            this.logger.debug(`Tab filled in ${Date.now() - started} ms`, 'CollectionTracksComponent', 'fillListsAsync');
         } catch (e: unknown) {
             this.logger.error(e, 'Could not fill lists', 'CollectionTracksComponent', 'fillListsAsync');
         }

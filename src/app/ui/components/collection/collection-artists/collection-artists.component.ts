@@ -153,6 +153,7 @@ export class CollectionArtistsComponent implements OnInit, OnDestroy {
     }
 
     private async fillListsAsync(): Promise<void> {
+        const started: number = Date.now();
         await this.scheduler.sleepAsync(Constants.longListLoadDelayMilliseconds);
 
         try {
@@ -164,6 +165,7 @@ export class CollectionArtistsComponent implements OnInit, OnDestroy {
 
             await this.scheduler.sleepAsync(Constants.shortListLoadDelayMilliseconds);
             this.getTracks();
+            this.logger.debug(`Tab filled in ${Date.now() - started} ms`, 'CollectionArtistsComponent', 'fillListsAsync');
         } catch (e: unknown) {
             this.logger.error(e, 'Could not fill lists', 'CollectionArtistsComponent', 'fillListsAsync');
         }

@@ -127,6 +127,11 @@ export class NetworkShareGuardService {
             }
 
             const moved: ShareMove | undefined = this.drives.findMovedShare(songPath);
+            this.logger.debug(
+                `'${songPath}' is missing; share ${share.host}/${share.share}; moved: ${moved !== undefined ? moved.to : 'no'}; ${this.drives.describeMissing(songPath)}`,
+                'NetworkShareGuardService',
+                'tryToReachAsync',
+            );
 
             if (moved !== undefined) {
                 this.relocate(moved);
