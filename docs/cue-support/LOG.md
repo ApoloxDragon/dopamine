@@ -423,3 +423,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-28** · `Changed` · 3.3.4: quicker tab switches
     - longListLoadDelayMilliseconds 500 -> 100, shortListLoadDelayMilliseconds 50 -> 0 (data loads in <20 ms per the owner's log). Keeping tabs alive is listed in PROJECT-OVERVIEW section 8.
+
+- **2026-11-28** · `Note` · Plan: sync between your own Dopamine installs (D21, 3.5)
+    - Local network only, peer to peer, flexible for power users; stronger devices take the heavy jobs (song cache, scans, hashes, covers).

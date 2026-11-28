@@ -99,6 +99,11 @@ first. These features open the app to the network or to devices, which is why th
 3. **Casting and device sync.** Play to DLNA/UPnP and Chromecast speakers; copy a playlist or albums to a phone or
    player, converting when the device needs it.
 
+4. **Sync between your Dopamine installs (local network, peer to peer).** Likes, ratings, play counts, listening
+   history, playlists and nicknames shared between your own computers; the stronger ones do the heavy work for the
+   others. Off by default, local network only, no server and no internet. Details and open questions: D21 in
+   `cue-support/DRAFTS.md`. Shares the small built-in server and the pairing with the phone remote.
+
 Not planned at any version: streaming services, social features, podcasts, video, cloud sync, accounts.
 
 ## Planned for 3.3.2 (done)

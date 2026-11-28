@@ -228,3 +228,51 @@ Deleting is limited to one regular file, `<music folder>/Dopamine/cache.json.gz`
 A cache with broken contents is deleted and built again by the next refresh that reads songs; a read error (share hiccup) leaves it in place.
 Open: the cache trusts size + modification time, like the fast refresh. A tag edit that keeps both (very rare) needs the
 cache turned off for one full refresh.
+
+## D21. Sync between your own Dopamine installs, local network, peer to peer: `draft` (3.5, after the hardening)
+
+Owner's direction (2026-11-28): local network only, peer to peer, with lots of flexibility for power users, and the more
+powerful devices doing the heavy lifting. No Tailscale for now (could come later as "manual peers"), no internet, no hub
+server required.
+
+**What syncs** (each on or off, and per direction: both ways / send only / receive only):
+- likes and dislikes (songs, albums, artists), ratings, play counts, listening history and detailed statistics;
+- playlists, network drive nicknames; optionally settings and equalizer presets;
+- "continue here": hand the queue and position over to another computer.
+Songs are matched by what they are (album key, title, duration, optionally a hash of the audio), never by path: the
+same album is `/mnt/storage/...` on one computer and a gvfs folder on another.
+
+**Finding each other:** mDNS / DNS-SD (`_dopamine-sync._tcp`) on the local network; manual peers (host, port) always
+work. Power users choose the port, the network interface to listen on, and an allow-list of peers.
+
+**Pairing and safety:** off by default; listens only on local addresses (refuses public ones); pairing with a code shown on
+both screens, then each device keeps the other's key (pinned certificate, encrypted connection); rate limits; every sync
+written to a sync log. Needs the 3.5 Electron hardening first (a network-facing server next to a renderer with
+nodeIntegration is too risky today).
+
+**Merging without losing anything:**
+- play counts: one counter per device, the total is the sum (never overwritten);
+- likes and ratings: the latest change wins (timestamps per change);
+- listening history: only appended, each entry tagged with its device (no double counting);
+- playlists: merged change by change; real conflicts go to a list the user decides.
+Storage: a device ID and a change log table (a database migration: high effort).
+
+**Heavy lifting on the stronger devices:** each device announces what it can do (CPU cores, memory, on mains power or
+battery, always on or not) and a "willing to help" switch. Heavy jobs go to the strongest willing device that is online,
+and the results are shared:
+- reading tags of a shared library and building the song cache (`Dopamine/cache.json.gz` already lives next to the music);
+- ReplayGain / loudness scans, audio hashes for song matching and the duplicate finder;
+- cover and artist image downloads, year-in-review and statistics crunching;
+- later: converting files for phones or players (device sync).
+A weak device (old laptop) only asks for results; if no strong device is online it does the work itself, as now.
+Power users can pin jobs to a device, or turn helping off per device.
+
+**Power-user extras:** dry run (show what would change), sync now / on change / on a schedule, export and import of the
+change log as JSON, a per-peer view of what was sent and received.
+
+Open questions for the owner:
+1. Which computers would take part, and are they all Linux?
+2. Should "continue here" (moving playback between computers) be in the first version?
+3. Is the always-on home server running Dopamine itself (headless helper), or only serving the files?
+Effort: large and high (network server, migration, merge logic); its own PRs: discovery + pairing, then each sync part,
+then heavy-job delegation.
