@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as fs from 'fs';
 import { spawn } from 'child_process';
 import { NetworkDrives, SharePath, ShareMove } from '../../common/io/network-drives';
+import { NetworkDriveNicknames } from '../../common/io/network-drive-nicknames';
 import { SettingsBase } from '../../common/settings/settings.base';
 import { Logger } from '../../common/logger';
 import { FolderRepositoryBase } from '../../data/repositories/folder-repository.base';
@@ -142,7 +143,13 @@ export class NetworkShareGuardService {
             if (this.settings.reconnectNetworkDrives !== true) {
                 const connect: boolean = await this.dialogService.showConfirmationDialogAsync(
                     this.translatorService.get('network-share-not-connected-title'),
-                    this.translatorService.get('network-share-not-connected-text', { share: `${share.share} (${share.host})` }),
+                    this.translatorService.get('network-share-not-connected-text', {
+                        share:
+                            new NetworkDriveNicknames(
+                                () => this.settings.networkDriveNicknames,
+                                () => undefined,
+                            ).get(songPath) ?? `${share.share} (${share.host})`,
+                    }),
                 );
 
                 if (!connect) {

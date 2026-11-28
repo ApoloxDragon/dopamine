@@ -120,6 +120,7 @@ export const DEFAULT_SETTINGS = {
     useContinuousPlay: false,
     lookForNetworkDrives: false,
     useSongCache: true,
+    networkDriveNicknames: '{}',
     reconnectNetworkDrives: false,
     useCompactYearView: false,
     albumCoverSize: 130,

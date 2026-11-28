@@ -126,6 +126,7 @@ export abstract class SettingsBase {
     public abstract useContinuousPlay: boolean;
     public abstract lookForNetworkDrives: boolean;
     public abstract useSongCache: boolean;
+    public abstract networkDriveNicknames: string;
     public abstract reconnectNetworkDrives: boolean;
     public abstract useCompactYearView: boolean;
     public abstract albumCoverSize: number;

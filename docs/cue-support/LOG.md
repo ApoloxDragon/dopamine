@@ -405,3 +405,15 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 - **2026-11-26** · `Added` · 3.3.4: network share under another name, reconnect, song cache
     - NetworkDrives.sharePathOf/findShareRoots/findMovedShare/describeMissing/smbUrlOf; PathRelocationRepository moves stored paths in one transaction (11 columns); NetworkShareGuardService: relocate at startup (before the queue is restored), optional gio mount at startup, ask/connect at play time (PlaybackService.skipIfUnreachableAsync, TrackModel.relocate for the queue)
     - SongCache (worker): <folder>/Dopamine/cache.json.gz, used when size+mtime match, wraps FileMetadataFactory for TrackFiller only, saved after indexing and pruned to the DB's songs; settings useSongCache (on) and reconnectNetworkDrives (off); index-sandbox.js --song-cache --full. See D20.
+
+- **2026-11-26** · `Changed` · 3.3.4: a broken song cache is deleted and rebuilt
+    - Too big / not gzip / not JSON / unknown version -> deleted; I/O errors (EIO, EACCES) leave it. Rebuilt by the next refresh that reads songs (Full refresh: all).
+
+- **2026-11-26** · `Changed` · 3.3.4: song cache deletes and writes only its own file
+    - safeUnlink: name allow-list, lstat regular file, real (non-link) Dopamine folder, unlinkSync only; reads ignore links; temp file random name + 'wx'; tests with planted symlinks, a folder named like the cache, a symlinked Dopamine folder.
+
+- **2026-11-26** · `Added` · 3.3.4: nicknames for network drives
+    - NetworkDriveNicknames (settings JSON keyed by host/share, so it survives a renamed gvfs folder); pencil in the folder list, used in the network-drives list and the connect question.
+
+- **2026-11-27** · `Note` · Project overview: docs/PROJECT-OVERVIEW.md; upstream checked (3 commits since 19bd0ab8: patches/ folder, node-taglib-sharp ^1.0.5)
+    - Claude branches collapsed into claude/beautiful-faraday-hdjqhv (everything from PRs 1-19).

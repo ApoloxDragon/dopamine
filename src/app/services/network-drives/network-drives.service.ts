@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as fs from 'fs';
 import { execFile } from 'child_process';
 import { NetworkDrive, NetworkDrives } from '../../common/io/network-drives';
+import { NetworkDriveNicknames } from '../../common/io/network-drive-nicknames';
 import { SettingsBase } from '../../common/settings/settings.base';
 import { Logger } from '../../common/logger';
 
@@ -13,6 +14,7 @@ import { Logger } from '../../common/logger';
 export class NetworkDrivesService {
     public static readonly mountTimeoutMs: number = 20000;
     private readonly drives: NetworkDrives;
+    public readonly nicknames: NetworkDriveNicknames;
 
     public constructor(
         private settings: SettingsBase,
@@ -20,6 +22,15 @@ export class NetworkDrivesService {
     ) {
         const userId: number | undefined = typeof process.getuid === 'function' ? process.getuid() : undefined;
         this.drives = new NetworkDrives(fs, userId, process.platform);
+        this.nicknames = new NetworkDriveNicknames(
+            () => this.settings.networkDriveNicknames,
+            (json) => (this.settings.networkDriveNicknames = json),
+        );
+    }
+
+    /** The nickname view of a folder ("Home server › music"), or the path itself. */
+    public displayNameOf(path: string): string {
+        return this.nicknames.display(path) ?? path;
     }
 
     /** True when the user allowed looking for network drives. */
@@ -38,7 +49,7 @@ export class NetworkDrivesService {
 
     /** Connected network drives, or nothing when not allowed. */
     public find(): NetworkDrive[] {
-        return this.isAllowed ? this.drives.find() : [];
+        return this.isAllowed ? this.drives.find().map((x) => ({ ...x, label: this.nicknames.get(x.path) ?? x.label })) : [];
     }
 
     /** The folder for an smb:// address of a share that is connected, or undefined. */
