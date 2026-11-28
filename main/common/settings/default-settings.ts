@@ -120,6 +120,8 @@ export const DEFAULT_SETTINGS = {
     useContinuousPlay: false,
     lookForNetworkDrives: false,
     useSongCache: true,
+    devExtraLogging: false,
+    devWarningShownForVersion: '',
     networkDriveNicknames: '{}',
     reconnectNetworkDrives: false,
     useCompactYearView: false,

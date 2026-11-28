@@ -13,6 +13,11 @@ function getFullVersion() {
     return version + "-" + versionSuffix;
 }
 
+/** 'dev' for every build except the ones the release workflow makes ('release'). */
+function getChannel() {
+    return require('./package.json').apoloxChannel === 'release' ? 'release' : 'dev';
+}
+
 function getCopyright(){
     return require('./package.json').copyright;
 }
@@ -20,3 +25,4 @@ function getCopyright(){
 module.exports.getName = getName;
 module.exports.getFullVersion = getFullVersion;
 module.exports.getCopyright = getCopyright;
+module.exports.getChannel = getChannel;

@@ -57,7 +57,11 @@
     <div class="title" data-settings-section="language">{{ 'language' | translate }}</div>
     <div>{{ 'choose-language' | translate }}</div>
     <mat-form-field class="mt-2">
-        <mat-select [(ngModel)]="translatorService.selectedLanguage" [compareWith]="translatorService.compareLanguages" (openedChange)="translatorService.refreshLanguages()">
+        <mat-select
+            [(ngModel)]="translatorService.selectedLanguage"
+            [compareWith]="translatorService.compareLanguages"
+            (openedChange)="translatorService.refreshLanguages()"
+        >
             <mat-option *ngFor="let language of translatorService.languages" [value]="language">
                 <div *ngIf="!language.showEnglishName">{{ language.localizedName }}</div>
                 <div *ngIf="language.showEnglishName">{{ language.localizedName }} ({{ language.englishName }})</div>

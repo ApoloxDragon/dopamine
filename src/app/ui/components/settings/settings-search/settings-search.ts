@@ -1,3 +1,4 @@
+import { DevBuild } from '../../../../common/application/dev-build';
 import { SettingsSearchEntry, settingsPageKeys, settingsSearchIndex } from './settings-search-index';
 
 export interface SettingsSearchResult {
@@ -38,7 +39,7 @@ export class SettingsSearch {
         const scored: { result: SettingsSearchResult; score: number; order: number }[] = [];
 
         this.index.forEach((entry, order) => {
-            if (entry.onlyOn !== undefined && entry.onlyOn !== this.platform) {
+            if ((entry.onlyOn !== undefined && entry.onlyOn !== this.platform) || (entry.devOnly === true && !DevBuild.isActive)) {
                 return;
             }
 

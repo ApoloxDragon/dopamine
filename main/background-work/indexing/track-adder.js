@@ -98,11 +98,7 @@ class TrackAdder {
         this.trackRepository.deleteTrack(wholeFileTrack.trackId);
         this.folderTrackRepository.deleteFolderTracksForInexistingTracks();
 
-        this.logger.info(
-            `Replaced whole-file track '${audioPath}' by its cue sheet tracks`,
-            'TrackAdder',
-            'removeWholeFileTrack',
-        );
+        this.logger.info(`Replaced whole-file track '${audioPath}' by its cue sheet tracks`, 'TrackAdder', 'removeWholeFileTrack');
     }
 
     async #getIndexablePathsAsync(skipRemovedFiles) {

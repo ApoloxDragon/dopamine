@@ -17,6 +17,8 @@ export interface SettingsSearchEntry {
     words: string[];
     /** Only shown on this platform (process.platform). */
     onlyOn?: string;
+    /** Only in development builds (DevBuild.isActive). */
+    devOnly?: boolean;
 }
 
 /** Translation keys of the page names, per place. */
@@ -148,6 +150,7 @@ export const settingsSearchIndex: SettingsSearchEntry[] = [
     ),
     entry('settings', 2, 'ratings-backup', ['restore-ratings-from-backup'], ['backup', 'restore', 'stars']),
     entry('settings', 2, 'log-file', ['view-log'], ['log', 'debug', 'problem', 'bug', 'error', 'crash']),
+    { ...entry('settings', 2, 'developer-options', ['extra-logging'], ['dev', 'developer', 'debug', 'verbose', 'logging']), devOnly: true },
 
     // Settings, Online
     entry('settings', 3, 'updates', ['check-for-updates', 'also-check-for-pre-releases'], ['new version', 'release', 'beta', 'update']),

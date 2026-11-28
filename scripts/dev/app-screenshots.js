@@ -28,6 +28,8 @@ async function main() {
         path.join(userData, 'config.json'),
         JSON.stringify({
             showWelcome: false,
+            // Dev builds warn once per version; the screenshots should not have that dialog in the way.
+            devWarningShownForVersion: require(path.join(root, 'get-package-information.js')).getFullVersion(),
             detailedListeningStatistics: process.env.SEED_STATISTICS === '1',
             useLightBackgroundTheme: process.env.LIGHT === '1',
             audioEqualizerEnabled: true,

@@ -1,14 +1,14 @@
 name: Checks
-# Runs on every pull request to and push on apolox-master:
+# Runs on every pull request to and push on apolox-dev and apolox-master:
 # - the unit tests
 # - the dependency check: fails when a change adds a critical or high npm advisory that is not in
 #   scripts/dev/audit-baseline.json, and warns about new moderate/low ones (see scripts/dev/vuln-report.js).
 # The dependency check also runs every week, to notice advisories published for packages that did not change.
 on:
     pull_request:
-        branches: [apolox-master]
+        branches: [apolox-dev, apolox-master]
     push:
-        branches: [apolox-master]
+        branches: [apolox-dev, apolox-master]
     schedule:
         - cron: '23 5 * * 1'
     workflow_dispatch:

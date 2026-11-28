@@ -10,7 +10,10 @@ describe('CueTrackPath', () => {
     });
 
     it('should parse a Windows virtual path', () => {
-        expect(CueTrackPath.parse('C:\\Music\\Agony (Japan).flac|11')).toEqual({ audioPath: 'C:\\Music\\Agony (Japan).flac', trackNumber: 11 });
+        expect(CueTrackPath.parse('C:\\Music\\Agony (Japan).flac|11')).toEqual({
+            audioPath: 'C:\\Music\\Agony (Japan).flac',
+            trackNumber: 11,
+        });
     });
 
     it('should not parse a normal path', () => {

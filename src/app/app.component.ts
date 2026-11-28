@@ -1,3 +1,4 @@
+import { DevBuildService } from './services/dev-build/dev-build.service';
 import { NetworkShareGuardService } from './services/network-drives/network-share-guard.service';
 import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { MatDrawer } from '@angular/material/sidenav';
@@ -61,6 +62,7 @@ export class AppComponent implements OnInit {
         private indexingService: IndexingService,
         private folderService: FolderServiceBase,
         private networkShareGuard: NetworkShareGuardService,
+        private devBuildService: DevBuildService,
     ) {
         log.create('renderer');
         log.transports.file.resolvePath = () => path.join(this.desktop.getApplicationDataDirectory(), 'logs', 'Dopamine.log');
@@ -112,6 +114,7 @@ export class AppComponent implements OnInit {
             }),
         );
 
+        this.devBuildService.initialize();
         this.databaseMigrator.migrate();
         // Before the queue is restored: a network share that is now under another folder name keeps its songs.
         this.networkShareGuard.relocateMovedShares();
@@ -131,6 +134,7 @@ export class AppComponent implements OnInit {
         this.listeningTrackerService.initialize();
         this.lifetimeService.initialize();
         await this.navigationService.navigateToLoadingAsync();
+        this.devBuildService.showWarningIfNeeded();
     }
 
     private async createInitialRatingsBackupAndAutoRestoreIfNeededAsync(): Promise<void> {

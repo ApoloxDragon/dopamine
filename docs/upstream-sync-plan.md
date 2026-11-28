@@ -8,8 +8,9 @@
 | Branch | What it is | Rule |
 | --- | --- | --- |
 | `master` | An exact copy of upstream (`digimezzo/dopamine`, branch `master`) | **Never commit to it.** Only update it from upstream |
-| `apolox-master` | The fork: upstream plus our changes | All our work lands here through pull requests |
-| `sync/upstream-<version>` | One branch per upstream release being merged | Made from `apolox-master`, merges `master` in, becomes a PR |
+| `apolox-dev` | Development: upstream plus our changes, ahead of the last release | All our work lands here through pull requests |
+| `apolox-master` | Released versions only | Gets `apolox-dev` merged in for a release; the release workflow builds from it |
+| `sync/upstream-<version>` | One branch per upstream release being merged | Made from `apolox-dev`, merges `master` in, becomes a PR |
 
 Merging (not rebasing) keeps the history honest: every upstream release shows up as one merge, and our 3.x-apolox
 releases and tags stay valid.
@@ -49,7 +50,7 @@ Before detaching, the "Sync fork" button on GitHub does the same.
    migration numbers added on both sides, and settings or translation keys added on both sides.
 3. **Read upstream's change log** for that release and write down anything that touches the same features as ours
    (playback, equalizer, Discord, indexing, statistics, covers).
-4. **Branch and merge:** `git checkout -b sync/upstream-<version> origin/apolox-master`, then `git merge origin/master`.
+4. **Branch and merge:** `git checkout -b sync/upstream-<version> origin/apolox-dev`, then `git merge origin/master`.
 5. **Resolve conflicts with these rules:**
    - Keep upstream's change *and* ours. When both changed the same lines, take upstream's version and put our change back on top.
    - Our features stay behind their settings (detailed statistics, Discord covers, fades, equalizer modes), so upstream's
@@ -63,7 +64,7 @@ Before detaching, the "Sync fork" button on GitHub does the same.
    build, screenshots of every page, the manual smoke test with a **copy** of a real database.
 8. **Version:** the fork follows upstream's major and minor version: upstream 4.0.0 → our `4.0.0-apolox`, then 4.0.1-apolox
    and so on for our own fixes. Change log entry: "Based on Dopamine <version> by Digimezzo" plus what changed.
-9. **PR to `apolox-master`**, merge builds on all platforms, then the release workflow as usual.
+9. **PR to `apolox-dev`**, merge builds on all platforms; at release time `apolox-dev` goes into `apolox-master` and the release workflow runs as usual.
 
 ## Database migrations (the riskiest part)
 

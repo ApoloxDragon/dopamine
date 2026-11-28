@@ -1,6 +1,8 @@
 # Working on this fork (ApoloxDragon/dopamine)
 
-Work on a `claude/...` branch with pull requests to `apolox-master`. Write overviews in `docs/cue-support/LOG.md` (use `scripts/dev/devlog.sh`) and anything uncertain or risky in `docs/cue-support/DRAFTS.md`. Explain drafts and risky edits before doing them. Don't delete code just to delete it.
+Work on a `claude/...` branch with pull requests to `apolox-dev` (the development branch). `apolox-master` only gets
+`apolox-dev` merged in for a release; releases are built from `apolox-master`. Builds from anything but the release
+workflow are dev builds (developer options, extra logging, a warning at startup); see `docs/dev-builds.md`. Write overviews in `docs/cue-support/LOG.md` (use `scripts/dev/devlog.sh`) and anything uncertain or risky in `docs/cue-support/DRAFTS.md`. Explain drafts and risky edits before doing them. Don't delete code just to delete it.
 
 ## Change log and release notes
 

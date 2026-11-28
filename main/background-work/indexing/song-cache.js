@@ -113,6 +113,12 @@ class SongCache {
                 }
             }
 
+            this.logger.debug?.(
+                `'${folder.path}': ${folder.entries.size} songs in the cache, ${folder.changed ? 'changed: saving' : 'unchanged: not saved'}`,
+                'SongCache',
+                'save',
+            );
+
             if (folder.changed) {
                 this.#write(folder);
             }

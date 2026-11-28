@@ -28,6 +28,10 @@ class WorkerProxyMock {
         return this.skipRemovedFilesDuringRefreshReturnValue;
     }
 
+    extraLogging() {
+        return false;
+    }
+
     useSongCache() {
         return this.useSongCacheReturnValue;
     }

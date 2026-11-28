@@ -1,3 +1,4 @@
+import { DevBuild } from '../../../../common/application/dev-build';
 import { Component, ViewEncapsulation } from '@angular/core';
 import { ContactInformation } from '../../../../common/application/contact-information';
 import { ProductInformation } from '../../../../common/application/product-information';
@@ -18,6 +19,7 @@ export class AboutComponent {
     ) {}
 
     public applicationVersion: string = ProductInformation.applicationVersion;
+    public isDevBuild: boolean = DevBuild.isActive;
     public applicationCopyright: string = ProductInformation.applicationCopyright;
     public websiteUrl: string = ContactInformation.websiteUrl;
     public mastodonUrl: string = ContactInformation.mastodonUrl;

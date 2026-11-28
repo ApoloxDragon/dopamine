@@ -130,6 +130,8 @@ export class SettingsMock implements SettingsBase {
     public useContinuousPlay: boolean = false;
     public lookForNetworkDrives: boolean = false;
     public useSongCache: boolean = true;
+    public devExtraLogging: boolean = false;
+    public devWarningShownForVersion: string = '';
     public networkDriveNicknames: string = '{}';
     public reconnectNetworkDrives: boolean = false;
     public useCompactYearView: boolean;

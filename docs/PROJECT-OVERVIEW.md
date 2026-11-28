@@ -20,8 +20,8 @@ Free and open source under GPL-3.0, based on Dopamine 3.0.12 by Digimezzo.
 | 3.3.3-apolox | 2026-11-25 | 15, 17 | Connected network drives (opt-in), smb:// addresses, search box in Settings |
 | 3.3.4-apolox | not released | 18, 19 (merged), 20 (upstream sync), 21 (review fixes) | Share under another name, reconnect, song cache, network drive nicknames, strict cache safety |
 
-Release process: `claude/release-X` branch (or `apolox-master`) + `release.yml` with `publish=true` (tags cannot be pushed
-from the sessions). Notes come from the change log section via `scripts/release-notes.js`. Publish oldest first.
+Release process (from 2026-11-28, see `dev-builds.md`): work goes into `apolox-dev` by PR; for a release, `apolox-dev` is
+merged into `apolox-master` and `release.yml` runs there with `publish=true` (tags cannot be pushed from the sessions). Notes come from the change log section via `scripts/release-notes.js`. Publish oldest first.
 
 ## 2. What the fork adds (by area)
 
@@ -110,7 +110,7 @@ For the next upstream release (3.0.13 or 3.1): same steps, following `upstream-s
 
 ## 5. What comes next
 
-- **3.3.4:** merge PRs 20 and 21, then release (`release.yml` on `apolox-master`, publish=true). Optional new test deb first.
+- **3.3.4:** PRs 20 and 21 are in `apolox-dev`; merge `apolox-dev` into `apolox-master`, then release (`release.yml` on `apolox-master`, publish=true).
 - **Upstream sync:** done in PR 20 (taglib 1.0.5, `patches/` folder), shipped with 3.3.4.
 - **3.4.0 (high effort, many sessions):** everything up to date (`3.4.0-plan.md`: clean-up, Electron 38 → 45, Angular
   16 → 22, test/lint tools, parsers), then Navidrome/Subsonic client, bit-perfect output on Linux with optional EQ,
@@ -137,7 +137,8 @@ For the next upstream release (3.0.13 or 3.1): same steps, following `upstream-s
 
 ## 7. Branches and pull requests
 
-- `master`: mirror of upstream (1 commit behind). `apolox-master`: the fork, everything lands here by PR.
+- `master`: mirror of upstream. `apolox-dev`: development, every PR lands here. `apolox-master`: released versions
+  (gets `apolox-dev` merged in for a release). Dev builds vs release builds and their safeguards: `dev-builds.md`.
 - All work from these sessions is in one branch, `claude/beautiful-faraday-hdjqhv` (see the commit that collapsed the
   others). PRs 1–19 are merged; 20 (upstream sync) and 21 (review fixes) are open.
 - Old branches to delete by hand on GitHub (the sessions cannot delete branches): the merged `claude/beautiful-faraday-hdjqhv-*`

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Before merging a new upstream (Digimezzo) release: what changed on each side, and where conflicts will be.
 # Usage: scripts/dev/upstream-diff.sh [upstream-ref] [fork-ref]
-#   defaults: upstream-ref = origin/master (the fork's copy of upstream), fork-ref = origin/apolox-master
+#   defaults: upstream-ref = origin/master (the fork's copy of upstream), fork-ref = origin/apolox-dev
 # Read-only: it only fetches and compares.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 upstream="${1:-origin/master}"
-fork="${2:-origin/apolox-master}"
+fork="${2:-origin/apolox-dev}"
 
 git fetch -q origin 2>/dev/null || true
 if ! base=$(git merge-base "$upstream" "$fork" 2>/dev/null); then
