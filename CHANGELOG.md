@@ -35,6 +35,9 @@ Music on a home server keeps playing, even after a restart. ApoloxDragon's fork 
 - When a music folder can't be reached, the log now says what is there instead, which makes it easier to tell what
   went wrong.
 
+- Pressing Cancel in a text box (a nickname, the sleep timer's own time, sort words, artist separators, playlist
+  folders) now really cancels; before, what you had typed was used anyway. A nickname can be removed by saving it empty.
+
 ### Good to know
 
 - The song cache fills up as songs are read: run a Full refresh once (Settings, Collection, Refresh) to fill it with

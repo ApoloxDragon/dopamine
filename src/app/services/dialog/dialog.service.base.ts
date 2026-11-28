@@ -13,6 +13,16 @@ export abstract class DialogServiceBase {
         description?: string,
         icon?: string,
     ): Promise<string>;
+    /** Like showInputDialogAsync, but gives undefined when cancelled, and can allow an empty answer. */
+    public abstract showInputDialogOrCancelAsync(
+        dialogTitle: string,
+        placeHolderText: string,
+        inputText: string,
+        invalidCharacters: string[],
+        description?: string,
+        icon?: string,
+        allowEmpty?: boolean,
+    ): Promise<string | undefined>;
     public abstract showErrorDialog(errorText: string): void;
     public abstract showInfoDialog(infoText: string): void;
     public abstract showLicenseDialog(): void;

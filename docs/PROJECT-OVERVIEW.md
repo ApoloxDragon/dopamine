@@ -18,7 +18,7 @@ Free and open source under GPL-3.0, based on Dopamine 3.0.12 by Digimezzo.
 | 3.3.1-apolox | 2026-11-24 | 12, 14 | Offline network folders keep their songs, like/dislike, sleep timer, smart shuffle, recently added/played, fast/full refresh, alac2flac tool |
 | 3.3.2-apolox | 2026-11-25 | 13, 16 | Continuous play, album/artist likes (migration 18), `dopamine.json`, year in review, clearer input dialogs |
 | 3.3.3-apolox | 2026-11-25 | 15, 17 | Connected network drives (opt-in), smb:// addresses, search box in Settings |
-| 3.3.4-apolox | not released | 18 (merged), 19 (open) | Share under another name, reconnect, song cache, network drive nicknames, strict cache safety |
+| 3.3.4-apolox | not released | 18, 19 (merged), 20 (upstream sync), 21 (review fixes) | Share under another name, reconnect, song cache, network drive nicknames, strict cache safety |
 
 Release process: `claude/release-X` branch (or `apolox-master`) + `release.yml` with `publish=true` (tags cannot be pushed
 from the sessions). Notes come from the change log section via `scripts/release-notes.js`. Publish oldest first.
@@ -110,8 +110,8 @@ For the next upstream release (3.0.13 or 3.1): same steps, following `upstream-s
 
 ## 5. What comes next
 
-- **3.3.4:** merge PR 19, then release (`release.yml` on `apolox-master`, publish=true). Optional new test deb first.
-- **3.3.5:** the upstream sync above.
+- **3.3.4:** merge PRs 20 and 21, then release (`release.yml` on `apolox-master`, publish=true). Optional new test deb first.
+- **Upstream sync:** done in PR 20 (taglib 1.0.5, `patches/` folder), shipped with 3.3.4.
 - **3.4.0 (high effort, many sessions):** everything up to date (`3.4.0-plan.md`: clean-up, Electron 38 → 45, Angular
   16 → 22, test/lint tools, parsers), then Navidrome/Subsonic client, bit-perfect output on Linux with optional EQ,
   MusicBrainz tagging + batch tag editor + file organiser. Small ones: queue improvements, Ctrl+K, duplicate finder.
@@ -139,8 +139,32 @@ For the next upstream release (3.0.13 or 3.1): same steps, following `upstream-s
 
 - `master`: mirror of upstream (1 commit behind). `apolox-master`: the fork, everything lands here by PR.
 - All work from these sessions is in one branch, `claude/beautiful-faraday-hdjqhv` (see the commit that collapsed the
-  others). PRs 1–18 are merged; PR 19 is open.
+  others). PRs 1–19 are merged; 20 (upstream sync) and 21 (review fixes) are open.
+- Old branches to delete by hand on GitHub (the sessions cannot delete branches): the merged `claude/beautiful-faraday-hdjqhv-*`
+  branches and `claude/release-*`. Keep `claude/experimental`.
 - Release branches (`claude/release-3.2.1`, `claude/release-3.3.1-apolox`, `claude/release-3.3.2-apolox`) were used for
   release builds, not PRs. `claude/experimental` was never used in a PR.
 - Older non-Claude branches (`armBuild`, `audioDeviceSelection`, `discord`, `fix1241`, `fix1262`, `1101_…`, `1215_…`,
   `1279_…`, `supportWebPCovers`) come from upstream's history and are left alone.
+
+## 8. Review of 3.3.4 (2026-11-28): fixed and still to do
+
+Fixed (PR 21):
+- Cancel in text dialogs gave back what was typed (nicknames, sleep timer custom time, sort prefixes, artist
+  separators, playlist folders). Cancel now gives nothing; `DialogService.showInputDialogOrCancelAsync` tells cancel
+  apart from an empty answer.
+- A nickname could not be removed (OK was off with an empty field): `InputData.allowEmpty`.
+
+Still to do, each small and on its own (in this order):
+1. **Song cache vs. "Full refresh" after a reader update.** With the cache on, a full refresh reuses cached tags, so an
+   update that reads tags better (like taglib 1.0.5) is not applied. Fix: write a `reader` field in the cache file
+   (Dopamine version + `@digimezzo/node-taglib-sharp` version); in `SongCache.parse`, treat a different reader as no
+   cache (it is then rebuilt). Files: `main/background-work/indexing/song-cache.js` (+ spec).
+2. **Startup could wait on a sleeping share.** `NetworkShareGuardService.relocateMovedShares` checks each music folder
+   with a synchronous `existsSync` in the window process; a gvfs share whose server sleeps can block it. Fix: make it
+   async (`fs.promises.access` with a 3 s timeout per share) and in `app.component.ts` await it with an overall cap.
+   High effort (startup and playback paths).
+3. **One extra network check per new song.** `SongCache.get` stats the file before looking for an entry. Fix: return
+   early when there is no entry, then stat.
+4. **Translations.** The 3.3.4 texts (reconnect, song cache, share not connected, nicknames: 12 keys) are English in the
+   other 24 languages. Use the same approach as the Settings search keys (one node script over `src/assets/i18n`).

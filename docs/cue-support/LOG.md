@@ -417,3 +417,6 @@ None of this replaces trying it in the app with real albums: see "Testing in the
 
 - **2026-11-27** · `Note` · Project overview: docs/PROJECT-OVERVIEW.md; upstream checked (3 commits since 19bd0ab8: patches/ folder, node-taglib-sharp ^1.0.5)
     - Claude branches collapsed into claude/beautiful-faraday-hdjqhv (everything from PRs 1-19).
+
+- **2026-11-28** · `Fixed` · 3.3.4 review: Cancel in text dialogs really cancels; nicknames can be removed
+    - showInputDialogOrCancelAsync + InputData.allowEmpty; the rest of the review is listed in PROJECT-OVERVIEW.md section 8.

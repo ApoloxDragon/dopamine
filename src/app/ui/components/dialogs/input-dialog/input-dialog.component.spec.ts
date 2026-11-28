@@ -90,4 +90,24 @@ describe('InputDialogComponent', () => {
             dialogRefMock.verify((x) => x.close(true), Times.once());
         });
     });
+
+    describe('allowEmpty (for example removing a nickname)', () => {
+        it('should let OK close the dialog with an empty field', () => {
+            component.data.inputText = '';
+            component.data.allowEmpty = true;
+
+            component.closeDialog();
+
+            expect(component.canConfirm).toBe(true);
+            dialogRefMock.verify((x) => x.close(true), Times.once());
+            component.data.allowEmpty = false;
+        });
+
+        it('should still need text when an empty answer is not allowed', () => {
+            component.data.inputText = '   ';
+            component.data.allowEmpty = false;
+
+            expect(component.canConfirm).toBe(false);
+        });
+    });
 });
