@@ -20,6 +20,11 @@ Music on a home server keeps playing, even after a restart. ApoloxDragon's fork 
 - Nicknames for network drives: select a network folder in Settings, Collection and click the pencil to call it, for
   example, "Home server". The nickname is shown instead of the long folder path, also when Dopamine asks to connect it.
 
+### Changed
+
+- Brought in the latest changes from official Dopamine: the part that reads your songs' details (tags) is updated to
+  its newest version.
+
 ### Fixed
 
 - Songs on a network share no longer go missing when the share comes back under a slightly different name (for example
