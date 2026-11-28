@@ -72,7 +72,7 @@ export class DiscordApi {
             smallImageKey: args.smallImageKey,
             smallImageText: DiscordApi.fitText(args.smallImageText),
             type: args.type,
-            // Sent as status_display_type (see patch-discord-rpc.js).
+            // Sent as status_display_type (see patches/patch-discord-rpc.js).
             statusDisplayType: args.statusDisplayType,
         };
 

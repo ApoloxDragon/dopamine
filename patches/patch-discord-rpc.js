@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const filePath = path.join(__dirname, 'node_modules/discord-rpc/src/client.js');
+const filePath = path.join(__dirname, '../node_modules/discord-rpc/src/client.js');
 const anchor = `        instance: !!args.instance,\n`;
 const additions = [`        type: args.type,\n`, `        status_display_type: args.statusDisplayType,\n`];
 
